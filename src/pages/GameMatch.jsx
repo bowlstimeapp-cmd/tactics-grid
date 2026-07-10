@@ -76,7 +76,7 @@ export default function GameMatch() {
         }
       }
       setIsAIThinking(false);
-    }, 800);
+    }, 10000);
 
     return () => clearTimeout(timer);
   }, [phase, gameState, isAIThinking, difficulty]);
