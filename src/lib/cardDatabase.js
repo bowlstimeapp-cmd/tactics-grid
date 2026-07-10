@@ -155,3 +155,16 @@ export function getCardsByRarity(rarity) {
 export function getCardsByFaction(faction) {
   return ALL_CARDS.filter(c => c.faction === faction);
 }
+
+export function applyCardOverrides(overrides) {
+  if (!overrides) return;
+  for (const card of ALL_CARDS) {
+    const ov = overrides[card.card_id];
+    if (ov) {
+      if (ov.north !== undefined) card.north = ov.north;
+      if (ov.east !== undefined) card.east = ov.east;
+      if (ov.south !== undefined) card.south = ov.south;
+      if (ov.west !== undefined) card.west = ov.west;
+    }
+  }
+}

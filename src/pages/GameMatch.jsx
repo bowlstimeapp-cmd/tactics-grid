@@ -12,7 +12,9 @@ import CardDetailModal from '@/components/game/CardDetailModal';
 import { createGameState, placeCard, getEffectiveStats } from '@/lib/gameEngine';
 import { getRandomLayout, BOARD_LAYOUTS } from '@/lib/gameData';
 import { getAIMove } from '@/lib/ai';
-import { ALL_CARDS } from '@/lib/cardDatabase';
+import { ALL_CARDS, applyCardOverrides } from '@/lib/cardDatabase';
+import { base44 } from '@/api/base44Client';
+import { loadGameConfig } from '@/lib/gameConfig';
 
 export default function GameMatch() {
   const navigate = useNavigate();
@@ -28,9 +30,42 @@ export default function GameMatch() {
   const [isAIThinking, setIsAIThinking] = useState(false);
   const aiThinkingRef = useRef(false);
   const [rewards, setRewards] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [inspectMode, setInspectMode] = useState(false);
   const [inspectCard, setInspectCard] = useState(null);
   const [inspectStats, setInspectStats] = useState(null);
+
+  useEffect(() => {
+    async function init() {
+      try {
+        const cfg = await loadGameConfig();
+        applyCardOverrides(cfg.card_overrides);
+      } catch (e) { console.error(e); }
+      try {
+        const me = await base44.auth.me();
+        const profiles = await base44.entities.PlayerProfile.filter({ created_by_id: me.id });
+        if (profiles[0]) setProfile(profiles[0]);
+      } catch (e) { console.error(e); }
+    }
+    init();
+  }, []);
+
+  const persistRewards = async (won) => {
+    if (!profile) return;
+    const coins = won ? 50 : 10;
+    const xp = won ? 30 : 10;
+    const newWinStreak = won ? (profile.win_streak || 0) + 1 : 0;
+    const updated = await base44.entities.PlayerProfile.update(profile.id, {
+      coins: (profile.coins || 0) + coins,
+      xp: (profile.xp || 0) + xp,
+      games_played: (profile.games_played || 0) + 1,
+      wins: (profile.wins || 0) + (won ? 1 : 0),
+      losses: (profile.losses || 0) + (won ? 0 : 1),
+      win_streak: newWinStreak,
+      best_win_streak: Math.max(profile.best_win_streak || 0, newWinStreak),
+    });
+    setProfile(updated);
+  };
 
   const handleDeckSelect = (cards) => {
     setPlayerCards(cards);
@@ -74,6 +109,7 @@ export default function GameMatch() {
         if (afterAI.gameOver) {
           const won = afterAI.winner === 1;
           setRewards({ coins: won ? 50 : 10, xp: won ? 30 : 10 });
+          persistRewards(won);
           setPhase('gameover');
         }
       }
@@ -112,6 +148,7 @@ export default function GameMatch() {
     if (newState.gameOver) {
       const won = newState.winner === 1;
       setRewards({ coins: won ? 50 : 10, xp: won ? 30 : 10 });
+      persistRewards(won);
       setPhase('gameover');
     }
   }, [gameState, selectedCardIndex, isAIThinking, inspectMode]);

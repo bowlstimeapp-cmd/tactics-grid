@@ -24,6 +24,7 @@ import Shop from '@/pages/Shop';
 import Leaderboard from '@/pages/Leaderboard';
 import Achievements from '@/pages/Achievements';
 import Quests from '@/pages/Quests';
+import Admin from '@/pages/Admin';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -64,6 +65,7 @@ const AuthenticatedApp = () => {
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/achievements" element={<Achievements />} />
         <Route path="/quests" element={<Quests />} />
+        <Route path="/admin" element={<Admin />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
-import { Sword, ShieldHalf, Bot, Library, Layers, Store, Trophy, Scroll, Star, ChevronRight, LogOut } from 'lucide-react';
+import { Sword, ShieldHalf, Bot, Library, Layers, Store, Trophy, Scroll, Star, ChevronRight, LogOut, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { getRankForElo, FACTION_CONFIG } from '@/lib/gameData';
@@ -177,6 +177,17 @@ export default function Home() {
             </motion.div>
           ))}
         </div>
+
+        {user?.role === 'admin' && (
+          <Link
+            to="/admin"
+            className="flex items-center gap-3 p-3.5 rounded-xl bg-amber-900/20 border border-amber-500/30 hover:border-amber-500/50 hover:bg-amber-900/30 transition-all mt-3"
+          >
+            <Settings className="w-5 h-5 text-amber-400" />
+            <span className="text-sm font-medium flex-1">Admin Dashboard</span>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          </Link>
+        )}
       </div>
     </div>
   );

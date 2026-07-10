@@ -1,0 +1,27 @@
+import { base44 } from '@/api/base44Client';
+import { PACK_COST, PACK_SIZE, PACK_ODDS } from './gameData';
+
+const DEFAULT_CONFIG = {
+  standard_pack_cost: PACK_COST,
+  standard_pack_size: PACK_SIZE,
+  faction_pack_cost: 150,
+  pack_odds: PACK_ODDS,
+  card_overrides: {},
+};
+
+export async function loadGameConfig() {
+  try {
+    const response = await base44.functions.invoke('gameConfig', { action: 'get' });
+    return response.data.config;
+  } catch (e) {
+    console.error('Failed to load game config:', e);
+    return DEFAULT_CONFIG;
+  }
+}
+
+export async function saveGameConfig(configId, data) {
+  const response = await base44.functions.invoke('gameConfig', { action: 'save', configId, data });
+  return response.data.config;
+}
+
+export { DEFAULT_CONFIG };

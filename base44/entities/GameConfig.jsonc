@@ -1,0 +1,50 @@
+{
+  "name": "GameConfig",
+  "type": "object",
+  "properties": {
+    "standard_pack_cost": {
+      "type": "number",
+      "default": 100
+    },
+    "standard_pack_size": {
+      "type": "number",
+      "default": 3
+    },
+    "faction_pack_cost": {
+      "type": "number",
+      "default": 150
+    },
+    "pack_odds": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "default": [
+        {
+          "rarity": "Common",
+          "weight": 65
+        },
+        {
+          "rarity": "Uncommon",
+          "weight": 23
+        },
+        {
+          "rarity": "Rare",
+          "weight": 9
+        },
+        {
+          "rarity": "Epic",
+          "weight": 2.5
+        },
+        {
+          "rarity": "Legendary",
+          "weight": 0.5
+        }
+      ]
+    },
+    "card_overrides": {
+      "type": "object",
+      "default": {}
+    }
+  }
+}

@@ -2,26 +2,30 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Package } from 'lucide-react';
+import { ArrowLeft, Package, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import GameCard from '@/components/game/GameCard';
-import { ALL_CARDS, getCardById } from '@/lib/cardDatabase';
-import { PACK_COST, PACK_SIZE, PACK_ODDS, ESSENCE_VALUES } from '@/lib/gameData';
+import { ALL_CARDS, getCardsByFaction, applyCardOverrides } from '@/lib/cardDatabase';
+import { FACTION_CONFIG, ESSENCE_VALUES } from '@/lib/gameData';
+import { loadGameConfig } from '@/lib/gameConfig';
 
-function rollRarity() {
-  const roll = Math.random() * 100;
+const FACTIONS = Object.keys(FACTION_CONFIG);
+
+function rollRarity(odds) {
+  const total = odds.reduce((s, o) => s + o.weight, 0);
+  const roll = Math.random() * total;
   let cumulative = 0;
-  for (const { rarity, weight } of PACK_ODDS) {
+  for (const { rarity, weight } of odds) {
     cumulative += weight;
     if (roll <= cumulative) return rarity;
   }
   return 'Common';
 }
 
-function openPack() {
+function openStandardPack(size, odds) {
   const cards = [];
-  for (let i = 0; i < PACK_SIZE; i++) {
-    const rarity = rollRarity();
+  for (let i = 0; i < size; i++) {
+    const rarity = rollRarity(odds);
     const pool = ALL_CARDS.filter(c => c.rarity === rarity);
     const card = pool[Math.floor(Math.random() * pool.length)];
     cards.push(card);
@@ -29,9 +33,18 @@ function openPack() {
   return cards;
 }
 
+function openFactionPack(faction, odds) {
+  const factionCards = getCardsByFaction(faction);
+  const rarity = rollRarity(odds);
+  let pool = factionCards.filter(c => c.rarity === rarity);
+  if (pool.length === 0) pool = factionCards;
+  return [pool[Math.floor(Math.random() * pool.length)]];
+}
+
 export default function Shop() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
+  const [config, setConfig] = useState(null);
   const [loading, setLoading] = useState(true);
   const [packCards, setPackCards] = useState(null);
   const [opening, setOpening] = useState(false);
@@ -39,22 +52,33 @@ export default function Shop() {
 
   useEffect(() => {
     async function load() {
-      const me = await base44.auth.me();
-      const profiles = await base44.entities.PlayerProfile.filter({ created_by_id: me.id });
-      if (profiles[0]) setProfile(profiles[0]);
+      try {
+        const cfg = await loadGameConfig();
+        setConfig(cfg);
+        applyCardOverrides(cfg.card_overrides);
+      } catch (e) { console.error(e); }
+      try {
+        const me = await base44.auth.me();
+        const profiles = await base44.entities.PlayerProfile.filter({ created_by_id: me.id });
+        if (profiles[0]) setProfile(profiles[0]);
+      } catch (e) { console.error(e); }
       setLoading(false);
     }
     load();
   }, []);
 
-  const buyPack = async () => {
-    if (!profile || profile.coins < PACK_COST || opening) return;
+  const buyPack = async (type, faction) => {
+    if (!profile || !config || opening) return;
+    const cost = type === 'standard' ? config.standard_pack_cost : config.faction_pack_cost;
+    if (profile.coins < cost) return;
+
     setOpening(true);
     setRevealIndex(-1);
-    const cards = openPack();
+    const cards = type === 'standard'
+      ? openStandardPack(config.standard_pack_size, config.pack_odds)
+      : openFactionPack(faction, config.pack_odds);
     setPackCards(cards);
 
-    // Update profile
     const newCollection = { ...(profile.collection || {}) };
     let essenceGained = 0;
     cards.forEach(card => {
@@ -66,13 +90,12 @@ export default function Shop() {
     });
 
     const updated = await base44.entities.PlayerProfile.update(profile.id, {
-      coins: profile.coins - PACK_COST,
+      coins: profile.coins - cost,
       essence: (profile.essence || 0) + essenceGained,
       collection: newCollection,
     });
     setProfile(updated);
 
-    // Reveal animation
     for (let i = 0; i < cards.length; i++) {
       await new Promise(r => setTimeout(r, 600));
       setRevealIndex(i);
@@ -98,7 +121,6 @@ export default function Shop() {
         </div>
       </div>
 
-      {/* Pack reveal area */}
       <AnimatePresence>
         {packCards && (
           <motion.div
@@ -108,7 +130,7 @@ export default function Shop() {
             className="bg-slate-800/60 rounded-xl border border-amber-900/20 p-6 mb-6"
           >
             <h3 className="font-heading text-center text-amber-200 mb-4">Pack Opened!</h3>
-            <div className="flex justify-center gap-4">
+            <div className="flex justify-center gap-4 flex-wrap">
               {packCards.map((card, i) => (
                 <motion.div
                   key={i}
@@ -131,39 +153,73 @@ export default function Shop() {
         )}
       </AnimatePresence>
 
-      {/* Booster packs */}
-      <div className="max-w-md mx-auto space-y-4">
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          className={`bg-gradient-to-br from-amber-900/30 to-slate-800/60 rounded-xl border border-amber-500/20 p-6 ${opening ? 'pointer-events-none opacity-50' : 'cursor-pointer'}`}
-          onClick={buyPack}
-        >
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-20 rounded-lg bg-gradient-to-br from-amber-600 to-amber-800 flex items-center justify-center text-3xl pulse-gold">
-              <Package className="w-8 h-8 text-black" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-heading text-lg text-amber-100">Standard Pack</h3>
-              <p className="text-xs text-muted-foreground">3 random cards. Duplicates become Essence.</p>
-              <div className="flex gap-2 mt-1 text-[10px] text-muted-foreground">
-                <span>65% Common</span>
-                <span>23% Uncommon</span>
-                <span>9% Rare</span>
-                <span>2.5% Epic</span>
-                <span>0.5% Legendary</span>
+      <div className="max-w-md mx-auto space-y-6">
+        {/* Standard Pack */}
+        <div>
+          <h3 className="font-heading text-sm text-amber-400/70 uppercase tracking-widest mb-3">Standard Pack</h3>
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className={`bg-gradient-to-br from-amber-900/30 to-slate-800/60 rounded-xl border border-amber-500/20 p-6 ${opening ? 'pointer-events-none opacity-50' : 'cursor-pointer'}`}
+            onClick={() => buyPack('standard')}
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-20 rounded-lg bg-gradient-to-br from-amber-600 to-amber-800 flex items-center justify-center text-3xl pulse-gold">
+                <Package className="w-8 h-8 text-black" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-heading text-lg text-amber-100">Standard Pack</h3>
+                <p className="text-xs text-muted-foreground">{config?.standard_pack_size || 3} random cards. Duplicates become Essence.</p>
+                <div className="flex gap-2 mt-1 text-[10px] text-muted-foreground">
+                  {config?.pack_odds?.map(o => (
+                    <span key={o.rarity}>{o.weight}% {o.rarity[0]}</span>
+                  ))}
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center gap-1">
+                  <span>🪙</span>
+                  <span className="font-heading text-amber-300 text-lg">{config?.standard_pack_cost ?? 100}</span>
+                </div>
               </div>
             </div>
-            <div className="text-center">
-              <div className="flex items-center gap-1">
-                <span>🪙</span>
-                <span className="font-heading text-amber-300 text-lg">{PACK_COST}</span>
-              </div>
-            </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
 
-        {(profile?.coins || 0) < PACK_COST && (
+        {/* Faction Packs */}
+        <div>
+          <h3 className="font-heading text-sm text-amber-400/70 uppercase tracking-widest mb-3">Faction Packs</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {FACTIONS.map(faction => {
+              const fc = FACTION_CONFIG[faction];
+              return (
+                <motion.div
+                  key={faction}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`bg-slate-800/40 rounded-xl border border-slate-700/30 p-4 ${opening ? 'pointer-events-none opacity-50' : 'cursor-pointer hover:border-amber-500/30'}`}
+                  onClick={() => buyPack('faction', faction)}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-16 rounded-lg flex items-center justify-center text-2xl" style={{ background: `linear-gradient(135deg, ${fc.color}33, hsl(230, 15%, 10%))` }}>
+                      {fc.icon}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-heading text-sm text-amber-100">{faction} Pack</h3>
+                      <p className="text-xs text-muted-foreground">1 {faction} card</p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>🪙</span>
+                      <span className="text-sm font-heading text-amber-300">{config?.faction_pack_cost ?? 150}</span>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+
+        {(profile?.coins || 0) < (config?.standard_pack_cost ?? 100) && (
           <p className="text-center text-xs text-muted-foreground">Not enough coins. Play matches to earn more!</p>
         )}
 
