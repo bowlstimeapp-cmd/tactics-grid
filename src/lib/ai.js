@@ -46,7 +46,7 @@ export function hardAI(gameState) {
   for (let ci = 0; ci < hand.length; ci++) {
     for (const [r, c] of moves) {
       const newState = placeCard(gameState, ci, r, c);
-      const score = minimax(newState, 4, -Infinity, Infinity, false, player);
+      const score = minimax(newState, 2, -Infinity, Infinity, false, player);
       if (score > bestScore) {
         bestScore = score;
         bestMove = { cardIndex: ci, row: r, col: c };
