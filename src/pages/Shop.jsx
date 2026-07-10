@@ -48,7 +48,7 @@ export default function Shop() {
   }, []);
 
   const buyPack = async () => {
-    if (!profile || profile.coins < PACK_COST) return;
+    if (!profile || profile.coins < PACK_COST || opening) return;
     setOpening(true);
     setRevealIndex(-1);
     const cards = openPack();
@@ -136,7 +136,7 @@ export default function Shop() {
         <motion.div
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="bg-gradient-to-br from-amber-900/30 to-slate-800/60 rounded-xl border border-amber-500/20 p-6 cursor-pointer"
+          className={`bg-gradient-to-br from-amber-900/30 to-slate-800/60 rounded-xl border border-amber-500/20 p-6 ${opening ? 'pointer-events-none opacity-50' : 'cursor-pointer'}`}
           onClick={buyPack}
         >
           <div className="flex items-center gap-4">

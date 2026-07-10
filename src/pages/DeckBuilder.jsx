@@ -97,7 +97,11 @@ export default function DeckBuilder() {
       {decks.length === 0 ? (
         <div className="text-center text-muted-foreground mt-12">
           <p>No decks yet. Create one to start building!</p>
-          <p className="text-xs mt-1">You need to own cards first — open some packs in the Shop.</p>
+          {ownedCards.length === 0 ? (
+            <p className="text-xs mt-1">You need to own cards first — open some packs in the Shop.</p>
+          ) : (
+            <p className="text-xs mt-1">You own {ownedCards.length} cards — tap "New Deck" to get started!</p>
+          )}
         </div>
       ) : (
         <div className="space-y-3">
