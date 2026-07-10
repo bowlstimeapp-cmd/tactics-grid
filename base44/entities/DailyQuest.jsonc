@@ -1,0 +1,47 @@
+{
+  "name": "DailyQuest",
+  "type": "object",
+  "properties": {
+    "quest_type": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "target": {
+      "type": "number"
+    },
+    "progress": {
+      "type": "number",
+      "default": 0
+    },
+    "reward_coins": {
+      "type": "number",
+      "default": 0
+    },
+    "reward_xp": {
+      "type": "number",
+      "default": 0
+    },
+    "reward_essence": {
+      "type": "number",
+      "default": 0
+    },
+    "completed": {
+      "type": "boolean",
+      "default": false
+    },
+    "claimed": {
+      "type": "boolean",
+      "default": false
+    },
+    "expires_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "quest_type",
+    "description",
+    "target"
+  ]
+}

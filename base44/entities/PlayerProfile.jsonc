@@ -1,0 +1,115 @@
+{
+  "name": "PlayerProfile",
+  "type": "object",
+  "properties": {
+    "username": {
+      "type": "string"
+    },
+    "avatar": {
+      "type": "string",
+      "default": "default"
+    },
+    "banner": {
+      "type": "string",
+      "default": "default"
+    },
+    "elo": {
+      "type": "number",
+      "default": 1200
+    },
+    "rank": {
+      "type": "string",
+      "default": "Bronze"
+    },
+    "coins": {
+      "type": "number",
+      "default": 500
+    },
+    "essence": {
+      "type": "number",
+      "default": 0
+    },
+    "xp": {
+      "type": "number",
+      "default": 0
+    },
+    "level": {
+      "type": "number",
+      "default": 1
+    },
+    "games_played": {
+      "type": "number",
+      "default": 0
+    },
+    "wins": {
+      "type": "number",
+      "default": 0
+    },
+    "losses": {
+      "type": "number",
+      "default": 0
+    },
+    "draws": {
+      "type": "number",
+      "default": 0
+    },
+    "win_streak": {
+      "type": "number",
+      "default": 0
+    },
+    "best_win_streak": {
+      "type": "number",
+      "default": 0
+    },
+    "favourite_faction": {
+      "type": "string",
+      "default": ""
+    },
+    "favourite_card_id": {
+      "type": "string",
+      "default": ""
+    },
+    "season_badges": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "achievements": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "card_backs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [
+        "default"
+      ]
+    },
+    "active_card_back": {
+      "type": "string",
+      "default": "default"
+    },
+    "collection": {
+      "type": "object",
+      "default": {}
+    },
+    "card_xp": {
+      "type": "object",
+      "default": {}
+    },
+    "active_deck_id": {
+      "type": "string",
+      "default": ""
+    }
+  },
+  "required": [
+    "username"
+  ]
+}

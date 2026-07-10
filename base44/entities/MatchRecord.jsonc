@@ -1,0 +1,69 @@
+{
+  "name": "MatchRecord",
+  "type": "object",
+  "properties": {
+    "match_type": {
+      "type": "string",
+      "enum": [
+        "ranked",
+        "casual",
+        "ai",
+        "private"
+      ]
+    },
+    "player1_id": {
+      "type": "string"
+    },
+    "player2_id": {
+      "type": "string"
+    },
+    "player1_name": {
+      "type": "string"
+    },
+    "player2_name": {
+      "type": "string"
+    },
+    "winner_id": {
+      "type": "string"
+    },
+    "player1_score": {
+      "type": "number"
+    },
+    "player2_score": {
+      "type": "number"
+    },
+    "player1_cards": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "player2_cards": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "moves": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "default": []
+    },
+    "board_layout": {
+      "type": "string"
+    },
+    "duration_seconds": {
+      "type": "number"
+    },
+    "elo_change": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "match_type",
+    "player1_id"
+  ]
+}

@@ -62,9 +62,9 @@ module.exports = {
   			}
   		},
   		fontFamily: {
-  			heading: ['var(--font-heading)'],
-  			body: ['var(--font-body)'],
-  			display: ['var(--font-display)'],
+  			heading: ['Cinzel', 'var(--font-heading)', 'serif'],
+  			body: ['Inter', 'var(--font-body)', 'sans-serif'],
+  			display: ['Cinzel', 'var(--font-display)', 'serif'],
   			mono: ['var(--font-mono)']
   		},
   		keyframes: {

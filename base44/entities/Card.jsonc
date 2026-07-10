@@ -1,0 +1,80 @@
+{
+  "name": "Card",
+  "type": "object",
+  "properties": {
+    "card_id": {
+      "type": "string",
+      "description": "Unique card identifier like CARD_001"
+    },
+    "name": {
+      "type": "string"
+    },
+    "rarity": {
+      "type": "string",
+      "enum": [
+        "Common",
+        "Uncommon",
+        "Rare",
+        "Epic",
+        "Legendary"
+      ]
+    },
+    "faction": {
+      "type": "string",
+      "enum": [
+        "Knights",
+        "Dragons",
+        "Beasts",
+        "Mages",
+        "Machines",
+        "Spirits",
+        "Assassins",
+        "Undead"
+      ]
+    },
+    "card_type": {
+      "type": "string"
+    },
+    "north": {
+      "type": "number"
+    },
+    "east": {
+      "type": "number"
+    },
+    "south": {
+      "type": "number"
+    },
+    "west": {
+      "type": "number"
+    },
+    "passive_id": {
+      "type": "string"
+    },
+    "passive_name": {
+      "type": "string"
+    },
+    "passive_description": {
+      "type": "string"
+    },
+    "passive_icon": {
+      "type": "string"
+    },
+    "flavour_text": {
+      "type": "string"
+    },
+    "artwork_url": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "card_id",
+    "name",
+    "rarity",
+    "faction",
+    "north",
+    "east",
+    "south",
+    "west",
+    "passive_id"
+  ]
+}
