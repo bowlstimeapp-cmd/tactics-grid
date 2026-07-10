@@ -1,7 +1,7 @@
 import React from 'react';
 import GameCard from './GameCard';
 
-export default function PlayerHand({ cards, selectedIndex, onSelect, isActive, playerNum, playerName }) {
+export default function PlayerHand({ cards, selectedIndex, onSelect, isActive, playerNum, playerName, onInspect }) {
   return (
     <div className={`space-y-2 ${isActive ? '' : 'opacity-60'}`}>
       <div className="flex items-center gap-2 px-1">
@@ -16,7 +16,10 @@ export default function PlayerHand({ cards, selectedIndex, onSelect, isActive, p
             card={card}
             size="sm"
             selected={selectedIndex === idx}
-            onClick={() => isActive && onSelect(idx)}
+            onClick={() => {
+              if (onInspect) onInspect(card);
+              else if (isActive) onSelect(idx);
+            }}
           />
         ))}
       </div>

@@ -2,49 +2,41 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Undo2 } from 'lucide-react';
+import { ArrowLeft, Undo2, Search } from 'lucide-react';
 import GameBoard from '@/components/game/GameBoard';
 import PlayerHand from '@/components/game/PlayerHand';
-import CardSelectModal from '@/components/game/CardSelectModal';
+import DeckSelectModal from '@/components/game/DeckSelectModal';
+import CoinFlip from '@/components/game/CoinFlip';
 import GameOverModal from '@/components/game/GameOverModal';
-import { createGameState, placeCard } from '@/lib/gameEngine';
-import { getRandomLayout } from '@/lib/gameData';
+import CardDetailModal from '@/components/game/CardDetailModal';
+import { createGameState, placeCard, getEffectiveStats } from '@/lib/gameEngine';
+import { getRandomLayout, BOARD_LAYOUTS } from '@/lib/gameData';
 import { getAIMove } from '@/lib/ai';
-import { ALL_CARDS, getCardById } from '@/lib/cardDatabase';
-import { BOARD_LAYOUTS } from '@/lib/gameData';
+import { ALL_CARDS } from '@/lib/cardDatabase';
 
 export default function GameMatch() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const difficulty = searchParams.get('difficulty') || 'medium';
-  const deckParam = searchParams.get('deck'); // comma-separated card_ids
 
-  const [phase, setPhase] = useState('select'); // select, layout, playing, gameover
-  const [deck, setDeck] = useState([]);
+  const [phase, setPhase] = useState('deckselect'); // deckselect, coinflip, layout, playing, gameover
+  const [playerCards, setPlayerCards] = useState([]);
   const [gameState, setGameState] = useState(null);
   const [selectedCardIndex, setSelectedCardIndex] = useState(null);
   const [layoutKey, setLayoutKey] = useState('');
   const [history, setHistory] = useState([]);
   const [isAIThinking, setIsAIThinking] = useState(false);
   const [rewards, setRewards] = useState(null);
+  const [inspectMode, setInspectMode] = useState(false);
+  const [inspectCard, setInspectCard] = useState(null);
+  const [inspectStats, setInspectStats] = useState(null);
 
-  // Build deck from params or use starter cards
-  useEffect(() => {
-    let cards;
-    if (deckParam) {
-      cards = deckParam.split(',').map(id => getCardById(id)).filter(Boolean);
-    }
-    if (!cards || cards.length < 5) {
-      // Give a starter deck of 20 random cards
-      const shuffled = [...ALL_CARDS].sort(() => Math.random() - 0.5);
-      cards = shuffled.slice(0, 20);
-    }
-    setDeck(cards);
-  }, [deckParam]);
+  const handleDeckSelect = (cards) => {
+    setPlayerCards(cards);
+    setPhase('coinflip');
+  };
 
-  const handleCardSelect = useCallback((selectedIds) => {
-    const playerCards = selectedIds.map(id => getCardById(id)).filter(Boolean);
-    // AI picks 5 random cards weighted by difficulty
+  const handleCoinFlip = (firstPlayer) => {
     let aiPool = [...ALL_CARDS];
     if (difficulty === 'easy') {
       aiPool = aiPool.filter(c => c.rarity === 'Common' || c.rarity === 'Uncommon');
@@ -59,15 +51,54 @@ export default function GameMatch() {
     setPhase('layout');
 
     setTimeout(() => {
-      const gs = createGameState(playerCards, aiCards, lk);
+      const gs = createGameState(playerCards, aiCards, lk, firstPlayer);
       setGameState(gs);
       setHistory([]);
       setPhase('playing');
     }, 2000);
-  }, [difficulty]);
+  };
+
+  // AI turn — handles both AI-first (from coin flip) and AI response after player move
+  useEffect(() => {
+    if (phase !== 'playing' || !gameState || gameState.gameOver) return;
+    if (gameState.currentPlayer !== 2 || isAIThinking) return;
+
+    setIsAIThinking(true);
+    const timer = setTimeout(() => {
+      const aiMove = getAIMove(gameState, difficulty);
+      if (aiMove) {
+        const afterAI = placeCard(gameState, aiMove.cardIndex, aiMove.row, aiMove.col);
+        setGameState(afterAI);
+        if (afterAI.gameOver) {
+          const won = afterAI.winner === 1;
+          setRewards({ coins: won ? 50 : 10, xp: won ? 30 : 10 });
+          setPhase('gameover');
+        }
+      }
+      setIsAIThinking(false);
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [phase, gameState, isAIThinking, difficulty]);
 
   const handleCellClick = useCallback((row, col) => {
-    if (!gameState || gameState.gameOver || gameState.currentPlayer !== 1 || selectedCardIndex === null || isAIThinking) return;
+    if (!gameState || gameState.gameOver) return;
+
+    // Inspect mode: clicking a placed card shows its details
+    if (inspectMode) {
+      const card = gameState.board[row][col];
+      if (card) {
+        const boardWithTiles = gameState.board;
+        if (!boardWithTiles._tiles) {
+          Object.defineProperty(boardWithTiles, '_tiles', { value: gameState.tiles, writable: true, enumerable: false, configurable: true });
+        }
+        setInspectCard(card);
+        setInspectStats(getEffectiveStats(card, [row, col], boardWithTiles, gameState.turn));
+      }
+      return;
+    }
+
+    if (gameState.currentPlayer !== 1 || selectedCardIndex === null || isAIThinking) return;
     if (gameState.board[row][col]) return;
 
     setHistory(prev => [...prev, JSON.parse(JSON.stringify(gameState))]);
@@ -79,31 +110,24 @@ export default function GameMatch() {
       const won = newState.winner === 1;
       setRewards({ coins: won ? 50 : 10, xp: won ? 30 : 10 });
       setPhase('gameover');
-      return;
     }
+  }, [gameState, selectedCardIndex, isAIThinking, inspectMode]);
 
-    // AI turn
-    setIsAIThinking(true);
-    setTimeout(() => {
-      const aiMove = getAIMove(newState, difficulty);
-      if (aiMove) {
-        const afterAI = placeCard(newState, aiMove.cardIndex, aiMove.row, aiMove.col);
-        setGameState(afterAI);
-        if (afterAI.gameOver) {
-          const won = afterAI.winner === 1;
-          setRewards({ coins: won ? 50 : 10, xp: won ? 30 : 10 });
-          setPhase('gameover');
-        }
-      }
-      setIsAIThinking(false);
-    }, 800);
-  }, [gameState, selectedCardIndex, isAIThinking, difficulty]);
+  const handleHandInspect = useCallback((card) => {
+    setInspectCard(card);
+    setInspectStats(null);
+  }, []);
 
   const handleUndo = () => {
-    if (history.length === 0) return;
+    if (history.length === 0 || isAIThinking) return;
     const prev = history[history.length - 1];
     setHistory(h => h.slice(0, -1));
     setGameState(prev);
+    setSelectedCardIndex(null);
+  };
+
+  const toggleInspect = () => {
+    setInspectMode(prev => !prev);
     setSelectedCardIndex(null);
   };
 
@@ -119,16 +143,33 @@ export default function GameMatch() {
         <span className="font-heading text-amber-200 text-sm">
           {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)} AI Match
         </span>
-        {phase === 'playing' && (
-          <Button variant="ghost" size="sm" onClick={handleUndo} disabled={history.length === 0} className="text-muted-foreground">
-            <Undo2 className="w-4 h-4 mr-1" /> Undo
-          </Button>
-        )}
+        <div className="flex items-center gap-1">
+          {phase === 'playing' && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleInspect}
+              className={inspectMode ? 'text-amber-400 bg-amber-500/10' : 'text-muted-foreground'}
+            >
+              <Search className="w-4 h-4 mr-1" /> {inspectMode ? 'Inspect On' : 'Inspect'}
+            </Button>
+          )}
+          {phase === 'playing' && !inspectMode && (
+            <Button variant="ghost" size="sm" onClick={handleUndo} disabled={history.length === 0 || isAIThinking} className="text-muted-foreground">
+              <Undo2 className="w-4 h-4 mr-1" /> Undo
+            </Button>
+          )}
+        </div>
       </div>
 
-      {/* Card Select Phase */}
-      {phase === 'select' && deck.length > 0 && (
-        <CardSelectModal open={true} deck={deck} onConfirm={handleCardSelect} />
+      {/* Deck Select Phase */}
+      {phase === 'deckselect' && (
+        <DeckSelectModal open={true} onConfirm={handleDeckSelect} />
+      )}
+
+      {/* Coin Flip Phase */}
+      {phase === 'coinflip' && (
+        <CoinFlip onComplete={handleCoinFlip} />
       )}
 
       {/* Layout Preview */}
@@ -178,7 +219,8 @@ export default function GameMatch() {
             cards={gameState.player2Hand}
             selectedIndex={null}
             onSelect={() => {}}
-            isActive={gameState.currentPlayer === 2}
+            onInspect={inspectMode ? handleHandInspect : undefined}
+            isActive={gameState.currentPlayer === 2 && !inspectMode}
             playerNum={2}
             playerName="AI Opponent"
           />
@@ -188,7 +230,7 @@ export default function GameMatch() {
             <GameBoard
               gameState={gameState}
               onCellClick={handleCellClick}
-              selectedCard={selectedCardIndex}
+              selectedCard={inspectMode ? null : selectedCardIndex}
             />
           </motion.div>
 
@@ -208,20 +250,35 @@ export default function GameMatch() {
           <PlayerHand
             cards={gameState.player1Hand}
             selectedIndex={selectedCardIndex}
-            onSelect={setSelectedCardIndex}
-            isActive={gameState.currentPlayer === 1 && !isAIThinking}
+            onSelect={(idx) => setSelectedCardIndex(idx)}
+            onInspect={inspectMode ? handleHandInspect : undefined}
+            isActive={gameState.currentPlayer === 1 && !isAIThinking && !inspectMode}
             playerNum={1}
             playerName="You"
           />
         </div>
       )}
 
+      {/* Card Inspect Modal */}
+      <CardDetailModal
+        card={inspectCard}
+        onClose={() => { setInspectCard(null); setInspectStats(null); }}
+        effectiveStats={inspectStats}
+      />
+
       {/* Game Over */}
       <GameOverModal
         open={phase === 'gameover'}
         gameState={gameState}
         rewards={rewards}
-        onPlayAgain={() => { setPhase('select'); setGameState(null); setSelectedCardIndex(null); }}
+        onPlayAgain={() => {
+          setPhase('deckselect');
+          setGameState(null);
+          setSelectedCardIndex(null);
+          setPlayerCards([]);
+          setInspectMode(false);
+          setInspectCard(null);
+        }}
         onGoHome={() => navigate('/')}
       />
     </div>

@@ -6,7 +6,7 @@ const DIR_OFFSETS = {
   north: [-1, 0], south: [1, 0], east: [0, 1], west: [0, -1]
 };
 
-export function createGameState(player1Cards, player2Cards, layoutKey = 'standard') {
+export function createGameState(player1Cards, player2Cards, layoutKey = 'standard', firstPlayer = 1) {
   const layout = BOARD_LAYOUTS[layoutKey] || BOARD_LAYOUTS.standard;
   return {
     board: [[null,null,null],[null,null,null],[null,null,null]],
@@ -14,7 +14,7 @@ export function createGameState(player1Cards, player2Cards, layoutKey = 'standar
     layoutKey,
     layoutName: layout.name,
     turn: 1,
-    currentPlayer: 1, // 1 or 2
+    currentPlayer: firstPlayer, // 1 or 2
     player1Hand: player1Cards.map(c => ({ ...c, owner: 1, originalOwner: 1 })),
     player2Hand: player2Cards.map(c => ({ ...c, owner: 2, originalOwner: 2 })),
     moves: [],
