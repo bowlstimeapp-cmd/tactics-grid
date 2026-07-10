@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -26,6 +26,7 @@ export default function GameMatch() {
   const [layoutKey, setLayoutKey] = useState('');
   const [history, setHistory] = useState([]);
   const [isAIThinking, setIsAIThinking] = useState(false);
+  const aiThinkingRef = useRef(false);
   const [rewards, setRewards] = useState(null);
   const [inspectMode, setInspectMode] = useState(false);
   const [inspectCard, setInspectCard] = useState(null);
@@ -61,8 +62,9 @@ export default function GameMatch() {
   // AI turn — handles both AI-first (from coin flip) and AI response after player move
   useEffect(() => {
     if (phase !== 'playing' || !gameState || gameState.gameOver) return;
-    if (gameState.currentPlayer !== 2 || isAIThinking) return;
+    if (gameState.currentPlayer !== 2 || aiThinkingRef.current) return;
 
+    aiThinkingRef.current = true;
     setIsAIThinking(true);
     const timer = setTimeout(() => {
       const aiMove = getAIMove(gameState, difficulty);
@@ -75,11 +77,12 @@ export default function GameMatch() {
           setPhase('gameover');
         }
       }
+      aiThinkingRef.current = false;
       setIsAIThinking(false);
     }, 1500);
 
     return () => clearTimeout(timer);
-  }, [phase, gameState, isAIThinking, difficulty]);
+  }, [phase, gameState, difficulty]);
 
   const handleCellClick = useCallback((row, col) => {
     if (!gameState || gameState.gameOver) return;
