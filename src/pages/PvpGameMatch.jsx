@@ -8,6 +8,7 @@ import PlayerHand from '@/components/game/PlayerHand';
 import PvpGameOverModal from '@/components/game/PvpGameOverModal';
 import CardDetailModal from '@/components/game/CardDetailModal';
 import CardReveal from '@/components/game/CardReveal';
+import BoardEffectsBar from '@/components/game/BoardEffectsBar';
 import { placeCard, getEffectiveStats } from '@/lib/gameEngine';
 import { base44 } from '@/api/base44Client';
 
@@ -395,6 +396,9 @@ export default function PvpGameMatch() {
             />
           </motion.div>
 
+          {/* Active board effects */}
+          <BoardEffectsBar gameState={displayState} myPlayerNum={myPlayerNum} />
+
           {/* Chain text */}
           <AnimatePresence>
             {showChainText && (
@@ -432,6 +436,7 @@ export default function PvpGameMatch() {
             playerNum={1}
             myPlayerNum={myPlayerNum}
             playerName="You"
+            gameState={displayState}
           />
         </div>
       )}

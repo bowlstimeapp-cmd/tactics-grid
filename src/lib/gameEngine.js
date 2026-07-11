@@ -288,3 +288,86 @@ function processCaptures(gs, row, col, card, animations, chainOrder) {
     processCaptures(gs, fr, fc, gs.board[fr][fc], animations, chainOrder + 1);
   }
 }
+
+// Returns all active aura/debuff effects currently on the board
+export function getActiveBoardEffects(gameState) {
+  if (!gameState?.board) return [];
+  const effects = [];
+  const board = gameState.board;
+
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 3; c++) {
+      const card = board[r][c];
+      if (!card) continue;
+      const passive = PASSIVES[card.passive_id];
+      if (!passive) continue;
+      const result = passive.apply({ card, position: [r, c], board, turn: gameState.turn, phase: 'static' });
+
+      if (result.aura && result.aura.mod) {
+        effects.push({
+          sourceCard: card.name,
+          passiveName: passive.name,
+          icon: passive.icon,
+          description: passive.description,
+          target: result.aura.target,
+          mod: result.aura.mod,
+          scope: 'adjacent',
+        });
+      }
+      if (result.globalAura && result.globalAura.mod) {
+        effects.push({
+          sourceCard: card.name,
+          passiveName: passive.name,
+          icon: passive.icon,
+          description: passive.description,
+          target: result.globalAura.target,
+          mod: result.globalAura.mod,
+          scope: 'global',
+        });
+      }
+    }
+  }
+
+  return effects;
+}
+
+// Computes preview stats for a card still in hand — accounts for global auras
+// that apply regardless of placement (e.g., Plague, Commander)
+export function getHandCardPreview(card, gameState) {
+  if (!card || !gameState?.board) return null;
+
+  let mods = { north: 0, east: 0, south: 0, west: 0 };
+  let effects = [];
+  const board = gameState.board;
+
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 3; c++) {
+      const boardCard = board[r][c];
+      if (!boardCard) continue;
+      const passive = PASSIVES[boardCard.passive_id];
+      if (!passive) continue;
+      const result = passive.apply({ card: boardCard, position: [r, c], board, turn: gameState.turn, phase: 'static' });
+
+      if (result.globalAura) {
+        const ga = result.globalAura;
+        const isAlly = boardCard.owner === card.owner;
+        const isEnemy = boardCard.owner !== card.owner;
+        if ((ga.target === 'allies' && isAlly) || (ga.target === 'enemies' && isEnemy)) {
+          if (ga.mod) {
+            mods.north += ga.mod; mods.east += ga.mod; mods.south += ga.mod; mods.west += ga.mod;
+            effects.push({ type: 'global_aura', from: boardCard.name, mod: ga.mod, icon: passive.icon });
+          }
+        }
+      }
+    }
+  }
+
+  return {
+    north: card.north + mods.north,
+    east: card.east + mods.east,
+    south: card.south + mods.south,
+    west: card.west + mods.west,
+    mods,
+    effects,
+  };
+}

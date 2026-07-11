@@ -10,6 +10,7 @@ import CoinFlip from '@/components/game/CoinFlip';
 import GameOverModal from '@/components/game/GameOverModal';
 import CardDetailModal from '@/components/game/CardDetailModal';
 import CardReveal from '@/components/game/CardReveal';
+import BoardEffectsBar from '@/components/game/BoardEffectsBar';
 import { createGameState, placeCard, getEffectiveStats } from '@/lib/gameEngine';
 import { getRandomLayout, BOARD_LAYOUTS } from '@/lib/gameData';
 import { getAIMove } from '@/lib/ai';
@@ -342,6 +343,7 @@ export default function GameMatch() {
             isActive={gameState.currentPlayer === 2 && !inspectMode}
             playerNum={2}
             playerName="AI Opponent"
+            gameState={gameState}
           />
 
           {/* Board */}
@@ -353,6 +355,9 @@ export default function GameMatch() {
               flippingCells={flippingCells}
             />
           </motion.div>
+
+          {/* Active board effects */}
+          <BoardEffectsBar gameState={gameState} />
 
           {/* Chain text */}
           <AnimatePresence>
@@ -390,6 +395,7 @@ export default function GameMatch() {
             isActive={gameState.currentPlayer === 1 && !isAIThinking && !inspectMode}
             playerNum={1}
             playerName="You"
+            gameState={gameState}
           />
         </div>
       )}

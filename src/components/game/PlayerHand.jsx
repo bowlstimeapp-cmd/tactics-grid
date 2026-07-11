@@ -1,7 +1,8 @@
 import React from 'react';
 import GameCard from './GameCard';
+import { getHandCardPreview } from '@/lib/gameEngine';
 
-export default function PlayerHand({ cards, selectedIndex, onSelect, isActive, playerNum, playerName, onInspect, myPlayerNum = 1, faceDown = false }) {
+export default function PlayerHand({ cards, selectedIndex, onSelect, isActive, playerNum, playerName, onInspect, myPlayerNum = 1, faceDown = false, gameState = null }) {
   return (
     <div className={`space-y-2 ${isActive ? '' : 'opacity-60'}`}>
       <div className="flex items-center gap-2 px-1">
@@ -10,20 +11,25 @@ export default function PlayerHand({ cards, selectedIndex, onSelect, isActive, p
         <span className="text-xs text-amber-400 ml-auto">{cards.length} cards</span>
       </div>
       <div className="flex gap-1.5 flex-wrap justify-center">
-        {cards.map((card, idx) => (
-          <GameCard
-            key={card.card_id + idx}
-            card={card}
-            size="sm"
-            myPlayerNum={myPlayerNum}
-            faceDown={faceDown}
-            selected={selectedIndex === idx}
-            onClick={() => {
-              if (onInspect) onInspect(card);
-              else if (isActive) onSelect(idx);
-            }}
-          />
-        ))}
+        {cards.map((card, idx) => {
+          const previewStats = gameState && !faceDown ? getHandCardPreview(card, gameState) : null;
+          return (
+            <GameCard
+              key={card.card_id + idx}
+              card={card}
+              size="sm"
+              myPlayerNum={myPlayerNum}
+              faceDown={faceDown}
+              selected={selectedIndex === idx}
+              effectiveStats={previewStats}
+              displayMode="baseWithMods"
+              onClick={() => {
+                if (onInspect) onInspect(card);
+                else if (isActive) onSelect(idx);
+              }}
+            />
+          );
+        })}
       </div>
     </div>
   );
