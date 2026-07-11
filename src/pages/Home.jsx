@@ -6,6 +6,9 @@ import { Sword, ShieldHalf, Bot, Library, Layers, Store, Trophy, Scroll, Star, C
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { getRankForElo, FACTION_CONFIG } from '@/lib/gameData';
+import { loadGameConfig } from '@/lib/gameConfig';
+import { applyCardOverrides } from '@/lib/cardDatabase';
+import { openPack, applyCardsToCollection } from '@/lib/packLogic';
 
 const NAV_ITEMS = [
   { label: 'Play Ranked', icon: Sword, path: '/match?difficulty=hard', color: 'text-amber-400', desc: 'Competitive matches' },
@@ -37,7 +40,7 @@ export default function Home() {
         if (profiles.length > 0) {
           setProfile(profiles[0]);
         } else {
-          // Create initial profile
+          // Create initial profile with 3 free starter packs
           const newProfile = await base44.entities.PlayerProfile.create({
             username: me.full_name || me.email?.split('@')[0] || 'Player',
             coins: 500,
@@ -46,7 +49,24 @@ export default function Home() {
             elo: 1200,
             collection: {},
           });
-          setProfile(newProfile);
+
+          try {
+            const cfg = await loadGameConfig();
+            applyCardOverrides(cfg.card_overrides);
+            let allCards = [];
+            for (let i = 0; i < 3; i++) {
+              allCards.push(...openPack('standard', cfg));
+            }
+            const { newCollection, essenceGained } = applyCardsToCollection({}, allCards);
+            const updated = await base44.entities.PlayerProfile.update(newProfile.id, {
+              collection: newCollection,
+              essence: essenceGained,
+            });
+            setProfile(updated);
+          } catch (e) {
+            console.error('Starter pack error:', e);
+            setProfile(newProfile);
+          }
         }
       } catch (e) {
         console.error(e);

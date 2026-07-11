@@ -15,6 +15,8 @@ Deno.serve(async (req) => {
         standard_pack_cost: 100,
         standard_pack_size: 3,
         faction_pack_cost: 150,
+        guaranteed_rare_cost: 300,
+        guaranteed_epic_cost: 600,
         pack_odds: [
           { rarity: "Common", weight: 65 },
           { rarity: "Uncommon", weight: 23 },
@@ -23,6 +25,20 @@ Deno.serve(async (req) => {
           { rarity: "Legendary", weight: 0.5 },
         ],
         card_overrides: {},
+        achievement_rewards: {
+          first_win: "standard",
+          wins_10: "standard",
+          wins_50: "guaranteed_rare",
+          wins_100: "guaranteed_rare",
+          wins_500: "guaranteed_epic",
+          streak_5: "standard",
+          streak_10: "guaranteed_rare",
+          collector_25: "standard",
+          collector_50: "guaranteed_rare",
+          collector_100: "guaranteed_epic",
+          gold_rank: "guaranteed_rare",
+          diamond_rank: "guaranteed_epic",
+        },
       };
       const created = await base44.asServiceRole.entities.GameConfig.create(defaultConfig);
       return Response.json({ config: created });

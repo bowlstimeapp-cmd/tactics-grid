@@ -14,6 +14,14 @@
       "type": "number",
       "default": 150
     },
+    "guaranteed_rare_cost": {
+      "type": "number",
+      "default": 300
+    },
+    "guaranteed_epic_cost": {
+      "type": "number",
+      "default": 600
+    },
     "pack_odds": {
       "type": "array",
       "items": {
@@ -45,6 +53,24 @@
     "card_overrides": {
       "type": "object",
       "default": {}
+    },
+    "achievement_rewards": {
+      "type": "object",
+      "default": {
+        "first_win": "standard",
+        "wins_10": "standard",
+        "wins_50": "guaranteed_rare",
+        "wins_100": "guaranteed_rare",
+        "wins_500": "guaranteed_epic",
+        "streak_5": "standard",
+        "streak_10": "guaranteed_rare",
+        "collector_25": "standard",
+        "collector_50": "guaranteed_rare",
+        "collector_100": "guaranteed_epic",
+        "gold_rank": "guaranteed_rare",
+        "diamond_rank": "guaranteed_epic"
+      }
     }
-  }
+  },
+  "required": []
 }

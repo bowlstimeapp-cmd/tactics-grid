@@ -83,6 +83,13 @@
       },
       "default": []
     },
+    "claimed_rewards": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
     "card_backs": {
       "type": "array",
       "items": {

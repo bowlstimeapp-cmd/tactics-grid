@@ -2,44 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Package, Loader2 } from 'lucide-react';
+import { ArrowLeft, Package, Gem } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import GameCard from '@/components/game/GameCard';
-import { ALL_CARDS, getCardsByFaction, applyCardOverrides } from '@/lib/cardDatabase';
-import { FACTION_CONFIG, ESSENCE_VALUES } from '@/lib/gameData';
+import { applyCardOverrides } from '@/lib/cardDatabase';
+import { FACTION_CONFIG, RARITY_CONFIG } from '@/lib/gameData';
 import { loadGameConfig } from '@/lib/gameConfig';
+import { openPack, getPackCost, applyCardsToCollection, PACK_TYPES } from '@/lib/packLogic';
 
 const FACTIONS = Object.keys(FACTION_CONFIG);
-
-function rollRarity(odds) {
-  const total = odds.reduce((s, o) => s + o.weight, 0);
-  const roll = Math.random() * total;
-  let cumulative = 0;
-  for (const { rarity, weight } of odds) {
-    cumulative += weight;
-    if (roll <= cumulative) return rarity;
-  }
-  return 'Common';
-}
-
-function openStandardPack(size, odds) {
-  const cards = [];
-  for (let i = 0; i < size; i++) {
-    const rarity = rollRarity(odds);
-    const pool = ALL_CARDS.filter(c => c.rarity === rarity);
-    const card = pool[Math.floor(Math.random() * pool.length)];
-    cards.push(card);
-  }
-  return cards;
-}
-
-function openFactionPack(faction, odds) {
-  const factionCards = getCardsByFaction(faction);
-  const rarity = rollRarity(odds);
-  let pool = factionCards.filter(c => c.rarity === rarity);
-  if (pool.length === 0) pool = factionCards;
-  return [pool[Math.floor(Math.random() * pool.length)]];
-}
 
 export default function Shop() {
   const navigate = useNavigate();
@@ -69,26 +40,15 @@ export default function Shop() {
 
   const buyPack = async (type, faction) => {
     if (!profile || !config || opening) return;
-    const cost = type === 'standard' ? config.standard_pack_cost : config.faction_pack_cost;
+    const cost = getPackCost(type, config);
     if (profile.coins < cost) return;
 
     setOpening(true);
     setRevealIndex(-1);
-    const cards = type === 'standard'
-      ? openStandardPack(config.standard_pack_size, config.pack_odds)
-      : openFactionPack(faction, config.pack_odds);
+    const cards = openPack(type, config, faction);
     setPackCards(cards);
 
-    const newCollection = { ...(profile.collection || {}) };
-    let essenceGained = 0;
-    cards.forEach(card => {
-      if (newCollection[card.card_id]) {
-        essenceGained += ESSENCE_VALUES[card.rarity] || 5;
-      } else {
-        newCollection[card.card_id] = 1;
-      }
-    });
-
+    const { newCollection, essenceGained } = applyCardsToCollection(profile.collection, cards);
     const updated = await base44.entities.PlayerProfile.update(profile.id, {
       coins: profile.coins - cost,
       essence: (profile.essence || 0) + essenceGained,
@@ -184,6 +144,42 @@ export default function Shop() {
               </div>
             </div>
           </motion.div>
+        </div>
+
+        {/* Guaranteed Packs */}
+        <div>
+          <h3 className="font-heading text-sm text-amber-400/70 uppercase tracking-widest mb-3">Guaranteed Packs</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {['guaranteed_rare', 'guaranteed_epic'].map(packType => {
+              const rarityName = PACK_TYPES[packType].guaranteedRarity;
+              const rarityCfg = RARITY_CONFIG[rarityName];
+              const cost = getPackCost(packType, config);
+              return (
+                <motion.div
+                  key={packType}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`bg-slate-800/40 rounded-xl border p-4 ${opening ? 'pointer-events-none opacity-50' : 'cursor-pointer hover:border-amber-500/30'}`}
+                  style={{ borderColor: rarityCfg?.color + '40' }}
+                  onClick={() => buyPack(packType)}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-16 rounded-lg flex items-center justify-center text-2xl" style={{ background: `linear-gradient(135deg, ${rarityCfg?.color}33, hsl(230, 15%, 10%))` }}>
+                      <Gem className="w-6 h-6" style={{ color: rarityCfg?.color }} />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-heading text-sm" style={{ color: rarityCfg?.color }}>Guaranteed {rarityName}</h3>
+                      <p className="text-xs text-muted-foreground">1 card, always {rarityName}</p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>🪙</span>
+                      <span className="text-sm font-heading text-amber-300">{cost}</span>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
         </div>
 
         {/* Faction Packs */}
