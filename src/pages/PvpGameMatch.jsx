@@ -7,6 +7,7 @@ import GameBoard from '@/components/game/GameBoard';
 import PlayerHand from '@/components/game/PlayerHand';
 import PvpGameOverModal from '@/components/game/PvpGameOverModal';
 import CardDetailModal from '@/components/game/CardDetailModal';
+import CardReveal from '@/components/game/CardReveal';
 import { placeCard, getEffectiveStats } from '@/lib/gameEngine';
 import { base44 } from '@/api/base44Client';
 
@@ -46,6 +47,12 @@ export default function PvpGameMatch() {
   const isAnimatingRef = useRef(false);
   const displayTurnRef = useRef(0);
   const gameOverHandledRef = useRef(false);
+  const myPlayerNumRef = useRef(1);
+  const [revealedCard, setRevealedCard] = useState(null);
+  const [revealedStats, setRevealedStats] = useState(null);
+  const [revealedPlayerName, setRevealedPlayerName] = useState('');
+  const isRevealingRef = useRef(false);
+  const pendingAfterReveal = useRef(null);
 
   // Load match
   useEffect(() => {
@@ -57,6 +64,7 @@ export default function PvpGameMatch() {
         const me = await base44.auth.me();
         const num = m.player1_id === me.id ? 1 : 2;
         setMyPlayerNum(num);
+        myPlayerNumRef.current = num;
 
         if (m.game_state) {
           const gs = reconstructGameState(m.game_state);
@@ -106,15 +114,43 @@ export default function PvpGameMatch() {
           if (gs.turn <= displayTurnRef.current) return;
 
           displayTurnRef.current = gs.turn;
+
+          // Find the newly placed card for reveal
+          let placedCard = null;
+          let placedPos = null;
+          for (let r = 0; r < 3; r++) {
+            for (let c = 0; c < 3; c++) {
+              if (gs.board[r][c] && gs.board[r][c].placedTurn === gs.turn - 1) {
+                placedCard = gs.board[r][c];
+                placedPos = [r, c];
+              }
+            }
+          }
+
           setDisplayState(gs);
-          processAnimations(gs.animations);
+
+          if (placedCard && placedPos) {
+            const boardWithTiles = gs.board;
+            if (!boardWithTiles._tiles) {
+              Object.defineProperty(boardWithTiles, '_tiles', { value: gs.tiles, writable: true, enumerable: false, configurable: true });
+            }
+            const stats = getEffectiveStats(placedCard, placedPos, boardWithTiles, gs.turn, 'attack');
+            const oppName = myPlayerNumRef.current === 1 ? m.player2_name : m.player1_name;
+            pendingAfterReveal.current = { newState: gs, isMyMove: false };
+            isRevealingRef.current = true;
+            setRevealedCard(placedCard);
+            setRevealedStats(stats);
+            setRevealedPlayerName(placedCard.owner === myPlayerNumRef.current ? 'You' : oppName);
+          } else {
+            processAnimations(gs.animations);
+          }
 
           if (gs.gameOver && !gameOverHandledRef.current) {
             gameOverHandledRef.current = true;
             const animCount = gs.animations?.length || 0;
             const hasChain = gs.animations?.some(a => a.chainOrder > 0);
             const animTime = animCount * 650 + (hasChain ? 500 : 0);
-            const delay = Math.max(5000, animTime + 1000);
+            const delay = Math.max(5000, animTime + 1000 + 3000);
             setTimeout(() => setPhase('gameover'), delay);
           }
         }
@@ -154,6 +190,72 @@ export default function PvpGameMatch() {
     setIsAnimating(false);
   }, []);
 
+  const handleRevealComplete = () => {
+    setRevealedCard(null);
+    setRevealedStats(null);
+    setRevealedPlayerName('');
+    isRevealingRef.current = false;
+
+    const pending = pendingAfterReveal.current;
+    pendingAfterReveal.current = null;
+    if (!pending) return;
+
+    processAnimations(pending.newState.animations);
+
+    if (pending.isMyMove) {
+      setSubmitting(true);
+      base44.functions.invoke('pvpMatch', {
+        action: 'submit_move',
+        match_id: matchId,
+        game_state: pending.newState,
+      }).then(() => {
+        setSubmitting(false);
+      }).catch(e => {
+        console.error(e);
+        setSubmitting(false);
+      });
+    }
+
+    if (pending.newState.gameOver) {
+      gameOverHandledRef.current = true;
+      const animCount = pending.newState.animations?.length || 0;
+      const hasChain = pending.newState.animations?.some(a => a.chainOrder > 0);
+      const animTime = animCount * 650 + (hasChain ? 500 : 0);
+      const delay = Math.max(5000, animTime + 1000);
+      setTimeout(() => {
+        base44.functions.invoke('pvpMatch', {
+          action: 'end_match',
+          match_id: matchId,
+          winner: pending.newState.winner,
+        }).then(res => {
+          setEloResult(res.data.elo);
+          setPhase('gameover');
+        }).catch(e => {
+          console.error(e);
+          setPhase('gameover');
+        });
+      }, delay);
+    }
+  };
+
+  const startReveal = (newState, row, col, isMyMove, opponentName) => {
+    const placedCard = newState.board[row][col];
+    const boardWithTiles = newState.board;
+    if (!boardWithTiles._tiles) {
+      Object.defineProperty(boardWithTiles, '_tiles', {
+        value: newState.tiles, writable: true, enumerable: false, configurable: true
+      });
+    }
+    const stats = getEffectiveStats(placedCard, [row, col], boardWithTiles, newState.turn, 'attack');
+    const playerName = isMyMove ? 'You' : opponentName;
+
+    pendingAfterReveal.current = { newState, isMyMove };
+    isRevealingRef.current = true;
+    setRevealedCard(placedCard);
+    setRevealedStats(stats);
+    setRevealedPlayerName(playerName);
+  };
+
   const handleCellClick = useCallback((row, col) => {
     if (!displayState || displayState.gameOver || submitting) return;
 
@@ -173,47 +275,15 @@ export default function PvpGameMatch() {
     }
 
     if (displayState.currentPlayer !== myPlayerNum || selectedCardIndex === null || isAnimating) return;
+    if (isRevealingRef.current) return;
     if (displayState.board[row][col]) return;
 
     const newState = placeCard(displayState, selectedCardIndex, row, col);
     displayTurnRef.current = newState.turn;
     setDisplayState(newState);
     setSelectedCardIndex(null);
-    processAnimations(newState.animations);
-
-    // Submit to backend
-    setSubmitting(true);
-    base44.functions.invoke('pvpMatch', {
-      action: 'submit_move',
-      match_id: matchId,
-      game_state: newState,
-    }).then(() => {
-      setSubmitting(false);
-    }).catch(e => {
-      console.error(e);
-      setSubmitting(false);
-    });
-
-    if (newState.gameOver) {
-      gameOverHandledRef.current = true;
-      const animCount = newState.animations?.length || 0;
-      const hasChain = newState.animations?.some(a => a.chainOrder > 0);
-      const animTime = animCount * 650 + (hasChain ? 500 : 0);
-      const delay = Math.max(5000, animTime + 1000);
-      setTimeout(() => {
-        base44.functions.invoke('pvpMatch', {
-          action: 'end_match',
-          match_id: matchId,
-          winner: newState.winner,
-        }).then(res => {
-          setEloResult(res.data.elo);
-          setPhase('gameover');
-        }).catch(e => {
-          console.error(e);
-          setPhase('gameover');
-        });
-      }, delay);
-    }
+    const oppName = myPlayerNum === 1 ? match?.player2_name : match?.player1_name;
+    startReveal(newState, row, col, true, oppName);
   }, [displayState, selectedCardIndex, isAnimating, inspectMode, myPlayerNum, matchId, processAnimations, submitting]);
 
   const handleHandInspect = useCallback((card) => {
@@ -365,6 +435,14 @@ export default function PvpGameMatch() {
           />
         </div>
       )}
+
+      {/* Card Reveal */}
+      <CardReveal
+        card={revealedCard}
+        effectiveStats={revealedStats}
+        playerName={revealedPlayerName}
+        onComplete={handleRevealComplete}
+      />
 
       {/* Card Inspect Modal */}
       <CardDetailModal

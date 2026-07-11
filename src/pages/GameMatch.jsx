@@ -9,6 +9,7 @@ import DeckSelectModal from '@/components/game/DeckSelectModal';
 import CoinFlip from '@/components/game/CoinFlip';
 import GameOverModal from '@/components/game/GameOverModal';
 import CardDetailModal from '@/components/game/CardDetailModal';
+import CardReveal from '@/components/game/CardReveal';
 import { createGameState, placeCard, getEffectiveStats } from '@/lib/gameEngine';
 import { getRandomLayout, BOARD_LAYOUTS } from '@/lib/gameData';
 import { getAIMove } from '@/lib/ai';
@@ -38,6 +39,11 @@ export default function GameMatch() {
   const [flippingCells, setFlippingCells] = useState(new Set());
   const [showChainText, setShowChainText] = useState(false);
   const isAnimatingRef = useRef(false);
+  const [revealedCard, setRevealedCard] = useState(null);
+  const [revealedStats, setRevealedStats] = useState(null);
+  const [revealedPlayerName, setRevealedPlayerName] = useState('');
+  const isRevealingRef = useRef(false);
+  const pendingAfterReveal = useRef(null);
 
   useEffect(() => {
     async function init() {
@@ -133,7 +139,7 @@ export default function GameMatch() {
   useEffect(() => {
     if (phase !== 'playing' || !gameState || gameState.gameOver) return;
     if (gameState.currentPlayer !== 2 || aiThinkingRef.current) return;
-    if (isAnimating) return;
+    if (isAnimating || isRevealingRef.current) return;
 
     aiThinkingRef.current = true;
     setIsAIThinking(true);
@@ -142,12 +148,7 @@ export default function GameMatch() {
       if (aiMove) {
         const afterAI = placeCard(gameState, aiMove.cardIndex, aiMove.row, aiMove.col);
         setGameState(afterAI);
-        processAnimations(afterAI.animations);
-        if (afterAI.gameOver) {
-          const won = afterAI.winner === 1;
-          setRewards({ coins: won ? 50 : 10, xp: won ? 30 : 10 });
-          persistRewards(won);
-        }
+        startReveal(afterAI, aiMove.row, aiMove.col, 'AI Opponent');
       }
       aiThinkingRef.current = false;
       setIsAIThinking(false);
@@ -162,11 +163,44 @@ export default function GameMatch() {
       const animCount = gameState.animations?.length || 0;
       const hasChain = gameState.animations?.some(a => a.chainOrder > 0);
       const animTime = animCount * 650 + (hasChain ? 500 : 0);
-      const delay = Math.max(5000, animTime + 1000);
+      const delay = Math.max(5000, animTime + 1000 + 3000);
       const timer = setTimeout(() => setPhase('gameover'), delay);
       return () => clearTimeout(timer);
     }
   }, [gameState?.gameOver, phase]);
+
+  const handleRevealComplete = () => {
+    setRevealedCard(null);
+    setRevealedStats(null);
+    setRevealedPlayerName('');
+    isRevealingRef.current = false;
+
+    const pending = pendingAfterReveal.current;
+    pendingAfterReveal.current = null;
+    if (!pending) return;
+
+    processAnimations(pending.newState.animations);
+    if (pending.newState.gameOver) {
+      const won = pending.newState.winner === 1;
+      setRewards({ coins: won ? 50 : 10, xp: won ? 30 : 10 });
+      persistRewards(won);
+    }
+  };
+
+  const startReveal = (newState, row, col, playerName) => {
+    const placedCard = newState.board[row][col];
+    const boardWithTiles = newState.board;
+    if (!boardWithTiles._tiles) {
+      Object.defineProperty(boardWithTiles, '_tiles', { value: newState.tiles, writable: true, enumerable: false, configurable: true });
+    }
+    const stats = getEffectiveStats(placedCard, [row, col], boardWithTiles, newState.turn, 'attack');
+
+    pendingAfterReveal.current = { newState };
+    isRevealingRef.current = true;
+    setRevealedCard(placedCard);
+    setRevealedStats(stats);
+    setRevealedPlayerName(playerName);
+  };
 
   const handleCellClick = useCallback((row, col) => {
     if (!gameState || gameState.gameOver) return;
@@ -186,20 +220,14 @@ export default function GameMatch() {
     }
 
     if (gameState.currentPlayer !== 1 || selectedCardIndex === null || isAIThinking) return;
-    if (isAnimatingRef.current) return;
+    if (isAnimatingRef.current || isRevealingRef.current) return;
     if (gameState.board[row][col]) return;
 
     setHistory(prev => [...prev, JSON.parse(JSON.stringify(gameState))]);
     const newState = placeCard(gameState, selectedCardIndex, row, col);
     setGameState(newState);
     setSelectedCardIndex(null);
-    processAnimations(newState.animations);
-
-    if (newState.gameOver) {
-      const won = newState.winner === 1;
-      setRewards({ coins: won ? 50 : 10, xp: won ? 30 : 10 });
-      persistRewards(won);
-    }
+    startReveal(newState, row, col, 'You');
   }, [gameState, selectedCardIndex, isAIThinking, inspectMode, processAnimations]);
 
   const handleHandInspect = useCallback((card) => {
@@ -364,6 +392,14 @@ export default function GameMatch() {
         </div>
       )}
 
+      {/* Card Reveal */}
+      <CardReveal
+        card={revealedCard}
+        effectiveStats={revealedStats}
+        playerName={revealedPlayerName}
+        onComplete={handleRevealComplete}
+      />
+
       {/* Card Inspect Modal */}
       <CardDetailModal
         card={inspectCard}
@@ -383,6 +419,11 @@ export default function GameMatch() {
           setPlayerCards([]);
           setInspectMode(false);
           setInspectCard(null);
+          setRevealedCard(null);
+          setRevealedStats(null);
+          setRevealedPlayerName('');
+          isRevealingRef.current = false;
+          pendingAfterReveal.current = null;
         }}
         onGoHome={() => navigate('/')}
       />
