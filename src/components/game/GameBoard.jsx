@@ -2,7 +2,7 @@ import React from 'react';
 import GameCard from './GameCard';
 import { getEffectiveStats } from '@/lib/gameEngine';
 
-export default function GameBoard({ gameState, onCellClick, selectedCard }) {
+export default function GameBoard({ gameState, onCellClick, selectedCard, flippingCells }) {
   const { board, tiles, turn } = gameState;
 
   return (
@@ -16,7 +16,10 @@ export default function GameBoard({ gameState, onCellClick, selectedCard }) {
           if (!boardWithTiles._tiles) {
             Object.defineProperty(boardWithTiles, '_tiles', { value: tiles, writable: true, enumerable: false, configurable: true });
           }
-          const effectiveStats = card ? getEffectiveStats(card, [row, col], boardWithTiles, turn) : null;
+          const isJustPlaced = card && card.placedTurn === turn - 1;
+          const effectiveStats = card ? getEffectiveStats(card, [row, col], boardWithTiles, turn, isJustPlaced ? 'attack' : 'defend') : null;
+          const cellKey = `${row}-${col}`;
+          const isFlipping = flippingCells?.has(cellKey);
 
           return (
             <div
@@ -51,6 +54,7 @@ export default function GameBoard({ gameState, onCellClick, selectedCard }) {
                   card={card}
                   size="md"
                   effectiveStats={effectiveStats}
+                  isFlipping={isFlipping}
                   className="w-full h-full"
                 />
               )}

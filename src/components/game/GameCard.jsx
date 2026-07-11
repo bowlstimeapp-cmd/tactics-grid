@@ -55,7 +55,7 @@ export default function GameCard({ card, size = 'md', onClick, selected, showSta
               ${sizes[size]}
               ${ownerBorder}
               ${selected ? 'ring-2 ring-amber-400 scale-105 shadow-lg shadow-amber-500/30' : ''}
-              ${isFlipping ? 'animate-pulse' : ''}
+              ${isFlipping ? 'card-flipping' : ''}
               ${className}
             `}
             style={{

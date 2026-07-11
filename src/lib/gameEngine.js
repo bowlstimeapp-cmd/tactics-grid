@@ -163,42 +163,9 @@ export function placeCard(gameState, cardIndex, row, col) {
   hand.splice(cardIndex, 1);
 
   const animations = [];
-  const passiveActivations = [];
 
-  // Check captures
-  for (const [dir, [dr, dc]] of Object.entries(DIR_OFFSETS)) {
-    const nr = row + dr, nc = col + dc;
-    if (nr < 0 || nr > 2 || nc < 0 || nc > 2) continue;
-    const defender = gs.board[nr][nc];
-    if (!defender || defender.owner === card.owner) continue;
-
-    const attackStats = getEffectiveStats(card, [row, col], gs.board, gs.turn, 'attack');
-    const defendStats = getEffectiveStats(defender, [nr, nc], gs.board, gs.turn, 'defend');
-
-    const attackVal = attackStats[dir];
-    const defendVal = defendStats[OPPOSITE[dir]];
-
-    // Check flip immunity
-    const defEffects = defendStats.effects || [];
-    const immunity = defEffects.find(e => e.type === 'flip_immunity');
-    if (immunity) {
-      const attackTotal = card.north + card.east + card.south + card.west;
-      if (attackTotal < immunity.minTotalPower) continue;
-    }
-
-    if (attackVal > defendVal) {
-      gs.board[nr][nc].owner = card.owner;
-      gs.board[nr][nc].wasFlipped = true;
-      if (!gs.board[row][col].flipsEarned) gs.board[row][col].flipsEarned = 0;
-      gs.board[row][col].flipsEarned++;
-
-      animations.push({
-        type: 'flip', row: nr, col: nc,
-        from: defender.owner, to: card.owner,
-        attackDir: dir, attackVal, defendVal,
-      });
-    }
-  }
+  // Process captures with chaining
+  processCaptures(gs, row, col, card, animations, 0);
 
   // Record move
   gs.moves.push({
@@ -243,7 +210,7 @@ export function placeCard(gameState, cardIndex, row, col) {
   }
 
   gs.animations = animations;
-  gs.passiveActivations = passiveActivations;
+  gs.passiveActivations = [];
 
   return gs;
 }
@@ -272,4 +239,52 @@ export function evaluateBoard(gameState, player) {
     }
   }
   return score;
+}
+
+function processCaptures(gs, row, col, card, animations, chainOrder) {
+  const newlyFlipped = [];
+
+  for (const [dir, [dr, dc]] of Object.entries(DIR_OFFSETS)) {
+    const nr = row + dr, nc = col + dc;
+    if (nr < 0 || nr > 2 || nc < 0 || nc > 2) continue;
+    const defender = gs.board[nr][nc];
+    if (!defender || defender.owner === card.owner) continue;
+
+    const attackStats = getEffectiveStats(card, [row, col], gs.board, gs.turn, 'attack');
+    const defendStats = getEffectiveStats(defender, [nr, nc], gs.board, gs.turn, 'defend');
+
+    const attackVal = attackStats[dir];
+    const defendVal = defendStats[OPPOSITE[dir]];
+
+    // Check flip immunity
+    const defEffects = defendStats.effects || [];
+    const immunity = defEffects.find(e => e.type === 'flip_immunity');
+    if (immunity) {
+      const attackTotal = card.north + card.east + card.south + card.west;
+      if (attackTotal < immunity.minTotalPower) continue;
+    }
+
+    if (attackVal > defendVal) {
+      const oldOwner = defender.owner;
+      gs.board[nr][nc].owner = card.owner;
+      gs.board[nr][nc].wasFlipped = true;
+
+      if (!gs.board[row][col].flipsEarned) gs.board[row][col].flipsEarned = 0;
+      gs.board[row][col].flipsEarned++;
+
+      animations.push({
+        type: 'flip', row: nr, col: nc,
+        from: oldOwner, to: card.owner,
+        attackDir: dir, attackVal, defendVal,
+        chainOrder,
+      });
+
+      newlyFlipped.push({ row: nr, col: nc });
+    }
+  }
+
+  // Chain: newly flipped cards attempt to flip their adjacent enemies
+  for (const { row: fr, col: fc } of newlyFlipped) {
+    processCaptures(gs, fr, fc, gs.board[fr][fc], animations, chainOrder + 1);
+  }
 }

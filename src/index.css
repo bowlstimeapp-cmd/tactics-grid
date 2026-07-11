@@ -87,3 +87,11 @@
   100% { filter: brightness(1); }
 }
 .pack-glow { animation: pack-glow 1.5s ease-in-out infinite; }
+
+/* Card flip */
+@keyframes card-flip {
+  0% { transform: perspective(600px) rotateY(0deg); }
+  50% { transform: perspective(600px) rotateY(90deg); box-shadow: 0 0 20px rgba(245, 158, 11, 0.6); }
+  100% { transform: perspective(600px) rotateY(0deg); }
+}
+.card-flipping { animation: card-flip 0.5s ease-in-out; }

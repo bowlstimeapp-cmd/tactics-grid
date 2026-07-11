@@ -34,6 +34,10 @@ export default function GameMatch() {
   const [inspectMode, setInspectMode] = useState(false);
   const [inspectCard, setInspectCard] = useState(null);
   const [inspectStats, setInspectStats] = useState(null);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [flippingCells, setFlippingCells] = useState(new Set());
+  const [showChainText, setShowChainText] = useState(false);
+  const isAnimatingRef = useRef(false);
 
   useEffect(() => {
     async function init() {
@@ -67,6 +71,37 @@ export default function GameMatch() {
     setProfile(updated);
   };
 
+  const processAnimations = useCallback(async (animations) => {
+    if (!animations || animations.length === 0) return;
+    if (isAnimatingRef.current) return;
+
+    isAnimatingRef.current = true;
+    setIsAnimating(true);
+
+    const hasChain = animations.some(a => a.chainOrder > 0);
+    if (hasChain) setShowChainText(true);
+
+    for (const anim of animations) {
+      const cellKey = `${anim.row}-${anim.col}`;
+      setFlippingCells(prev => new Set([...prev, cellKey]));
+      await new Promise(r => setTimeout(r, 500));
+      setFlippingCells(prev => {
+        const next = new Set(prev);
+        next.delete(cellKey);
+        return next;
+      });
+      await new Promise(r => setTimeout(r, 150));
+    }
+
+    if (hasChain) {
+      await new Promise(r => setTimeout(r, 500));
+      setShowChainText(false);
+    }
+
+    isAnimatingRef.current = false;
+    setIsAnimating(false);
+  }, []);
+
   const handleDeckSelect = (cards) => {
     setPlayerCards(cards);
     setPhase('coinflip');
@@ -98,6 +133,7 @@ export default function GameMatch() {
   useEffect(() => {
     if (phase !== 'playing' || !gameState || gameState.gameOver) return;
     if (gameState.currentPlayer !== 2 || aiThinkingRef.current) return;
+    if (isAnimating) return;
 
     aiThinkingRef.current = true;
     setIsAIThinking(true);
@@ -106,11 +142,11 @@ export default function GameMatch() {
       if (aiMove) {
         const afterAI = placeCard(gameState, aiMove.cardIndex, aiMove.row, aiMove.col);
         setGameState(afterAI);
+        processAnimations(afterAI.animations);
         if (afterAI.gameOver) {
           const won = afterAI.winner === 1;
           setRewards({ coins: won ? 50 : 10, xp: won ? 30 : 10 });
           persistRewards(won);
-          setPhase('gameover');
         }
       }
       aiThinkingRef.current = false;
@@ -118,7 +154,19 @@ export default function GameMatch() {
     }, 1500);
 
     return () => clearTimeout(timer);
-  }, [phase, gameState, difficulty]);
+  }, [phase, gameState, difficulty, isAnimating, processAnimations]);
+
+  // Delay game over screen so player can see the final moves
+  useEffect(() => {
+    if (gameState?.gameOver && phase === 'playing') {
+      const animCount = gameState.animations?.length || 0;
+      const hasChain = gameState.animations?.some(a => a.chainOrder > 0);
+      const animTime = animCount * 650 + (hasChain ? 500 : 0);
+      const delay = Math.max(5000, animTime + 1000);
+      const timer = setTimeout(() => setPhase('gameover'), delay);
+      return () => clearTimeout(timer);
+    }
+  }, [gameState?.gameOver, phase]);
 
   const handleCellClick = useCallback((row, col) => {
     if (!gameState || gameState.gameOver) return;
@@ -138,20 +186,21 @@ export default function GameMatch() {
     }
 
     if (gameState.currentPlayer !== 1 || selectedCardIndex === null || isAIThinking) return;
+    if (isAnimatingRef.current) return;
     if (gameState.board[row][col]) return;
 
     setHistory(prev => [...prev, JSON.parse(JSON.stringify(gameState))]);
     const newState = placeCard(gameState, selectedCardIndex, row, col);
     setGameState(newState);
     setSelectedCardIndex(null);
+    processAnimations(newState.animations);
 
     if (newState.gameOver) {
       const won = newState.winner === 1;
       setRewards({ coins: won ? 50 : 10, xp: won ? 30 : 10 });
       persistRewards(won);
-      setPhase('gameover');
     }
-  }, [gameState, selectedCardIndex, isAIThinking, inspectMode]);
+  }, [gameState, selectedCardIndex, isAIThinking, inspectMode, processAnimations]);
 
   const handleHandInspect = useCallback((card) => {
     setInspectCard(card);
@@ -195,7 +244,7 @@ export default function GameMatch() {
             </Button>
           )}
           {phase === 'playing' && !inspectMode && (
-            <Button variant="ghost" size="sm" onClick={handleUndo} disabled={history.length === 0 || isAIThinking} className="text-muted-foreground">
+            <Button variant="ghost" size="sm" onClick={handleUndo} disabled={history.length === 0 || isAIThinking || isAnimating} className="text-muted-foreground">
               <Undo2 className="w-4 h-4 mr-1" /> Undo
             </Button>
           )}
@@ -271,8 +320,24 @@ export default function GameMatch() {
               gameState={gameState}
               onCellClick={handleCellClick}
               selectedCard={inspectMode ? null : selectedCardIndex}
+              flippingCells={flippingCells}
             />
           </motion.div>
+
+          {/* Chain text */}
+          <AnimatePresence>
+            {showChainText && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.5, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.5, y: -10 }}
+                className="font-heading text-2xl text-amber-400 tracking-wider"
+                style={{ textShadow: '0 0 20px rgba(245,158,11,0.8)' }}
+              >
+                ⚡ Chain! ⚡
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Thinking indicator */}
           <AnimatePresence>
