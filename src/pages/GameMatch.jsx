@@ -44,6 +44,7 @@ export default function GameMatch() {
   const [revealedPlayerName, setRevealedPlayerName] = useState('');
   const isRevealingRef = useRef(false);
   const pendingAfterReveal = useRef(null);
+  const [revealTick, setRevealTick] = useState(0);
 
   useEffect(() => {
     async function init() {
@@ -155,7 +156,7 @@ export default function GameMatch() {
     }, 1500);
 
     return () => clearTimeout(timer);
-  }, [phase, gameState, difficulty, isAnimating, processAnimations]);
+  }, [phase, gameState, difficulty, isAnimating, processAnimations, revealTick]);
 
   // Delay game over screen so player can see the final moves
   useEffect(() => {
@@ -185,6 +186,7 @@ export default function GameMatch() {
       setRewards({ coins: won ? 50 : 10, xp: won ? 30 : 10 });
       persistRewards(won);
     }
+    setRevealTick(t => t + 1);
   };
 
   const startReveal = (newState, row, col, playerName) => {

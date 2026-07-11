@@ -16,7 +16,7 @@ const STAT_SIZES = {
   xl: 'text-sm min-w-[26px] h-6 px-1',
 };
 
-export default function GameCard({ card, size = 'md', onClick, selected, showStats = true, effectiveStats, isFlipping, myPlayerNum = 1, faceDown = false, className = '' }) {
+export default function GameCard({ card, size = 'md', onClick, selected, showStats = true, effectiveStats, isFlipping, myPlayerNum = 1, faceDown = false, displayMode = 'effective', className = '' }) {
   if (!card) return null;
 
   if (faceDown) {
@@ -49,14 +49,26 @@ export default function GameCard({ card, size = 'md', onClick, selected, showSta
 
   const renderStat = (dir, posClass) => {
     const mod = getMod(dir);
+
+    if (displayMode === 'baseWithMods') {
+      return (
+        <div className={`absolute ${posClass} ${STAT_SIZES[size]} flex items-center justify-center rounded-full bg-black/70 font-bold`}>
+          <span className="text-amber-100 leading-none">{card[dir]}</span>
+          {mod !== 0 && (
+            <span className={`text-[6px] leading-none ml-px ${mod > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+              {mod > 0 ? '+' : ''}{mod}
+            </span>
+          )}
+        </div>
+      );
+    }
+
+    // effective mode — show total value, colored by mod
+    const totalVal = es ? es[dir] : card[dir];
+    const colorClass = mod > 0 ? 'text-emerald-400' : mod < 0 ? 'text-red-400' : '';
     return (
-      <div className={`absolute ${posClass} ${STAT_SIZES[size]} flex items-center justify-center rounded-full bg-black/70 font-bold`}>
-        <span className="text-amber-100 leading-none">{card[dir]}</span>
-        {mod !== 0 && (
-          <span className={`text-[6px] leading-none ml-px ${mod > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-            {mod > 0 ? '+' : ''}{mod}
-          </span>
-        )}
+      <div className={`absolute ${posClass} ${STAT_SIZES[size]} flex items-center justify-center rounded-full bg-black/60 font-bold ${colorClass}`}>
+        {totalVal}
       </div>
     );
   };
