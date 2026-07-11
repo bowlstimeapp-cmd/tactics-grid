@@ -1,7 +1,7 @@
 import React from 'react';
 import GameCard from './GameCard';
 
-export default function PlayerHand({ cards, selectedIndex, onSelect, isActive, playerNum, playerName, onInspect }) {
+export default function PlayerHand({ cards, selectedIndex, onSelect, isActive, playerNum, playerName, onInspect, myPlayerNum = 1, faceDown = false }) {
   return (
     <div className={`space-y-2 ${isActive ? '' : 'opacity-60'}`}>
       <div className="flex items-center gap-2 px-1">
@@ -15,6 +15,8 @@ export default function PlayerHand({ cards, selectedIndex, onSelect, isActive, p
             key={card.card_id + idx}
             card={card}
             size="sm"
+            myPlayerNum={myPlayerNum}
+            faceDown={faceDown}
             selected={selectedIndex === idx}
             onClick={() => {
               if (onInspect) onInspect(card);

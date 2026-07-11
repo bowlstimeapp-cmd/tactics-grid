@@ -1,0 +1,78 @@
+{
+  "name": "PvpMatch",
+  "type": "object",
+  "properties": {
+    "player1_id": {
+      "type": "string"
+    },
+    "player2_id": {
+      "type": "string"
+    },
+    "player1_name": {
+      "type": "string"
+    },
+    "player2_name": {
+      "type": "string"
+    },
+    "player1_cards": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "default": []
+    },
+    "player2_cards": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "default": []
+    },
+    "game_state": {
+      "type": "object"
+    },
+    "current_player": {
+      "type": "number",
+      "default": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "completed"
+      ],
+      "default": "active"
+    },
+    "winner": {
+      "type": "number",
+      "default": 0
+    },
+    "player1_elo_before": {
+      "type": "number",
+      "default": 1200
+    },
+    "player2_elo_before": {
+      "type": "number",
+      "default": 1200
+    },
+    "player1_elo_after": {
+      "type": "number",
+      "default": 0
+    },
+    "player2_elo_after": {
+      "type": "number",
+      "default": 0
+    },
+    "layout_key": {
+      "type": "string",
+      "default": "standard"
+    },
+    "last_move_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "player1_id",
+    "player2_id"
+  ]
+}

@@ -25,6 +25,8 @@ import Leaderboard from '@/pages/Leaderboard';
 import Achievements from '@/pages/Achievements';
 import Quests from '@/pages/Quests';
 import Admin from '@/pages/Admin';
+import PvpMatchmaking from '@/pages/PvpMatchmaking';
+import PvpGameMatch from '@/pages/PvpGameMatch';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -66,6 +68,8 @@ const AuthenticatedApp = () => {
         <Route path="/achievements" element={<Achievements />} />
         <Route path="/quests" element={<Quests />} />
         <Route path="/admin" element={<Admin />} />
+        <Route path="/pvp" element={<PvpMatchmaking />} />
+        <Route path="/pvp-match" element={<PvpGameMatch />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

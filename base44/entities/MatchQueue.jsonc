@@ -1,0 +1,32 @@
+{
+  "name": "MatchQueue",
+  "type": "object",
+  "properties": {
+    "player_id": {
+      "type": "string"
+    },
+    "player_name": {
+      "type": "string"
+    },
+    "elo": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "searching",
+        "matched",
+        "cancelled"
+      ]
+    },
+    "match_id": {
+      "type": "string",
+      "default": ""
+    }
+  },
+  "required": [
+    "player_id",
+    "player_name",
+    "elo"
+  ]
+}

@@ -11,7 +11,7 @@ import { applyCardOverrides } from '@/lib/cardDatabase';
 import { openPack, applyCardsToCollection } from '@/lib/packLogic';
 
 const NAV_ITEMS = [
-  { label: 'Play Ranked', icon: Sword, path: '/match?difficulty=hard', color: 'text-amber-400', desc: 'Competitive matches' },
+  { label: 'Play Ranked', icon: Sword, path: '/pvp', color: 'text-amber-400', desc: 'Live PvP matches' },
   { label: 'Play Casual', icon: ShieldHalf, path: '/match?difficulty=medium', color: 'text-blue-400', desc: 'Relaxed games' },
   { label: 'Play AI', icon: Bot, path: '/play-ai', color: 'text-emerald-400', desc: 'Practice vs AI' },
 ];

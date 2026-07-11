@@ -2,7 +2,7 @@ import React from 'react';
 import GameCard from './GameCard';
 import { getEffectiveStats } from '@/lib/gameEngine';
 
-export default function GameBoard({ gameState, onCellClick, selectedCard, flippingCells }) {
+export default function GameBoard({ gameState, onCellClick, selectedCard, flippingCells, myPlayerNum = 1 }) {
   const { board, tiles, turn } = gameState;
 
   return (
@@ -55,6 +55,7 @@ export default function GameBoard({ gameState, onCellClick, selectedCard, flippi
                   size="md"
                   effectiveStats={effectiveStats}
                   isFlipping={isFlipping}
+                  myPlayerNum={myPlayerNum}
                   className="w-full h-full"
                 />
               )}

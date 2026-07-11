@@ -2,8 +2,29 @@ import React from 'react';
 import { RARITY_CONFIG, FACTION_CONFIG, PASSIVES } from '@/lib/gameData';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-export default function GameCard({ card, size = 'md', onClick, selected, showStats = true, effectiveStats, isFlipping, className = '' }) {
+export default function GameCard({ card, size = 'md', onClick, selected, showStats = true, effectiveStats, isFlipping, myPlayerNum = 1, faceDown = false, className = '' }) {
   if (!card) return null;
+
+  if (faceDown) {
+    return (
+      <div
+        onClick={onClick}
+        className={`
+          relative rounded-lg border-2 overflow-hidden select-none cursor-pointer
+          transition-all duration-300
+          ${sizes[size]}
+          ${selected ? 'ring-2 ring-amber-400 scale-105' : ''}
+          ${className}
+        `}
+        style={{ background: 'linear-gradient(135deg, hsl(230, 15%, 14%), hsl(230, 15%, 10%))' }}
+      >
+        <div className="absolute top-0 left-0 right-0 h-1 bg-amber-900/40" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-2xl opacity-30">⚔️</span>
+        </div>
+      </div>
+    );
+  }
 
   const rarity = RARITY_CONFIG[card.rarity] || RARITY_CONFIG.Common;
   const faction = FACTION_CONFIG[card.faction] || {};
@@ -37,11 +58,11 @@ export default function GameCard({ card, size = 'md', onClick, selected, showSta
     return '';
   };
 
-  const ownerBorder = card.owner === 1
-    ? 'border-blue-500/60'
-    : card.owner === 2
-      ? 'border-red-500/60'
-      : 'border-transparent';
+  const ownerBorder = !card.owner
+    ? 'border-transparent'
+    : card.owner === myPlayerNum
+      ? 'border-blue-500/60'
+      : 'border-red-500/60';
 
   return (
     <TooltipProvider>
