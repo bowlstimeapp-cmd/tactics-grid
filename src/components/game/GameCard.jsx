@@ -7,6 +7,7 @@ const SIZES = {
   md: 'w-24 h-32 text-xs',
   lg: 'w-32 h-44 text-sm',
   xl: 'w-40 h-56 text-base',
+  '2xl': 'w-48 h-72 text-base',
 };
 
 const STAT_SIZES = {
@@ -14,6 +15,7 @@ const STAT_SIZES = {
   md: 'text-[10px] min-w-[18px] h-4 px-1',
   lg: 'text-xs min-w-[22px] h-5 px-1',
   xl: 'text-sm min-w-[26px] h-6 px-1',
+  '2xl': 'text-base min-w-[30px] h-7 px-1',
 };
 
 export default function GameCard({ card, size = 'md', onClick, selected, showStats = true, effectiveStats, isFlipping, myPlayerNum = 1, faceDown = false, displayMode = 'effective', className = '' }) {
@@ -123,8 +125,8 @@ export default function GameCard({ card, size = 'md', onClick, selected, showSta
 
             {/* Stats diamond */}
             {showStats && (
-              <div className="absolute inset-x-0 top-0 flex items-center justify-center pointer-events-none" style={{ bottom: size === 'sm' ? 14 : size === 'md' ? 26 : size === 'lg' ? 32 : 38 }}>
-                <div className="relative" style={{ width: size === 'sm' ? 36 : size === 'md' ? 52 : 68, height: size === 'sm' ? 36 : size === 'md' ? 52 : 68 }}>
+              <div className="absolute inset-x-0 top-0 flex items-center justify-center pointer-events-none" style={{ bottom: size === 'sm' ? 28 : size === 'md' ? 52 : size === 'lg' ? 64 : size === 'xl' ? 76 : 88 }}>
+                <div className="relative" style={{ width: size === 'sm' ? 36 : size === 'md' ? 52 : size === '2xl' ? 84 : 68, height: size === 'sm' ? 36 : size === 'md' ? 52 : size === '2xl' ? 84 : 68 }}>
                   {renderStat('north', 'top-0 left-1/2 -translate-x-1/2')}
                   {renderStat('south', 'bottom-0 left-1/2 -translate-x-1/2')}
                   {renderStat('west', 'top-1/2 left-0 -translate-y-1/2')}
@@ -135,13 +137,13 @@ export default function GameCard({ card, size = 'md', onClick, selected, showSta
 
             {/* Ability caption box */}
             {passive && (
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/95 via-black/85 to-black/50 border-t border-amber-500/20 px-1 pt-0.5 pb-0.5">
-                <div className="flex items-center gap-0.5">
-                  <span className={size === 'sm' ? 'text-[7px] leading-none' : size === 'md' ? 'text-[8px] leading-none' : 'text-[10px] leading-none'}>{passive.icon}</span>
-                  <span className={`font-heading leading-tight truncate text-amber-200/90 ${size === 'sm' ? 'text-[6px]' : size === 'md' ? 'text-[7px]' : size === 'lg' ? 'text-[8px]' : 'text-[9px]'}`}>{passive.name}</span>
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/95 via-black/85 to-black/40 border-t border-amber-500/20 px-1.5 pt-1 pb-1">
+                <div className="flex items-center gap-0.5 mb-0.5">
+                  <span className={size === 'sm' ? 'text-[7px] leading-none' : size === 'md' ? 'text-[9px] leading-none' : size === '2xl' ? 'text-sm leading-none' : 'text-[11px] leading-none'}>{passive.icon}</span>
+                  <span className={`font-heading leading-tight truncate text-amber-200/90 ${size === 'sm' ? 'text-[6px]' : size === 'md' ? 'text-[8px]' : size === 'lg' ? 'text-[9px]' : size === 'xl' ? 'text-[10px]' : 'text-xs'}`}>{passive.name}</span>
                 </div>
                 {size !== 'sm' && (
-                  <p className={`${size === 'md' ? 'text-[6px]' : size === 'lg' ? 'text-[7px]' : 'text-[8px]'} leading-tight text-slate-300/70 truncate`}>{passive.description}</p>
+                  <p className={`${size === 'md' ? 'text-[7px]' : size === 'lg' ? 'text-[8px]' : size === 'xl' ? 'text-[9px]' : 'text-[11px]'} leading-snug text-slate-300/80 line-clamp-2`}>{passive.description}</p>
                 )}
               </div>
             )}
