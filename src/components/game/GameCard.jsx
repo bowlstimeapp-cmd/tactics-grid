@@ -138,6 +138,11 @@ export default function GameCard({ card, size = 'md', onClick, selected, showSta
               </div>
             )}
 
+            {/* Holographic effect for Legendary cards */}
+            {card.rarity === 'Legendary' && (
+              <div className="absolute inset-0 holo-effect pointer-events-none" />
+            )}
+
             {/* Rarity glow */}
             {(card.rarity === 'Legendary' || card.rarity === 'Epic') && (
               <div className="absolute inset-0 card-shimmer pointer-events-none" />
