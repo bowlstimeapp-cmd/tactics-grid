@@ -26,7 +26,7 @@ export default function GameMatch() {
   const [phase, setPhase] = useState('deckselect'); // deckselect, coinflip, layout, playing, gameover
   const [playerCards, setPlayerCards] = useState([]);
   const [gameState, setGameState] = useState(null);
-  const [selectedCardIndex, setSelectedCardIndex] = useState(null);
+  const [selectedTile, setSelectedTile] = useState(null);
   const [layoutKey, setLayoutKey] = useState('');
   const [history, setHistory] = useState([]);
   const [isAIThinking, setIsAIThinking] = useState(false);
@@ -222,16 +222,27 @@ export default function GameMatch() {
       return;
     }
 
-    if (gameState.currentPlayer !== 1 || selectedCardIndex === null || isAIThinking) return;
+    if (gameState.currentPlayer !== 1 || isAIThinking) return;
     if (isAnimatingRef.current || isRevealingRef.current) return;
     if (gameState.board[row][col]) return;
 
+    // Toggle tile selection
+    setSelectedTile(prev => prev && prev.row === row && prev.col === col ? null : { row, col });
+  }, [gameState, isAIThinking, inspectMode]);
+
+  const handlePlaceCard = useCallback((cardIndex) => {
+    if (!gameState || gameState.gameOver) return;
+    if (!selectedTile || isAIThinking) return;
+    if (isAnimatingRef.current || isRevealingRef.current) return;
+    if (gameState.currentPlayer !== 1) return;
+    if (gameState.board[selectedTile.row][selectedTile.col]) return;
+
     setHistory(prev => [...prev, JSON.parse(JSON.stringify(gameState))]);
-    const newState = placeCard(gameState, selectedCardIndex, row, col);
+    const newState = placeCard(gameState, cardIndex, selectedTile.row, selectedTile.col);
     setGameState(newState);
-    setSelectedCardIndex(null);
-    startReveal(newState, row, col, 'You');
-  }, [gameState, selectedCardIndex, isAIThinking, inspectMode, processAnimations]);
+    setSelectedTile(null);
+    startReveal(newState, selectedTile.row, selectedTile.col, 'You');
+  }, [gameState, selectedTile, isAIThinking]);
 
   const handleHandInspect = useCallback((card) => {
     setInspectCard(card);
@@ -243,12 +254,12 @@ export default function GameMatch() {
     const prev = history[history.length - 1];
     setHistory(h => h.slice(0, -1));
     setGameState(prev);
-    setSelectedCardIndex(null);
+    setSelectedTile(null);
   };
 
   const toggleInspect = () => {
     setInspectMode(prev => !prev);
-    setSelectedCardIndex(null);
+    setSelectedTile(null);
   };
 
   const layout = BOARD_LAYOUTS[layoutKey];
@@ -351,7 +362,7 @@ export default function GameMatch() {
             <GameBoard
               gameState={gameState}
               onCellClick={handleCellClick}
-              selectedCard={inspectMode ? null : selectedCardIndex}
+              selectedTile={inspectMode ? null : selectedTile}
               flippingCells={flippingCells}
             />
           </motion.div>
@@ -389,8 +400,9 @@ export default function GameMatch() {
           {/* Player hand */}
           <PlayerHand
             cards={gameState.player1Hand}
-            selectedIndex={selectedCardIndex}
-            onSelect={(idx) => setSelectedCardIndex(idx)}
+            selectedIndex={null}
+            onSelect={() => {}}
+            onPlaceCard={selectedTile && !inspectMode && gameState.currentPlayer === 1 && !isAIThinking ? handlePlaceCard : undefined}
             onInspect={inspectMode ? handleHandInspect : undefined}
             isActive={gameState.currentPlayer === 1 && !isAIThinking && !inspectMode}
             playerNum={1}
@@ -423,7 +435,7 @@ export default function GameMatch() {
         onPlayAgain={() => {
           setPhase('deckselect');
           setGameState(null);
-          setSelectedCardIndex(null);
+          setSelectedTile(null);
           setPlayerCards([]);
           setInspectMode(false);
           setInspectCard(null);

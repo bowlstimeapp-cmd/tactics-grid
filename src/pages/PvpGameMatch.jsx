@@ -33,7 +33,7 @@ export default function PvpGameMatch() {
   const [match, setMatch] = useState(null);
   const [displayState, setDisplayState] = useState(null);
   const [myPlayerNum, setMyPlayerNum] = useState(1);
-  const [selectedCardIndex, setSelectedCardIndex] = useState(null);
+  const [selectedTile, setSelectedTile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
   const [flippingCells, setFlippingCells] = useState(new Set());
@@ -275,17 +275,28 @@ export default function PvpGameMatch() {
       return;
     }
 
-    if (displayState.currentPlayer !== myPlayerNum || selectedCardIndex === null || isAnimating) return;
+    if (displayState.currentPlayer !== myPlayerNum || isAnimating) return;
     if (isRevealingRef.current) return;
     if (displayState.board[row][col]) return;
 
-    const newState = placeCard(displayState, selectedCardIndex, row, col);
+    // Toggle tile selection
+    setSelectedTile(prev => prev && prev.row === row && prev.col === col ? null : { row, col });
+  }, [displayState, inspectMode, myPlayerNum, isAnimating, submitting]);
+
+  const handlePlaceCard = useCallback((cardIndex) => {
+    if (!displayState || displayState.gameOver || submitting) return;
+    if (!selectedTile || isAnimating) return;
+    if (isRevealingRef.current) return;
+    if (displayState.currentPlayer !== myPlayerNum) return;
+    if (displayState.board[selectedTile.row][selectedTile.col]) return;
+
+    const newState = placeCard(displayState, cardIndex, selectedTile.row, selectedTile.col);
     displayTurnRef.current = newState.turn;
     setDisplayState(newState);
-    setSelectedCardIndex(null);
+    setSelectedTile(null);
     const oppName = myPlayerNum === 1 ? match?.player2_name : match?.player1_name;
-    startReveal(newState, row, col, true, oppName);
-  }, [displayState, selectedCardIndex, isAnimating, inspectMode, myPlayerNum, matchId, processAnimations, submitting]);
+    startReveal(newState, selectedTile.row, selectedTile.col, true, oppName);
+  }, [displayState, selectedTile, isAnimating, myPlayerNum, submitting]);
 
   const handleHandInspect = useCallback((card) => {
     setInspectCard(card);
@@ -294,7 +305,7 @@ export default function PvpGameMatch() {
 
   const toggleInspect = () => {
     setInspectMode(prev => !prev);
-    setSelectedCardIndex(null);
+    setSelectedTile(null);
   };
 
   const handleForfeit = () => {
@@ -390,7 +401,7 @@ export default function PvpGameMatch() {
             <GameBoard
               gameState={displayState}
               onCellClick={handleCellClick}
-              selectedCard={inspectMode ? null : selectedCardIndex}
+              selectedTile={inspectMode ? null : selectedTile}
               flippingCells={flippingCells}
               myPlayerNum={myPlayerNum}
             />
@@ -429,8 +440,9 @@ export default function PvpGameMatch() {
           {/* Player hand */}
           <PlayerHand
             cards={myHand}
-            selectedIndex={selectedCardIndex}
-            onSelect={(idx) => setSelectedCardIndex(idx)}
+            selectedIndex={null}
+            onSelect={() => {}}
+            onPlaceCard={selectedTile && !inspectMode && isMyTurn && !submitting ? handlePlaceCard : undefined}
             onInspect={inspectMode ? handleHandInspect : undefined}
             isActive={isMyTurn && !submitting && !inspectMode}
             playerNum={1}

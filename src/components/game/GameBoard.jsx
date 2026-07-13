@@ -2,7 +2,7 @@ import React from 'react';
 import GameCard from './GameCard';
 import { getEffectiveStats } from '@/lib/gameEngine';
 
-export default function GameBoard({ gameState, onCellClick, selectedCard, flippingCells, myPlayerNum = 1 }) {
+export default function GameBoard({ gameState, onCellClick, selectedTile, flippingCells, myPlayerNum = 1 }) {
   const { board, tiles, turn } = gameState;
 
   return (
@@ -30,9 +30,9 @@ export default function GameBoard({ gameState, onCellClick, selectedCard, flippi
                 min-w-[72px] min-h-[96px] sm:min-w-[88px] sm:min-h-[116px]
                 ${card
                   ? 'border-transparent'
-                  : selectedCard !== null
-                    ? 'border-amber-500/40 bg-amber-500/5 hover:bg-amber-500/10 hover:border-amber-500/60'
-                    : 'border-slate-700/40 bg-slate-800/30'
+                  : selectedTile && selectedTile.row === row && selectedTile.col === col
+                    ? 'border-amber-500 ring-2 ring-amber-400/60 bg-amber-500/15'
+                    : 'border-slate-700/40 bg-slate-800/30 hover:border-slate-600/50'
                 }
               `}
             >
