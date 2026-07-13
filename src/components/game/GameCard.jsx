@@ -121,20 +121,28 @@ export default function GameCard({ card, size = 'md', onClick, selected, showSta
               {size !== 'sm' && card.name}
             </div>
 
-            {/* Passive icon */}
-            {passive && (
-              <div className="absolute bottom-1 left-1 text-[10px]">{passive.icon}</div>
-            )}
-
             {/* Stats diamond */}
             {showStats && (
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="absolute inset-x-0 top-0 flex items-center justify-center pointer-events-none" style={{ bottom: size === 'sm' ? 14 : size === 'md' ? 26 : size === 'lg' ? 32 : 38 }}>
                 <div className="relative" style={{ width: size === 'sm' ? 36 : size === 'md' ? 52 : 68, height: size === 'sm' ? 36 : size === 'md' ? 52 : 68 }}>
                   {renderStat('north', 'top-0 left-1/2 -translate-x-1/2')}
                   {renderStat('south', 'bottom-0 left-1/2 -translate-x-1/2')}
                   {renderStat('west', 'top-1/2 left-0 -translate-y-1/2')}
                   {renderStat('east', 'top-1/2 right-0 -translate-y-1/2')}
                 </div>
+              </div>
+            )}
+
+            {/* Ability caption box */}
+            {passive && (
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/95 via-black/85 to-black/50 border-t border-amber-500/20 px-1 pt-0.5 pb-0.5">
+                <div className="flex items-center gap-0.5">
+                  <span className={size === 'sm' ? 'text-[7px] leading-none' : size === 'md' ? 'text-[8px] leading-none' : 'text-[10px] leading-none'}>{passive.icon}</span>
+                  <span className={`font-heading leading-tight truncate text-amber-200/90 ${size === 'sm' ? 'text-[6px]' : size === 'md' ? 'text-[7px]' : size === 'lg' ? 'text-[8px]' : 'text-[9px]'}`}>{passive.name}</span>
+                </div>
+                {size !== 'sm' && (
+                  <p className={`${size === 'md' ? 'text-[6px]' : size === 'lg' ? 'text-[7px]' : 'text-[8px]'} leading-tight text-slate-300/70 truncate`}>{passive.description}</p>
+                )}
               </div>
             )}
 
