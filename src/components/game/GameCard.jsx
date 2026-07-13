@@ -98,20 +98,27 @@ export default function GameCard({ card, size = 'md', onClick, selected, showSta
               background: `linear-gradient(135deg, hsl(230, 15%, 14%), hsl(230, 15%, 10%))`,
             }}
           >
+            {/* Artwork area */}
+            {card.artwork_url ? (
+              <div className="absolute inset-0 overflow-hidden">
+                <img src={card.artwork_url} alt={card.name} className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/50" />
+              </div>
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center opacity-20">
+                <span className="text-3xl">{faction.icon}</span>
+              </div>
+            )}
+
             {/* Rarity top bar */}
             <div className="absolute top-0 left-0 right-0 h-1" style={{ background: rarity.color }} />
 
             {/* Faction icon */}
-            <div className="absolute top-1 left-1 text-[10px] opacity-60">{faction.icon}</div>
+            <div className="absolute top-1 left-1 text-[10px] opacity-80">{faction.icon}</div>
 
             {/* Card name */}
-            <div className="absolute top-1 right-1 left-5 font-heading text-[7px] leading-tight truncate text-amber-200/80">
+            <div className="absolute top-1 right-1 left-5 font-heading text-[7px] leading-tight truncate text-amber-200/90">
               {size !== 'sm' && card.name}
-            </div>
-
-            {/* Artwork area */}
-            <div className="absolute inset-0 flex items-center justify-center opacity-20">
-              <span className="text-3xl">{faction.icon}</span>
             </div>
 
             {/* Passive icon */}

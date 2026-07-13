@@ -130,6 +130,7 @@ function assignRarity(card) {
 
 // Add passive metadata from PASSIVES registry
 import { PASSIVES } from './gameData';
+import { CARD_ARTWORK } from './cardArtwork';
 
 export const ALL_CARDS = CARDS.map(c => {
   const passive = PASSIVES[c.passive_id] || {};
@@ -140,7 +141,7 @@ export const ALL_CARDS = CARDS.map(c => {
     passive_description: passive.description || "",
     passive_icon: passive.icon || "✨",
     card_type: c.faction,
-    artwork_url: "",
+    artwork_url: CARD_ARTWORK[c.card_id] || "",
   };
 });
 
