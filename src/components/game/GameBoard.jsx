@@ -16,10 +16,8 @@ export default function GameBoard({ gameState, onCellClick, selectedTile, flippi
             const card = board[row][col];
             const tileIdx = row * 3 + col;
             const tile = tiles?.[tileIdx];
-            const boardWithTiles = board;
-            Object.defineProperty(boardWithTiles, '_tiles', { value: tiles, writable: true, enumerable: false, configurable: true });
             const isJustPlaced = card && card.placedTurn === turn - 1;
-            const effectiveStats = card ? getEffectiveStats(card, [row, col], boardWithTiles, turn, isJustPlaced ? 'attack' : 'defend') : null;
+            const effectiveStats = card ? getEffectiveStats(card, [row, col], board, turn, isJustPlaced ? 'attack' : 'defend') : null;
             const cellKey = `${row}-${col}`;
             const isFlipping = flippingCells?.has(cellKey);
             const tileBgClass = tile ? `bg-gradient-to-br ${TILE_BG[tile.type] || ''}` : '';

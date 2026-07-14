@@ -153,7 +153,7 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
 export function placeCard(gameState, cardIndex, row, col) {
   const gs = JSON.parse(JSON.stringify(gameState));
   // Attach tiles reference - use Object.defineProperty so it survives on the array
-  Object.defineProperty(gs.board, '_tiles', { value: gs.tiles, writable: true, enumerable: false });
+  Object.defineProperty(gs.board, '_tiles', { value: gs.tiles, writable: true, enumerable: false, configurable: true });
 
   if (gs.gameOver) return gs;
   if (gs.board[row][col]) return gs;
