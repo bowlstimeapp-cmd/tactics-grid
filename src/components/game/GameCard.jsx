@@ -118,15 +118,10 @@ export default function GameCard({ card, size = 'md', onClick, selected, showSta
             {/* Faction icon */}
             <div className="absolute top-1 left-1 text-[10px] opacity-80">{faction.icon}</div>
 
-            {/* Card name */}
-            <div className="absolute top-1 right-1 left-5 font-heading text-[7px] leading-tight truncate text-amber-200/90">
-              {size !== 'sm' && card.name}
-            </div>
-
-            {/* Stats diamond */}
+            {/* Stats — top-right corner, below rarity bar */}
             {showStats && (
-              <div className="absolute inset-x-0 top-0 flex items-center justify-center pointer-events-none" style={{ bottom: size === 'sm' ? 28 : size === 'md' ? 52 : size === 'lg' ? 64 : size === 'xl' ? 76 : 88 }}>
-                <div className="relative" style={{ width: size === 'sm' ? 36 : size === 'md' ? 52 : size === '2xl' ? 84 : 68, height: size === 'sm' ? 36 : size === 'md' ? 52 : size === '2xl' ? 84 : 68 }}>
+              <div className="absolute top-1.5 right-0.5 pointer-events-none">
+                <div className="relative" style={{ width: size === 'sm' ? 28 : size === 'md' ? 36 : size === 'lg' ? 40 : size === 'xl' ? 44 : 52, height: size === 'sm' ? 28 : size === 'md' ? 36 : size === 'lg' ? 40 : size === 'xl' ? 44 : 52 }}>
                   {renderStat('north', 'top-0 left-1/2 -translate-x-1/2')}
                   {renderStat('south', 'bottom-0 left-1/2 -translate-x-1/2')}
                   {renderStat('west', 'top-1/2 left-0 -translate-y-1/2')}
@@ -135,18 +130,27 @@ export default function GameCard({ card, size = 'md', onClick, selected, showSta
               </div>
             )}
 
-            {/* Ability caption box */}
-            {passive && (
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/95 via-black/85 to-black/40 border-t border-amber-500/20 px-1.5 pt-1 pb-1">
-                <div className="flex items-center gap-0.5 mb-0.5">
-                  <span className={size === 'sm' ? 'text-[7px] leading-none' : size === 'md' ? 'text-[9px] leading-none' : size === '2xl' ? 'text-sm leading-none' : 'text-[11px] leading-none'}>{passive.icon}</span>
-                  <span className={`font-heading leading-tight truncate text-amber-200/90 ${size === 'sm' ? 'text-[6px]' : size === 'md' ? 'text-[8px]' : size === 'lg' ? 'text-[9px]' : size === 'xl' ? 'text-[10px]' : 'text-xs'}`}>{passive.name}</span>
+            {/* Bottom area: card name + ability caption */}
+            <div className="absolute bottom-0 left-0 right-0">
+              {/* Card name — above caption, increased size */}
+              {size !== 'sm' && (
+                <div className="px-1 pb-0.5 bg-gradient-to-t from-black/90 to-transparent">
+                  <p className={`font-heading truncate text-amber-100 ${size === 'md' ? 'text-[9px]' : size === 'lg' ? 'text-[10px]' : size === 'xl' ? 'text-[11px]' : 'text-[13px]'}`}>{card.name}</p>
                 </div>
-                {size !== 'sm' && (
-                  <p className={`${size === 'md' ? 'text-[7px]' : size === 'lg' ? 'text-[8px]' : size === 'xl' ? 'text-[9px]' : 'text-[11px]'} leading-snug text-slate-300/80 line-clamp-2`}>{passive.description}</p>
-                )}
-              </div>
-            )}
+              )}
+              {/* Ability caption box — reduced by ~1/3 */}
+              {passive && (
+                <div className="bg-gradient-to-t from-black/95 via-black/85 to-black/60 border-t border-amber-500/20 px-1 pt-0.5 pb-0.5">
+                  <div className="flex items-center gap-0.5">
+                    <span className={size === 'sm' ? 'text-[6px] leading-none' : size === 'md' ? 'text-[7px] leading-none' : size === '2xl' ? 'text-[10px] leading-none' : 'text-[8px] leading-none'}>{passive.icon}</span>
+                    <span className={`font-heading leading-tight truncate text-amber-200/90 ${size === 'sm' ? 'text-[5px]' : size === 'md' ? 'text-[6px]' : size === 'lg' ? 'text-[7px]' : size === 'xl' ? 'text-[7px]' : 'text-[8px]'}`}>{passive.name}</span>
+                  </div>
+                  {size !== 'sm' && (
+                    <p className={`${size === 'md' ? 'text-[6px]' : size === 'lg' ? 'text-[6px]' : size === 'xl' ? 'text-[7px]' : 'text-[8px]'} leading-tight text-slate-300/80 line-clamp-2`}>{passive.description}</p>
+                  )}
+                </div>
+              )}
+            </div>
 
             {/* Holographic effect for Legendary cards */}
             {card.rarity === 'Legendary' && (
