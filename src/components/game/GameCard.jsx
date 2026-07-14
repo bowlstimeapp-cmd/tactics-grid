@@ -144,7 +144,6 @@ export default function GameCard({ card, size = 'md', onClick, selected, showSta
               {passive && (
                 <div className="bg-gradient-to-t from-black/95 via-black/85 to-black/60 border-t border-amber-500/20 px-1 pt-0.5 pb-0.5">
                   <div className="flex items-center gap-0.5">
-                    <span className={size === 'sm' ? 'text-[6px] leading-none' : size === 'md' ? 'text-[7px] leading-none' : size === '2xl' ? 'text-[10px] leading-none' : 'text-[8px] leading-none'}>{passive.icon}</span>
                     <span className={`font-heading leading-tight truncate text-amber-200/90 ${size === 'sm' ? 'text-[5px]' : size === 'md' ? 'text-[6px]' : size === 'lg' ? 'text-[7px]' : size === 'xl' ? 'text-[7px]' : 'text-[8px]'}`}>{passive.name}</span>
                   </div>
                   {size !== 'sm' && (
