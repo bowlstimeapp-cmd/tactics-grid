@@ -123,7 +123,7 @@ export default function GameMatch() {
       aiPool = aiPool.filter(c => c.rarity !== 'Common');
     }
     const shuffled = aiPool.sort(() => Math.random() - 0.5);
-    const aiCards = shuffled.slice(0, 5);
+    const aiCards = shuffled.slice(0, 7);
 
     const lk = getRandomLayout();
     setLayoutKey(lk);

@@ -70,7 +70,7 @@ export default function DeckSelectModal({ open, onConfirm }) {
                   >
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-heading text-amber-100 text-sm">{deck.name}</h3>
-                      <span className="text-xs text-muted-foreground">{cards.length}/5</span>
+                      <span className="text-xs text-muted-foreground">{cards.length}/7</span>
                     </div>
                     <div className="flex gap-1">
                       {cards.map((c, i) => (
@@ -84,7 +84,7 @@ export default function DeckSelectModal({ open, onConfirm }) {
 
             <Button
               onClick={() => onConfirm(selectedCards)}
-              disabled={!selectedDeck || selectedCards.length < 5}
+              disabled={!selectedDeck || selectedCards.length < 7}
               className="mt-4 w-full bg-amber-600 hover:bg-amber-500 text-black font-heading"
             >
               Use This Deck

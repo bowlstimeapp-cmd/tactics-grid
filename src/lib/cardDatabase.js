@@ -1,4 +1,5 @@
-// 100 unique cards - no duplicate stat combos, each with unique passive
+// 100 unique cards + 100 expansion cards
+import { EXPANSION_CARDS } from './cardExpansion';
 const CARDS = [
   // ── KNIGHTS (13) ──
   { card_id:"C001",name:"Squire",faction:"Knights",north:3,east:2,south:4,west:2,passive_id:"played_first_boost",flavour_text:"Every legend begins with a single step." },
@@ -115,6 +116,7 @@ const CARDS = [
   { card_id:"C098",name:"Corpse Titan",faction:"Undead",north:8,east:6,south:9,west:5,passive_id:"endgame_boost",flavour_text:"It rises when the battle is almost over." },
   { card_id:"C099",name:"Banshee Queen",faction:"Undead",north:7,east:7,south:5,west:7,passive_id:"domination",flavour_text:"Her scream commands obedience." },
   { card_id:"C100",name:"Plague Bearer",faction:"Undead",north:4,east:5,south:4,west:3,passive_id:"plague",flavour_text:"It carries the end of all things." },
+  ...EXPANSION_CARDS,
 ];
 
 // Auto-assign rarity based on avg stats + ability strength

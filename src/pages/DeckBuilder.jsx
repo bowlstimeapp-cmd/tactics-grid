@@ -37,7 +37,7 @@ export default function DeckBuilder() {
   const ownedCards = ALL_CARDS.filter(c => owned[c.card_id]);
 
   const saveDeck = async () => {
-    if (!deckName.trim() || deckCards.length !== 5) return;
+    if (!deckName.trim() || deckCards.length !== 7) return;
     if (editingDeck) {
       await base44.entities.Deck.update(editingDeck.id, { name: deckName, card_ids: deckCards });
       setDecks(prev => prev.map(d => d.id === editingDeck.id ? { ...d, name: deckName, card_ids: deckCards } : d));
@@ -64,7 +64,7 @@ export default function DeckBuilder() {
   const toggleCard = (cardId) => {
     setDeckCards(prev => {
       if (prev.includes(cardId)) return prev.filter(id => id !== cardId);
-      if (prev.length >= 5) return prev;
+      if (prev.length >= 7) return prev;
       return [...prev, cardId];
     });
   };
@@ -128,7 +128,7 @@ export default function DeckBuilder() {
                   ))}
                   {cards.length > 10 && <span className="self-center text-xs text-muted-foreground">+{cards.length - 10} more</span>}
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">{cards.length}/5 cards</p>
+                <p className="text-xs text-muted-foreground mt-2">{cards.length}/7 cards</p>
               </motion.div>
             );
           })}
@@ -150,7 +150,7 @@ export default function DeckBuilder() {
             className="bg-slate-800/50 border-slate-700/40"
           />
           <p className="text-sm text-muted-foreground">
-            Select 5 cards ({deckCards.length}/5)
+            Select 7 cards ({deckCards.length}/7)
             {ownedCards.length === 0 && ' — You need to own cards first!'}
           </p>
           <div className="grid grid-cols-5 sm:grid-cols-6 gap-2 mt-2">
@@ -166,10 +166,10 @@ export default function DeckBuilder() {
           </div>
           <Button
             onClick={saveDeck}
-            disabled={!deckName.trim() || deckCards.length !== 5}
+            disabled={!deckName.trim() || deckCards.length !== 7}
             className="mt-4 w-full bg-amber-600 hover:bg-amber-500 text-black font-heading"
           >
-            Save Deck ({deckCards.length}/5)
+            Save Deck ({deckCards.length}/7)
           </Button>
         </DialogContent>
       </Dialog>

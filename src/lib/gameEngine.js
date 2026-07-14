@@ -20,7 +20,7 @@ export function createGameState(player1Cards, player2Cards, layoutKey = 'standar
     moves: [],
     gameOver: false,
     winner: null,
-    scores: { 1: 5, 2: 5 },
+    scores: { 1: 7, 2: 7 },
     animations: [],
     passiveActivations: [],
   };

@@ -359,6 +359,64 @@ export const PASSIVES = {
       return { cardMods: { north: pairs, east: pairs, south: pairs, west: pairs } };
     }
   },
+  // ── Expansion passives (balanced, no global auras, no debuffs) ──
+  lone_wolf: {
+    id: "lone_wolf", name: "Lone Wolf", icon: "🐺",
+    description: "+3 all sides if no adjacent allies",
+    apply: (ctx) => {
+      const adj = getAdjacentCards(ctx.position, ctx.board);
+      const allies = adj.filter(c => c && c.owner === ctx.card.owner).length;
+      if (allies === 0) return { cardMods: { north: 3, east: 3, south: 3, west: 3 } };
+      return {};
+    }
+  },
+  bloodlust: {
+    id: "bloodlust", name: "Bloodlust", icon: "🩸",
+    description: "+1 north and east for each adjacent enemy",
+    apply: (ctx) => {
+      const adj = getAdjacentCards(ctx.position, ctx.board);
+      const enemies = adj.filter(c => c && c.owner !== ctx.card.owner).length;
+      return { cardMods: { north: enemies, east: enemies, south: 0, west: 0 } };
+    }
+  },
+  guardian: {
+    id: "guardian", name: "Guardian", icon: "🤲",
+    description: "+1 south and west for each adjacent ally",
+    apply: (ctx) => {
+      const adj = getAdjacentCards(ctx.position, ctx.board);
+      const allies = adj.filter(c => c && c.owner === ctx.card.owner).length;
+      return { cardMods: { north: 0, east: 0, south: allies, west: allies } };
+    }
+  },
+  overwhelm: {
+    id: "overwhelm", name: "Overwhelm", icon: "🌊",
+    description: "+2 all sides if 2+ adjacent allies",
+    apply: (ctx) => {
+      const adj = getAdjacentCards(ctx.position, ctx.board);
+      const allies = adj.filter(c => c && c.owner === ctx.card.owner).length;
+      if (allies >= 2) return { cardMods: { north: 2, east: 2, south: 2, west: 2 } };
+      return {};
+    }
+  },
+  pincer: {
+    id: "pincer", name: "Pincer", icon: "🔱",
+    description: "+2 all sides if 2+ adjacent enemies",
+    apply: (ctx) => {
+      const adj = getAdjacentCards(ctx.position, ctx.board);
+      const enemies = adj.filter(c => c && c.owner !== ctx.card.owner).length;
+      if (enemies >= 2) return { cardMods: { north: 2, east: 2, south: 2, west: 2 } };
+      return {};
+    }
+  },
+  trapper: {
+    id: "trapper", name: "Trapper", icon: "🪤",
+    description: "+1 all sides for each empty adjacent space",
+    apply: (ctx) => {
+      const adj = getAdjacentCards(ctx.position, ctx.board);
+      const empty = adj.filter(c => !c).length;
+      return { cardMods: { north: empty, east: empty, south: empty, west: empty } };
+    }
+  },
 };
 
 function getAdjacentCards(pos, board) {
@@ -484,6 +542,7 @@ export const ACHIEVEMENTS = [
 // ── Pack odds ──
 export const PACK_COST = 100;
 export const PACK_SIZE = 3;
+export const DECK_SIZE = 7;
 export const PACK_ODDS = [
   { rarity: "Common", weight: 65 },
   { rarity: "Uncommon", weight: 23 },

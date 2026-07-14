@@ -22,6 +22,7 @@ const PASSIVE_POWER = {
   surrounded_fury: 4, anchor: 6, mirror: 5, sentinel: 4, flanker: 4, duelist: 4,
   debuff_shield: 4, machine_shield: 3, spirit_walk: 3, undead_rising: 3, knight_honor: 3,
   assassin_strike: 7, tactician: 3, colossus: 7, harmony: 4, longevity: 6,
+  lone_wolf: 5, bloodlust: 4, guardian: 3, overwhelm: 5, pincer: 5, trapper: 4,
 };
 
 // ── Passive Categories for Scoring ──
@@ -39,6 +40,8 @@ const CATEGORY = {
   anchor: 'always', sentinel: 'always', flanker: 'always',
   mirror: 'special', debuff_shield: 'support', machine_shield: 'support',
   colossus: 'growing', longevity: 'growing',
+  lone_wolf: 'conditional', bloodlust: 'combat', guardian: 'support',
+  overwhelm: 'synergy', pincer: 'combat', trapper: 'conditional',
 };
 
 const CATEGORY_SCORES = {
