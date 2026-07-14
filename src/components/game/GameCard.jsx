@@ -117,24 +117,38 @@ export default function GameCard({ card, size = 'md', onClick, selected, showSta
             {/* Rarity top bar */}
             <div className="absolute top-0 left-0 right-0 h-1" style={{ background: rarity.color }} />
 
-            {/* Faction type label — ornate banner */}
+            {/* Faction type label — embossed gold plate */}
             <div
               className="absolute top-1 left-1"
               style={{
-                background: 'linear-gradient(135deg, rgba(20,14,8,0.92), rgba(40,28,10,0.88))',
-                border: '0.5px solid rgba(245,158,11,0.5)',
-                borderTopColor: 'rgba(245,200,100,0.7)',
-                boxShadow: '0 1px 2px rgba(0,0,0,0.6), inset 0 0.5px 0 rgba(255,200,100,0.25)',
-                borderRadius: '2px',
-                clipPath: 'polygon(0 0, 100% 0, 100% 100%, calc(100% - 3px) 100%, 0 calc(100% - 3px))',
+                background: 'linear-gradient(145deg, #D4AF37 0%, #B8860B 45%, #8B4513 55%, #B8860B 100%)',
+                borderRadius: '3px',
+                padding: '1px',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.7), 0 0.5px 0 rgba(255,220,120,0.4) inset',
               }}
             >
-              <span
-                className={`font-heading leading-none tracking-wider ${size === 'sm' ? 'text-[5px] px-1 py-px' : size === 'md' ? 'text-[6px] px-1 py-0.5' : size === 'lg' ? 'text-[7px] px-1.5 py-0.5' : size === 'xl' ? 'text-[8px] px-1.5 py-0.5' : 'text-[9px] px-2 py-1'}`}
-                style={{ color: 'rgba(255,224,150,0.95)', textShadow: '0 0 3px rgba(245,158,11,0.5)' }}
+              <div
+                style={{
+                  background: 'linear-gradient(180deg, #2E1A0E 0%, #3B2314 50%, #2E1A0E 100%)',
+                  borderRadius: '2px',
+                  boxShadow: '0 1px 1.5px rgba(0,0,0,0.5) inset, 0 0.5px 0 rgba(255,220,120,0.15) inset',
+                  padding: size === 'sm' ? '1px 3px' : size === 'md' ? '1px 4px' : size === 'lg' ? '1.5px 5px' : size === 'xl' ? '2px 6px' : '2px 7px',
+                }}
               >
-                {card.faction.toUpperCase()}
-              </span>
+                <span
+                  className={`font-heading leading-none tracking-wider ${size === 'sm' ? 'text-[5px]' : size === 'md' ? 'text-[6px]' : size === 'lg' ? 'text-[7px]' : size === 'xl' ? 'text-[8px]' : 'text-[9px]'}`}
+                  style={{
+                    background: 'linear-gradient(180deg, #F4E075 0%, #D4AF37 50%, #B8860B 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    textShadow: '0 0 2px rgba(0,0,0,0.8)',
+                    filter: 'drop-shadow(0 0.5px 0 rgba(60,30,10,0.9))',
+                  }}
+                >
+                  {card.faction.toUpperCase()}
+                </span>
+              </div>
             </div>
 
             {/* Stats — top-right corner, below rarity bar */}
