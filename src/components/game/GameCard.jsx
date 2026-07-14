@@ -117,9 +117,24 @@ export default function GameCard({ card, size = 'md', onClick, selected, showSta
             {/* Rarity top bar */}
             <div className="absolute top-0 left-0 right-0 h-1" style={{ background: rarity.color }} />
 
-            {/* Faction type label */}
-            <div className="absolute top-1 left-1 px-1 py-px rounded border border-amber-700/40 bg-black/50">
-              <span className={`font-heading leading-none text-amber-300/80 ${size === 'sm' ? 'text-[5px]' : size === 'md' ? 'text-[6px]' : size === 'lg' ? 'text-[7px]' : 'text-[8px]'}`}>{card.faction.toUpperCase()}</span>
+            {/* Faction type label — ornate banner */}
+            <div
+              className="absolute top-1 left-1"
+              style={{
+                background: 'linear-gradient(135deg, rgba(20,14,8,0.92), rgba(40,28,10,0.88))',
+                border: '0.5px solid rgba(245,158,11,0.5)',
+                borderTopColor: 'rgba(245,200,100,0.7)',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.6), inset 0 0.5px 0 rgba(255,200,100,0.25)',
+                borderRadius: '2px',
+                clipPath: 'polygon(0 0, 100% 0, 100% 100%, calc(100% - 3px) 100%, 0 calc(100% - 3px))',
+              }}
+            >
+              <span
+                className={`font-heading leading-none tracking-wider ${size === 'sm' ? 'text-[5px] px-1 py-px' : size === 'md' ? 'text-[6px] px-1 py-0.5' : size === 'lg' ? 'text-[7px] px-1.5 py-0.5' : size === 'xl' ? 'text-[8px] px-1.5 py-0.5' : 'text-[9px] px-2 py-1'}`}
+                style={{ color: 'rgba(255,224,150,0.95)', textShadow: '0 0 3px rgba(245,158,11,0.5)' }}
+              >
+                {card.faction.toUpperCase()}
+              </span>
             </div>
 
             {/* Stats — top-right corner, below rarity bar */}
