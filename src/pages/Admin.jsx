@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { ALL_CARDS } from '@/lib/cardDatabase';
-import { FACTION_CONFIG, RARITY_CONFIG, ACHIEVEMENTS } from '@/lib/gameData';
+import { FACTION_CONFIG, RARITY_CONFIG, ACHIEVEMENTS, PASSIVE_LIST } from '@/lib/gameData';
 import { loadGameConfig, saveGameConfig } from '@/lib/gameConfig';
 import { REWARD_PACK_OPTIONS, REWARD_LABELS } from '@/lib/packLogic';
 
@@ -48,7 +48,7 @@ export default function Admin() {
         setAchievementRewards(cfg.achievement_rewards || {});
         const stats = {};
         ALL_CARDS.forEach(c => {
-          stats[c.card_id] = { north: c.north, east: c.east, south: c.south, west: c.west };
+          stats[c.card_id] = { north: c.north, east: c.east, south: c.south, west: c.west, passive_id: c.passive_id };
         });
         setCardStats(stats);
       } catch (e) {
@@ -63,6 +63,13 @@ export default function Admin() {
     setCardStats(prev => ({
       ...prev,
       [cardId]: { ...prev[cardId], [dir]: parseInt(value) || 0 }
+    }));
+  };
+
+  const updateCardPassive = (cardId, passiveId) => {
+    setCardStats(prev => ({
+      ...prev,
+      [cardId]: { ...prev[cardId], passive_id: passiveId }
     }));
   };
 
@@ -121,7 +128,7 @@ export default function Admin() {
 
       {savedMsg && <p className="text-sm text-emerald-400 mb-4">{savedMsg}</p>}
 
-      <Tabs defaultValue="packs" className="max-w-3xl mx-auto">
+      <Tabs defaultValue="packs" className="max-w-5xl mx-auto">
         <TabsList className="grid grid-cols-3 mb-4">
           <TabsTrigger value="packs">Pack Settings</TabsTrigger>
           <TabsTrigger value="achievements">Achievement Rewards</TabsTrigger>
@@ -221,12 +228,24 @@ export default function Admin() {
             {filteredCards.map(card => (
               <div key={card.card_id} className="flex items-center gap-2 bg-slate-800/30 rounded-lg border border-slate-700/20 p-2">
                 <span className="text-lg">{FACTION_CONFIG[card.faction]?.icon}</span>
-                <div className="flex-1 min-w-0">
+                <div className="w-32 min-w-0 shrink-0">
                   <p className="text-sm font-medium text-amber-100 truncate">{card.name}</p>
                   <p className="text-xs text-muted-foreground">{card.faction} · {card.rarity}</p>
                 </div>
+                <div className="flex-1 min-w-0">
+                  <label className="text-[10px] text-muted-foreground uppercase block mb-0.5">Bonus</label>
+                  <select
+                    value={cardStats[card.card_id]?.passive_id ?? 'none'}
+                    onChange={e => updateCardPassive(card.card_id, e.target.value)}
+                    className="bg-slate-900 border border-amber-900/30 rounded-md px-2 py-1 text-xs w-full"
+                  >
+                    {PASSIVE_LIST.map(p => (
+                      <option key={p.id} value={p.id}>{p.icon} {p.name}</option>
+                    ))}
+                  </select>
+                </div>
                 {['north', 'east', 'south', 'west'].map(dir => (
-                  <div key={dir} className="flex items-center gap-1">
+                  <div key={dir} className="flex items-center gap-1 shrink-0">
                     <span className="text-xs text-muted-foreground uppercase">{dir[0]}</span>
                     <Input type="number" value={cardStats[card.card_id]?.[dir] ?? 0} onChange={e => updateCardStat(card.card_id, dir, e.target.value)} className="bg-slate-900 border-amber-900/30 w-14 h-8 text-center px-1" />
                   </div>

@@ -419,6 +419,12 @@ export const PASSIVES = {
   },
 };
 
+// ── Passive Ability Directory (flat list for dropdowns) ──
+export const PASSIVE_LIST = [
+  { id: 'none', name: 'None', icon: '🚫', description: 'No passive ability' },
+  ...Object.values(PASSIVES).map(p => ({ id: p.id, name: p.name, icon: p.icon, description: p.description })),
+];
+
 function getAdjacentCards(pos, board) {
   const [r, c] = pos;
   const dirs = [[-1,0],[1,0],[0,-1],[0,1]];

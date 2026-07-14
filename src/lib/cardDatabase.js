@@ -174,11 +174,17 @@ export function applyCardOverrides(overrides) {
   if (!overrides) return;
   for (const card of ALL_CARDS) {
     const ov = overrides[card.card_id];
-    if (ov) {
-      if (ov.north !== undefined) card.north = ov.north;
-      if (ov.east !== undefined) card.east = ov.east;
-      if (ov.south !== undefined) card.south = ov.south;
-      if (ov.west !== undefined) card.west = ov.west;
+    if (!ov) continue;
+    if (ov.north !== undefined) card.north = ov.north;
+    if (ov.east !== undefined) card.east = ov.east;
+    if (ov.south !== undefined) card.south = ov.south;
+    if (ov.west !== undefined) card.west = ov.west;
+    if (ov.passive_id !== undefined && ov.passive_id !== card.passive_id) {
+      card.passive_id = ov.passive_id;
+      const passive = PASSIVES[ov.passive_id];
+      card.passive_name = passive ? passive.name : '';
+      card.passive_description = passive ? passive.description : '';
+      card.passive_icon = passive ? passive.icon : '';
     }
   }
 }
