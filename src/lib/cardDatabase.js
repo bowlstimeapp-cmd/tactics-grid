@@ -132,14 +132,25 @@ function assignRarity(card) {
 import { PASSIVES } from './gameData';
 import { CARD_ARTWORK } from './cardArtwork';
 
+// Remove passives from normal (Common/Uncommon) cards and cards with enemy-debuff abilities
+const _DEBUFF_PASSIVES = ['enemy_debuff', 'frost', 'plague'];
+CARDS.forEach(c => {
+  const total = c.north + c.east + c.south + c.west;
+  const avg = total / 4;
+  const isNormal = total < 17 && avg < 4.75; // Common or Uncommon rarity
+  if (isNormal || _DEBUFF_PASSIVES.includes(c.passive_id)) {
+    c.passive_id = 'none';
+  }
+});
+
 export const ALL_CARDS = CARDS.map(c => {
-  const passive = PASSIVES[c.passive_id] || {};
+  const passive = PASSIVES[c.passive_id];
   return {
     ...c,
     rarity: assignRarity(c),
-    passive_name: passive.name || c.passive_id,
-    passive_description: passive.description || "",
-    passive_icon: passive.icon || "✨",
+    passive_name: passive ? passive.name : '',
+    passive_description: passive ? passive.description : '',
+    passive_icon: passive ? passive.icon : '',
     card_type: c.faction,
     artwork_url: CARD_ARTWORK[c.card_id] || "",
   };

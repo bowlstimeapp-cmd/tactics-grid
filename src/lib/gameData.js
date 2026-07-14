@@ -1,3 +1,5 @@
+import { generateBoardLayouts } from './boardLayouts';
+
 // ── Passive Ability Registry ──
 // Each passive is { id, name, icon, description, apply(ctx) }
 // ctx = { card, position, board, turn, totalTurns, phase, allCards }
@@ -420,6 +422,9 @@ export const BOARD_LAYOUTS = {
     ]
   },
 };
+
+// Merge 100 generated board layout variations
+Object.assign(BOARD_LAYOUTS, generateBoardLayouts());
 
 export function getRandomLayout() {
   const keys = Object.keys(BOARD_LAYOUTS);
