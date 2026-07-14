@@ -227,10 +227,12 @@ export default function Admin() {
           <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
             {filteredCards.map(card => (
               <div key={card.card_id} className="flex items-center gap-2 bg-slate-800/30 rounded-lg border border-slate-700/20 p-2">
-                <span className="text-lg">{FACTION_CONFIG[card.faction]?.icon}</span>
-                <div className="w-32 min-w-0 shrink-0">
+                <div className="shrink-0 w-14 h-14 rounded-md border-2 border-amber-700/40 bg-gradient-to-br from-slate-900 to-slate-950 flex items-center justify-center shadow-inner">
+                  <span className="font-heading text-[9px] font-bold tracking-widest text-amber-300/80 text-center leading-tight px-0.5">{card.faction.toUpperCase()}</span>
+                </div>
+                <div className="w-28 min-w-0 shrink-0">
                   <p className="text-sm font-medium text-amber-100 truncate">{card.name}</p>
-                  <p className="text-xs text-muted-foreground">{card.faction} · {card.rarity}</p>
+                  <p className="text-xs text-muted-foreground">{card.rarity}</p>
                 </div>
                 <div className="flex-1 min-w-0">
                   <label className="text-[10px] text-muted-foreground uppercase block mb-0.5">Bonus</label>
@@ -240,7 +242,7 @@ export default function Admin() {
                     className="bg-slate-900 border border-amber-900/30 rounded-md px-2 py-1 text-xs w-full"
                   >
                     {PASSIVE_LIST.map(p => (
-                      <option key={p.id} value={p.id}>{p.icon} {p.name}</option>
+                      <option key={p.id} value={p.id}>{p.name} — {p.description}</option>
                     ))}
                   </select>
                 </div>
