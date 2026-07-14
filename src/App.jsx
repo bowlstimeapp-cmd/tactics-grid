@@ -27,6 +27,7 @@ import Quests from '@/pages/Quests';
 import Admin from '@/pages/Admin';
 import PvpMatchmaking from '@/pages/PvpMatchmaking';
 import PvpGameMatch from '@/pages/PvpGameMatch';
+import BalanceReport from '@/pages/BalanceReport';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -70,6 +71,7 @@ const AuthenticatedApp = () => {
         <Route path="/admin" element={<Admin />} />
         <Route path="/pvp" element={<PvpMatchmaking />} />
         <Route path="/pvp-match" element={<PvpGameMatch />} />
+        <Route path="/balancereport" element={<BalanceReport />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
