@@ -117,8 +117,10 @@ export default function GameCard({ card, size = 'md', onClick, selected, showSta
             {/* Rarity top bar */}
             <div className="absolute top-0 left-0 right-0 h-1" style={{ background: rarity.color }} />
 
-            {/* Faction icon */}
-            <div className="absolute top-1 left-1 opacity-80"><FactionIcon faction={card.faction} size={12} /></div>
+            {/* Faction type label */}
+            <div className="absolute top-1 left-1 px-1 py-px rounded border border-amber-700/40 bg-black/50">
+              <span className={`font-heading leading-none text-amber-300/80 ${size === 'sm' ? 'text-[5px]' : size === 'md' ? 'text-[6px]' : size === 'lg' ? 'text-[7px]' : 'text-[8px]'}`}>{card.faction.toUpperCase()}</span>
+            </div>
 
             {/* Stats — top-right corner, below rarity bar */}
             {showStats && (
