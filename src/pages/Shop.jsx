@@ -20,6 +20,15 @@ export default function Shop() {
   const [packCards, setPackCards] = useState(null);
   const [opening, setOpening] = useState(false);
   const [revealIndex, setRevealIndex] = useState(-1);
+  const [lastPack, setLastPack] = useState(null);
+
+  const getPackName = (type, faction) => {
+    if (type === 'standard') return 'Standard Pack';
+    if (type === 'faction') return `${faction} Pack`;
+    if (type === 'guaranteed_rare') return 'Guaranteed Rare';
+    if (type === 'guaranteed_epic') return 'Guaranteed Epic';
+    return 'Pack';
+  };
 
   useEffect(() => {
     async function load() {
@@ -45,6 +54,7 @@ export default function Shop() {
 
     setOpening(true);
     setRevealIndex(-1);
+    setLastPack({ type, faction });
     const cards = openPack(type, config, faction);
     setPackCards(cards);
 
@@ -102,13 +112,24 @@ export default function Shop() {
                 </motion.div>
               ))}
             </div>
-            <Button
-              onClick={() => { setPackCards(null); setOpening(false); }}
-              variant="outline"
-              className="mx-auto block mt-4 border-amber-900/30"
-            >
-              Close
-            </Button>
+            <div className="flex justify-center gap-3 mt-4">
+              <Button
+                onClick={() => { setPackCards(null); setOpening(false); }}
+                variant="outline"
+                className="border-amber-900/30"
+              >
+                Close
+              </Button>
+              {lastPack && profile && profile.coins >= getPackCost(lastPack.type, config) && (
+                <Button
+                  onClick={() => buyPack(lastPack.type, lastPack.faction)}
+                  disabled={opening}
+                  className="bg-gradient-to-r from-amber-600 to-amber-700 text-black font-heading"
+                >
+                  Open Another {getPackName(lastPack.type, lastPack.faction)}
+                </Button>
+              )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
