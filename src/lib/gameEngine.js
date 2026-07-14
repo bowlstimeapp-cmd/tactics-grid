@@ -70,8 +70,11 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
     }
     if (tile.factionBonus && card.faction === tile.factionBonus.faction) {
       const m = tile.factionBonus.mod || 0;
-      mods.north += m; mods.east += m; mods.south += m; mods.west += m;
-      effects.push({ type: 'tile_faction', label: tile.label, faction: tile.factionBonus.faction });
+      const tilePhase = tile.factionBonus.phase;
+      if (!tilePhase || tilePhase === phase) {
+        mods.north += m; mods.east += m; mods.south += m; mods.west += m;
+        effects.push({ type: 'tile_faction', label: tile.label, faction: tile.factionBonus.faction });
+      }
     }
   }
 

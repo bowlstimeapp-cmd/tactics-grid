@@ -1,6 +1,8 @@
 import React from 'react';
+import { Swords } from 'lucide-react';
 import { RARITY_CONFIG, FACTION_CONFIG, PASSIVES } from '@/lib/gameData';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import FactionIcon from './FactionIcon';
 
 const SIZES = {
   sm: 'w-16 h-20 text-[10px]',
@@ -36,7 +38,7 @@ export default function GameCard({ card, size = 'md', onClick, selected, showSta
       >
         <div className="absolute top-0 left-0 right-0 h-1 bg-amber-900/40" />
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-2xl opacity-30">⚔️</span>
+          <Swords size={28} className="opacity-30 text-amber-700" />
         </div>
       </div>
     );
@@ -108,7 +110,7 @@ export default function GameCard({ card, size = 'md', onClick, selected, showSta
               </div>
             ) : (
               <div className="absolute inset-0 flex items-center justify-center opacity-20">
-                <span className="text-3xl">{faction.icon}</span>
+                <FactionIcon faction={card.faction} size={32} />
               </div>
             )}
 
@@ -116,7 +118,7 @@ export default function GameCard({ card, size = 'md', onClick, selected, showSta
             <div className="absolute top-0 left-0 right-0 h-1" style={{ background: rarity.color }} />
 
             {/* Faction icon */}
-            <div className="absolute top-1 left-1 text-[10px] opacity-80">{faction.icon}</div>
+            <div className="absolute top-1 left-1 opacity-80"><FactionIcon faction={card.faction} size={12} /></div>
 
             {/* Stats — top-right corner, below rarity bar */}
             {showStats && (
