@@ -16,13 +16,14 @@ Targets: Normal=100, Rare=120, Epic=145, Legendary=170.`;
 const PASSIVE_POWER = {
   none: 0, played_first_boost: 2, played_last_boost: 4, final_card_boost: 6,
   attack_boost: 8, defend_boost: 6, corner_boost: 4, centre_boost: 3, edge_boost: 5,
-  ally_aura: 6, ally_count_boost: 4, commander: 10, dragon_synergy: 3, mage_synergy: 3,
-  beast_synergy: 1.5, flip_immunity_low: 12, titan: 14, flip_reward: 4, flip_revenge: 3,
-  phoenix: 4, endgame_boost: 4, berserker: 5, empty_throne: 5, domination: 3, underdog: 4,
-  surrounded_fury: 4, anchor: 6, mirror: 5, sentinel: 4, flanker: 4, duelist: 4,
-  debuff_shield: 4, machine_shield: 3, spirit_walk: 3, undead_rising: 3, knight_honor: 3,
-  assassin_strike: 7, tactician: 3, colossus: 7, harmony: 4, longevity: 6,
+  ally_aura: 6, ally_count_boost: 4, commander: 7, dragon_synergy: 3, mage_synergy: 3,
+  beast_synergy: 1.5, flip_immunity_low: 10, titan: 12, flip_reward: 4, flip_revenge: 3,
+  phoenix: 4, endgame_boost: 4, berserker: 5, empty_throne: 4, domination: 3, underdog: 4,
+  surrounded_fury: 4, anchor: 6, mirror: 4, sentinel: 4, flanker: 4, duelist: 4,
+  debuff_shield: 8, machine_shield: 6, spirit_walk: 3, undead_rising: 3, knight_honor: 3,
+  assassin_strike: 5, tactician: 3, colossus: 5, harmony: 4, longevity: 4,
   lone_wolf: 5, bloodlust: 4, guardian: 3, overwhelm: 5, pincer: 5, trapper: 4,
+  blood_pact: 5, momentum: 4, fortify: 4, hunter: 5, pioneer: 4, adaptable: 4,
 };
 
 // ── Passive Categories for Scoring ──
@@ -42,6 +43,8 @@ const CATEGORY = {
   colossus: 'growing', longevity: 'growing',
   lone_wolf: 'conditional', bloodlust: 'combat', guardian: 'support',
   overwhelm: 'synergy', pincer: 'combat', trapper: 'conditional',
+  blood_pact: 'reactive', momentum: 'conditional', fortify: 'conditional',
+  hunter: 'combat', pioneer: 'timing', adaptable: 'always',
 };
 
 const CATEGORY_SCORES = {

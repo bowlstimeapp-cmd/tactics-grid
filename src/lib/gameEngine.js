@@ -57,6 +57,12 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
     if (result.flipImmunity) {
       effects.push({ type: 'flip_immunity', ...result.flipImmunity });
     }
+    if (result.chainImmunity) {
+      effects.push({ type: 'chain_immunity' });
+    }
+    if (result.noAuras) {
+      return { north: card.north + mods.north, east: card.east + mods.east, south: card.south + mods.south, west: card.west + mods.west, mods, effects };
+    }
   }
 
   // Tile faction bonus
@@ -80,6 +86,7 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
 
   // Auras from adjacent cards
   const [r, c] = position;
+  let globalAuraCount = 0;
   for (const [dir, [dr, dc]] of Object.entries(DIR_OFFSETS)) {
     const nr = r + dr, nc = c + dc;
     if (nr < 0 || nr > 2 || nc < 0 || nc > 2) continue;
@@ -102,13 +109,14 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
         }
       }
     }
-    // Global auras
+    // Global auras (capped at 2 sources per card)
     if (adjResult.globalAura) {
       const ga = adjResult.globalAura;
       const isAlly = adj.owner === card.owner;
       const isEnemy = adj.owner !== card.owner;
       if ((ga.target === 'allies' && isAlly) || (ga.target === 'enemies' && isEnemy)) {
-        if (ga.mod && !tile?.noBuff) {
+        if (ga.mod && !tile?.noBuff && globalAuraCount < 2) {
+          globalAuraCount++;
           mods.north += ga.mod; mods.east += ga.mod; mods.south += ga.mod; mods.west += ga.mod;
           effects.push({ type: 'global_aura', from: adj.name, mod: ga.mod });
         }
@@ -131,7 +139,8 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
         const isAlly = other.owner === card.owner;
         const isEnemy = other.owner !== card.owner;
         if ((ga.target === 'allies' && isAlly) || (ga.target === 'enemies' && isEnemy)) {
-          if (ga.mod && !tile?.noBuff) {
+          if (ga.mod && !tile?.noBuff && globalAuraCount < 2) {
+            globalAuraCount++;
             mods.north += ga.mod; mods.east += ga.mod; mods.south += ga.mod; mods.west += ga.mod;
             effects.push({ type: 'global_aura', from: other.name, mod: ga.mod });
           }
@@ -266,6 +275,9 @@ function processCaptures(gs, row, col, card, animations, chainOrder) {
       const attackTotal = card.north + card.east + card.south + card.west;
       if (attackTotal < immunity.minTotalPower) continue;
     }
+    // Check chain immunity (prevents flips from chain reactions, not direct attacks)
+    const hasChainImmunity = defEffects.some(e => e.type === 'chain_immunity');
+    if (hasChainImmunity && chainOrder > 0) continue;
 
     if (attackVal > defendVal) {
       const oldOwner = defender.owner;

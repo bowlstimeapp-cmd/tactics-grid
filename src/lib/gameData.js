@@ -26,10 +26,10 @@ export const PASSIVES = {
   },
   longevity: {
     id: "longevity", name: "Longevity", icon: "🕐",
-    description: "+1 all sides for each turn this card has been on the board",
+    description: "+1 all sides per turn on board (max +4)",
     apply: (ctx) => {
       const turnsOnBoard = ctx.turn - (ctx.card.placedTurn || ctx.turn);
-      const b = Math.max(0, turnsOnBoard);
+      const b = Math.min(4, Math.max(0, turnsOnBoard));
       return { cardMods: { north: b, east: b, south: b, west: b } };
     }
   },
@@ -130,8 +130,8 @@ export const PASSIVES = {
   },
   flip_immunity_low: {
     id: "flip_immunity_low", name: "Immovable", icon: "🪨",
-    description: "Cannot be flipped by cards with total power under 20",
-    apply: () => ({ flipImmunity: { minTotalPower: 20 } })
+    description: "Cannot be flipped by cards with total power under 22",
+    apply: () => ({ flipImmunity: { minTotalPower: 22 } })
   },
   flip_reward: {
     id: "flip_reward", name: "Conqueror", icon: "👑",
@@ -174,14 +174,14 @@ export const PASSIVES = {
     apply: () => ({ aura: { target: "enemies", mod: -1 } })
   },
   debuff_shield: {
-    id: "debuff_shield", name: "Warden", icon: "🔰",
-    description: "Adjacent allies cannot receive debuffs",
-    apply: () => ({ aura: { target: "allies", debuffImmunity: true } })
+    id: "debuff_shield", name: "Stalwart", icon: "🛡️",
+    description: "Cannot be flipped by chain reactions",
+    apply: () => ({ chainImmunity: true })
   },
   machine_shield: {
     id: "machine_shield", name: "Firewall", icon: "🔧",
-    description: "Adjacent Machine cards become immune to debuffs",
-    apply: () => ({ aura: { target: "allies", debuffImmunity: true, factionFilter: "Machines" } })
+    description: "Adjacent Machine cards gain +2 all sides",
+    apply: () => ({ aura: { target: "allies", mod: 2, factionFilter: "Machines" } })
   },
   // ── Extra unique passives ──
   spirit_walk: {
@@ -210,18 +210,19 @@ export const PASSIVES = {
   },
   assassin_strike: {
     id: "assassin_strike", name: "Shadow Strike", icon: "🗡️",
-    description: "+3 to the attacking side only when capturing",
+    description: "+4 north and east while attacking",
     apply: (ctx) => {
-      if (ctx.phase === "attack") return { cardMods: { north: 3, east: 3, south: 3, west: 3 } };
+      if (ctx.phase === "attack") return { cardMods: { north: 4, east: 4, south: 0, west: 0 } };
       return {};
     }
   },
   empty_throne: {
     id: "empty_throne", name: "Empty Throne", icon: "👑",
-    description: "+1 all sides for each empty space on the board",
+    description: "+1 all sides per empty space (max +4)",
     apply: (ctx) => {
       const empty = ctx.board.flat().filter(c => !c).length;
-      return { cardMods: { north: empty, east: empty, south: empty, west: empty } };
+      const b = Math.min(4, empty);
+      return { cardMods: { north: b, east: b, south: b, west: b } };
     }
   },
   domination: {
@@ -260,20 +261,22 @@ export const PASSIVES = {
   },
   mirror: {
     id: "mirror", name: "Mirror", icon: "🪞",
-    description: "Copies the passive ability of the first adjacent enemy",
+    description: "Copies passive of first adjacent enemy (not global auras)",
     apply: (ctx) => {
       const adj = getAdjacentCards(ctx.position, ctx.board);
       const enemy = adj.find(c => c && c.owner !== ctx.card.owner);
       if (enemy && PASSIVES[enemy.passive_id] && enemy.passive_id !== "mirror") {
-        return PASSIVES[enemy.passive_id].apply({ ...ctx, card: { ...ctx.card, passive_id: enemy.passive_id } });
+        const result = PASSIVES[enemy.passive_id].apply({ ...ctx, card: { ...ctx.card, passive_id: enemy.passive_id } });
+        if (result.globalAura) return {};
+        return result;
       }
       return {};
     }
   },
   titan: {
     id: "titan", name: "Titan", icon: "🗿",
-    description: "Cannot be flipped by cards with total power under 16",
-    apply: () => ({ flipImmunity: { minTotalPower: 16 } })
+    description: "Cannot be flipped by cards with total power under 18",
+    apply: () => ({ flipImmunity: { minTotalPower: 18 } })
   },
   berserker: {
     id: "berserker", name: "Berserker", icon: "🪓",
@@ -340,10 +343,10 @@ export const PASSIVES = {
   },
   colossus: {
     id: "colossus", name: "Colossus", icon: "🏔️",
-    description: "+1 all sides, +1 more for each turn on the board",
+    description: "+1 all sides, +1 more per turn (max +5)",
     apply: (ctx) => {
       const turns = Math.max(0, ctx.turn - (ctx.card.placedTurn || ctx.turn));
-      const b = 1 + turns;
+      const b = Math.min(5, 1 + turns);
       return { cardMods: { north: b, east: b, south: b, west: b } };
     }
   },
@@ -434,6 +437,67 @@ export const PASSIVES = {
       const found = ctx.board.flat().some(c => c && c.name === target && c !== ctx.card);
       if (!found) return {};
       return { cardMods: { north: bonus, east: bonus, south: bonus, west: bonus } };
+    }
+  },
+  // ── New Archetype Passives ──
+  blood_pact: {
+    id: "blood_pact", name: "Blood Pact", icon: "🩹",
+    description: "+1 all sides for each of your cards controlled by the enemy",
+    apply: (ctx) => {
+      const lost = ctx.board.flat().filter(c => c && c.originalOwner === ctx.card.owner && c.owner !== ctx.card.owner).length;
+      return { cardMods: { north: lost, east: lost, south: lost, west: lost } };
+    }
+  },
+  momentum: {
+    id: "momentum", name: "Momentum", icon: "🚀",
+    description: "+2 all sides if you control 2+ more cards than opponent",
+    apply: (ctx) => {
+      const mine = ctx.board.flat().filter(c => c && c.owner === ctx.card.owner).length;
+      const theirs = ctx.board.flat().filter(c => c && c.owner !== ctx.card.owner).length;
+      if (mine - theirs >= 2) return { cardMods: { north: 2, east: 2, south: 2, west: 2 } };
+      return {};
+    }
+  },
+  fortify: {
+    id: "fortify", name: "Fortify", icon: "🧱",
+    description: "+1 all sides for each adjacent enemy with higher total stats",
+    apply: (ctx) => {
+      const myTotal = ctx.card.north + ctx.card.east + ctx.card.south + ctx.card.west;
+      const adj = getAdjacentCards(ctx.position, ctx.board);
+      const stronger = adj.filter(c => c && c.owner !== ctx.card.owner && (c.north + c.east + c.south + c.west) > myTotal).length;
+      return { cardMods: { north: stronger, east: stronger, south: stronger, west: stronger } };
+    }
+  },
+  hunter: {
+    id: "hunter", name: "Hunter", icon: "🏹",
+    description: "+3 all sides when attacking a card with total under 16",
+    apply: (ctx) => {
+      if (ctx.phase === "attack") {
+        const adj = getAdjacentCards(ctx.position, ctx.board);
+        const weak = adj.some(c => c && c.owner !== ctx.card.owner && (c.north + c.east + c.south + c.west) < 16);
+        if (weak) return { cardMods: { north: 3, east: 3, south: 3, west: 3 } };
+      }
+      return {};
+    }
+  },
+  pioneer: {
+    id: "pioneer", name: "Pioneer", icon: "🚩",
+    description: "+3 all sides if placed in the first 2 turns",
+    apply: (ctx) => {
+      if (ctx.turn <= 2) return { cardMods: { north: 3, east: 3, south: 3, west: 3 } };
+      return {};
+    }
+  },
+  adaptable: {
+    id: "adaptable", name: "Adaptable", icon: "🔄",
+    description: "+2 to your two lowest base stats",
+    apply: (ctx) => {
+      const stats = [["north",ctx.card.north],["east",ctx.card.east],["south",ctx.card.south],["west",ctx.card.west]];
+      stats.sort((a, b) => a[1] - b[1]);
+      const mods = { north: 0, east: 0, south: 0, west: 0 };
+      mods[stats[0][0]] += 2;
+      mods[stats[1][0]] += 2;
+      return { cardMods: mods };
     }
   },
 };
