@@ -4,10 +4,14 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ArrowLeft, Plus, Trash2, Copy, Pencil } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Copy, Pencil, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import GameCard from '@/components/game/GameCard';
 import { ALL_CARDS, getCardById } from '@/lib/cardDatabase';
+import { RARITY_CONFIG, FACTION_CONFIG } from '@/lib/gameData';
+
+const RARITIES = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'];
+const FACTIONS = Object.keys(FACTION_CONFIG);
 
 export default function DeckBuilder() {
   const navigate = useNavigate();
@@ -18,6 +22,8 @@ export default function DeckBuilder() {
   const [deckCards, setDeckCards] = useState([]);
   const [showCreate, setShowCreate] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [filterRarities, setFilterRarities] = useState([]);
+  const [filterFactions, setFilterFactions] = useState([]);
 
   useEffect(() => {
     async function load() {
@@ -34,7 +40,15 @@ export default function DeckBuilder() {
   }, []);
 
   const owned = profile?.collection || {};
-  const ownedCards = ALL_CARDS.filter(c => owned[c.card_id]);
+  const ownedCards = ALL_CARDS.filter(c => (owned[c.card_id] || 0) > 0);
+
+  const filteredCards = ownedCards.filter(c => {
+    if (filterRarities.length > 0 && !filterRarities.includes(c.rarity)) return false;
+    if (filterFactions.length > 0 && !filterFactions.includes(c.faction)) return false;
+    return true;
+  });
+
+  const countInDeck = (cardId) => deckCards.filter(id => id === cardId).length;
 
   const saveDeck = async () => {
     if (!deckName.trim() || deckCards.length !== 7) return;
@@ -61,13 +75,25 @@ export default function DeckBuilder() {
     setDecks(prev => [...prev, newDeck]);
   };
 
-  const toggleCard = (cardId) => {
+  const addCard = (cardId) => {
+    const ownedCount = owned[cardId] || 0;
     setDeckCards(prev => {
-      if (prev.includes(cardId)) return prev.filter(id => id !== cardId);
-      if (prev.length >= 7) return prev;
+      const inDeck = prev.filter(id => id === cardId).length;
+      if (inDeck >= ownedCount || prev.length >= 7) return prev;
       return [...prev, cardId];
     });
   };
+
+  const removeCard = (cardId) => {
+    setDeckCards(prev => {
+      const idx = prev.lastIndexOf(cardId);
+      if (idx === -1) return prev;
+      return [...prev.slice(0, idx), ...prev.slice(idx + 1)];
+    });
+  };
+
+  const toggleRarity = (r) => setFilterRarities(prev => prev.includes(r) ? prev.filter(x => x !== r) : [...prev, r]);
+  const toggleFaction = (f) => setFilterFactions(prev => prev.includes(f) ? prev.filter(x => x !== f) : [...prev, f]);
 
   const openEdit = (deck) => {
     setEditingDeck(deck);
@@ -150,19 +176,68 @@ export default function DeckBuilder() {
             className="bg-slate-800/50 border-slate-700/40"
           />
           <p className="text-sm text-muted-foreground">
-            Select 7 cards ({deckCards.length}/7)
+            Select 7 cards ({deckCards.length}/7) — add up to the number of copies you own
             {ownedCards.length === 0 && ' — You need to own cards first!'}
           </p>
-          <div className="grid grid-cols-5 sm:grid-cols-6 gap-2 mt-2">
-            {(ownedCards.length > 0 ? ownedCards : ALL_CARDS).map(card => (
-              <GameCard
-                key={card.card_id}
-                card={card}
-                size="sm"
-                selected={deckCards.includes(card.card_id)}
-                onClick={() => toggleCard(card.card_id)}
-              />
-            ))}
+
+          {/* Filters */}
+          <div className="space-y-2 mt-2">
+            <div className="flex flex-wrap gap-1.5">
+              {RARITIES.map(r => (
+                <button
+                  key={r}
+                  onClick={() => toggleRarity(r)}
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-medium border transition-colors ${
+                    filterRarities.includes(r)
+                      ? 'bg-amber-600/30 border-amber-500/50 text-amber-200'
+                      : 'bg-slate-800/50 border-slate-700/30 text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {FACTIONS.map(f => (
+                <button
+                  key={f}
+                  onClick={() => toggleFaction(f)}
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-medium border transition-colors ${
+                    filterFactions.includes(f)
+                      ? 'bg-purple-600/30 border-purple-500/50 text-purple-200'
+                      : 'bg-slate-800/50 border-slate-700/30 text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {FACTION_CONFIG[f].icon} {f}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-5 sm:grid-cols-6 gap-2 mt-3">
+            {filteredCards.map(card => {
+              const ownedCount = owned[card.card_id] || 0;
+              const inDeck = countInDeck(card.card_id);
+              return (
+                <div key={card.card_id} className="relative">
+                  <GameCard
+                    card={card}
+                    size="sm"
+                    selected={inDeck > 0}
+                    onClick={() => addCard(card.card_id)}
+                  />
+                  <p className="text-center text-[9px] text-amber-300/60 mt-0.5"># {ownedCount}</p>
+                  {inDeck > 0 && (
+                    <button
+                      onClick={() => removeCard(card.card_id)}
+                      className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-amber-600 text-black text-[10px] font-bold flex items-center justify-center shadow-lg hover:bg-amber-500"
+                    >
+                      {inDeck}
+                    </button>
+                  )}
+                </div>
+              );
+            })}
           </div>
           <Button
             onClick={saveDeck}
