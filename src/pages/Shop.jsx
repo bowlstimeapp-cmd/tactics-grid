@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Package, Gem } from 'lucide-react';
@@ -28,8 +28,11 @@ export default function Shop() {
     if (type === 'faction') return `${faction} Pack`;
     if (type === 'guaranteed_rare') return 'Guaranteed Rare';
     if (type === 'guaranteed_epic') return 'Guaranteed Epic';
+    if (type === 'guaranteed_legendary') return 'Guaranteed Legendary';
     return 'Pack';
   };
+
+  const isGemPack = (type) => PACK_TYPES[type]?.currency === 'gems';
 
   const getReopenCost = () => {
     if (!lastPack) return 0;
@@ -56,8 +59,10 @@ export default function Shop() {
 
   const buyPack = async (type, faction, customPack) => {
     if (!profile || !config || opening) return;
+    const useGems = isGemPack(type);
     const cost = type === 'custom' ? (customPack?.cost || 0) : getPackCost(type, config);
-    if (profile.coins < cost) return;
+    const balance = useGems ? (profile.essence || 0) : (profile.coins || 0);
+    if (balance < cost) return;
 
     setOpening(true);
     setRevealIndex(-1);
@@ -66,11 +71,14 @@ export default function Shop() {
     setPackCards(cards);
 
     const { newCollection, essenceGained } = applyCardsToCollection(profile.collection, cards);
-    const updated = await base44.entities.PlayerProfile.update(profile.id, {
-      coins: profile.coins - cost,
-      essence: (profile.essence || 0) + essenceGained,
-      collection: newCollection,
-    });
+    const updateData = { collection: newCollection };
+    if (useGems) {
+      updateData.essence = (profile.essence || 0) - cost;
+    } else {
+      updateData.coins = profile.coins - cost;
+      updateData.essence = (profile.essence || 0) + essenceGained;
+    }
+    const updated = await base44.entities.PlayerProfile.update(profile.id, updateData);
     setProfile(updated);
 
     for (let i = 0; i < cards.length; i++) {
@@ -93,9 +101,15 @@ export default function Shop() {
           <ArrowLeft className="w-4 h-4" />
         </Button>
         <h1 className="font-heading text-xl text-amber-200">Shop</h1>
-        <div className="ml-auto flex items-center gap-2">
-          <span className="text-sm">🪙</span>
-          <span className="text-sm font-medium text-amber-300">{profile?.coins || 0}</span>
+        <div className="ml-auto flex items-center gap-3">
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm">🪙</span>
+            <span className="text-sm font-medium text-amber-300">{profile?.coins || 0}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm">💎</span>
+            <span className="text-sm font-medium text-purple-300">{profile?.essence || 0}</span>
+          </div>
         </div>
       </div>
 
@@ -128,15 +142,22 @@ export default function Shop() {
               >
                 Close
               </Button>
-              {lastPack && profile && profile.coins >= getReopenCost() && (
-                <Button
-                  onClick={() => buyPack(lastPack.type, lastPack.faction, lastPack.pack)}
-                  disabled={opening}
-                  className="bg-gradient-to-r from-amber-600 to-amber-700 text-black font-heading"
-                >
-                  Open Another {getPackName(lastPack.type, lastPack.faction, lastPack.pack)}
-                </Button>
-              )}
+              {lastPack && profile && (() => {
+                const reopenCost = getReopenCost();
+                const canAfford = isGemPack(lastPack.type)
+                  ? (profile.essence || 0) >= reopenCost
+                  : (profile.coins || 0) >= reopenCost;
+                if (!canAfford) return null;
+                return (
+                  <Button
+                    onClick={() => buyPack(lastPack.type, lastPack.faction, lastPack.pack)}
+                    disabled={opening}
+                    className="bg-gradient-to-r from-amber-600 to-amber-700 text-black font-heading"
+                  >
+                    Open Another {getPackName(lastPack.type, lastPack.faction, lastPack.pack)}
+                  </Button>
+                );
+              })()}
             </div>
           </motion.div>
         )}
@@ -158,7 +179,7 @@ export default function Shop() {
               </div>
               <div className="flex-1">
                 <h3 className="font-heading text-lg text-amber-100">Standard Pack</h3>
-                <p className="text-xs text-muted-foreground">{config?.standard_pack_size || 3} random cards. Duplicates become Essence.</p>
+                <p className="text-xs text-muted-foreground">{config?.standard_pack_size || 3} random cards. Collect duplicates to exchange for gems.</p>
                 <div className="flex gap-2 mt-1 text-[10px] text-muted-foreground">
                   {config?.pack_odds?.map(o => (
                     <span key={o.rarity}>{o.weight}% {o.rarity[0]}</span>
@@ -209,6 +230,28 @@ export default function Shop() {
               );
             })}
           </div>
+
+          {/* Guaranteed Legendary (gem-cost) */}
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className={`bg-gradient-to-r from-amber-900/40 to-slate-800/60 rounded-xl border border-amber-500/40 p-4 ${opening ? 'pointer-events-none opacity-50' : 'cursor-pointer hover:border-amber-500/60'}`}
+            onClick={() => buyPack('guaranteed_legendary')}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-16 rounded-lg flex items-center justify-center bg-gradient-to-br from-amber-500 to-amber-800 pulse-gold">
+                <Gem className="w-6 h-6 text-black" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-heading text-sm text-amber-300">Guaranteed Legendary</h3>
+                <p className="text-xs text-muted-foreground">1 card, always Legendary</p>
+              </div>
+              <div className="flex items-center gap-1">
+                <span>💎</span>
+                <span className="text-sm font-heading text-purple-300">{config?.guaranteed_legendary_cost ?? 500}</span>
+              </div>
+            </div>
+          </motion.div>
         </div>
 
         {/* Faction Packs */}
@@ -280,11 +323,11 @@ export default function Shop() {
           <p className="text-center text-xs text-muted-foreground">Not enough coins. Play matches to earn more!</p>
         )}
 
-        {/* Essence info */}
-        <div className="bg-slate-800/30 rounded-xl border border-slate-700/20 p-4">
-          <h3 className="font-heading text-sm text-purple-300 mb-2">💎 Essence: {profile?.essence || 0}</h3>
-          <p className="text-xs text-muted-foreground">Duplicate cards are converted to Essence. Use Essence to craft specific cards you're missing.</p>
-        </div>
+        {/* Gems info */}
+        <Link to="/exchange" className="block bg-slate-800/30 rounded-xl border border-purple-500/20 p-4 hover:border-purple-500/40 transition-colors">
+          <h3 className="font-heading text-sm text-purple-300 mb-2">💎 Gems: {profile?.essence || 0}</h3>
+          <p className="text-xs text-muted-foreground">Exchange duplicate cards for gems at the Card Exchange, then spend gems on a Guaranteed Legendary pack.</p>
+        </Link>
       </div>
     </div>
   );

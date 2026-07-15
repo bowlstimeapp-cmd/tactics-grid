@@ -563,3 +563,6 @@ export const ESSENCE_VALUES = {
 export const CRAFT_COSTS = {
   Common: 50, Uncommon: 100, Rare: 250, Epic: 750, Legendary: 2000,
 };
+export const GEM_EXCHANGE_VALUES = {
+  Common: 2, Uncommon: 5, Rare: 15, Epic: 40, Legendary: 100,
+};

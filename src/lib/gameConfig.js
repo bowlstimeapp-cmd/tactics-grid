@@ -7,6 +7,7 @@ const DEFAULT_CONFIG = {
   faction_pack_cost: 150,
   guaranteed_rare_cost: 300,
   guaranteed_epic_cost: 600,
+  guaranteed_legendary_cost: 500,
   pack_odds: PACK_ODDS,
   card_overrides: {},
   achievement_rewards: {

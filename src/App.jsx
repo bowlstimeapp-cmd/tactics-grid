@@ -25,6 +25,7 @@ import Leaderboard from '@/pages/Leaderboard';
 import Achievements from '@/pages/Achievements';
 import Quests from '@/pages/Quests';
 import Admin from '@/pages/Admin';
+import CardExchange from '@/pages/CardExchange';
 import PvpMatchmaking from '@/pages/PvpMatchmaking';
 import PvpGameMatch from '@/pages/PvpGameMatch';
 import BalanceReport from '@/pages/BalanceReport';
@@ -69,6 +70,7 @@ const AuthenticatedApp = () => {
         <Route path="/achievements" element={<Achievements />} />
         <Route path="/quests" element={<Quests />} />
         <Route path="/admin" element={<Admin />} />
+        <Route path="/exchange" element={<CardExchange />} />
         <Route path="/pvp" element={<PvpMatchmaking />} />
         <Route path="/pvp-match" element={<PvpGameMatch />} />
         <Route path="/balancereport" element={<BalanceReport />} />

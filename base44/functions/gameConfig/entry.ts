@@ -17,6 +17,7 @@ Deno.serve(async (req) => {
         faction_pack_cost: 150,
         guaranteed_rare_cost: 300,
         guaranteed_epic_cost: 600,
+        guaranteed_legendary_cost: 500,
         pack_odds: [
           { rarity: "Common", weight: 65 },
           { rarity: "Uncommon", weight: 23 },

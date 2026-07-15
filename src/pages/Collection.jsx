@@ -117,21 +117,27 @@ export default function Collection() {
 
       {/* Cards grid */}
       <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-2">
-        {filtered.map((card, i) => (
-          <motion.div
-            key={card.card_id}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: Math.min(i * 0.02, 0.5) }}
-            className={!owned[card.card_id] ? 'opacity-40 grayscale' : ''}
-          >
-            <GameCard
-              card={card}
-              size="md"
-              onClick={() => setSelectedCard(card)}
-            />
-          </motion.div>
-        ))}
+        {filtered.map((card, i) => {
+          const count = owned[card.card_id] || 0;
+          return (
+            <motion.div
+              key={card.card_id}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: Math.min(i * 0.02, 0.5) }}
+              className={count === 0 ? 'opacity-40 grayscale' : ''}
+            >
+              <GameCard
+                card={card}
+                size="md"
+                onClick={() => setSelectedCard(card)}
+              />
+              {count > 0 && (
+                <p className="text-center text-[10px] font-heading text-amber-300/70 mt-0.5"># {count} owned</p>
+              )}
+            </motion.div>
+          );
+        })}
       </div>
 
       {filtered.length === 0 && (

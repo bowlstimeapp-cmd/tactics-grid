@@ -1,12 +1,15 @@
 import { ALL_CARDS, getCardsByFaction, getCardById } from '@/lib/cardDatabase';
-import { ESSENCE_VALUES } from '@/lib/gameData';
+import { GEM_EXCHANGE_VALUES } from '@/lib/gameData';
 
 export const PACK_TYPES = {
-  standard: { id: 'standard', name: 'Standard Pack', costField: 'standard_pack_cost' },
-  faction: { id: 'faction', name: 'Faction Pack', costField: 'faction_pack_cost' },
-  guaranteed_rare: { id: 'guaranteed_rare', name: 'Guaranteed Rare Pack', costField: 'guaranteed_rare_cost', guaranteedRarity: 'Rare' },
-  guaranteed_epic: { id: 'guaranteed_epic', name: 'Guaranteed Epic Pack', costField: 'guaranteed_epic_cost', guaranteedRarity: 'Epic' },
+  standard: { id: 'standard', name: 'Standard Pack', costField: 'standard_pack_cost', currency: 'coins' },
+  faction: { id: 'faction', name: 'Faction Pack', costField: 'faction_pack_cost', currency: 'coins' },
+  guaranteed_rare: { id: 'guaranteed_rare', name: 'Guaranteed Rare Pack', costField: 'guaranteed_rare_cost', guaranteedRarity: 'Rare', currency: 'coins' },
+  guaranteed_epic: { id: 'guaranteed_epic', name: 'Guaranteed Epic Pack', costField: 'guaranteed_epic_cost', guaranteedRarity: 'Epic', currency: 'coins' },
+  guaranteed_legendary: { id: 'guaranteed_legendary', name: 'Guaranteed Legendary Pack', costField: 'guaranteed_legendary_cost', guaranteedRarity: 'Legendary', currency: 'gems' },
 };
+
+export { GEM_EXCHANGE_VALUES };
 
 export const REWARD_PACK_OPTIONS = [
   { value: '', label: 'No Reward' },
@@ -93,6 +96,8 @@ export function openPack(packType, config, faction, customPack) {
       return openGuaranteedPack('Rare');
     case 'guaranteed_epic':
       return openGuaranteedPack('Epic');
+    case 'guaranteed_legendary':
+      return openGuaranteedPack('Legendary');
     case 'custom':
       return openCustomPack(customPack, config);
     default:
@@ -108,13 +113,21 @@ export function getPackCost(packType, config) {
 
 export function applyCardsToCollection(collection, cards) {
   const newCollection = { ...(collection || {}) };
-  let essenceGained = 0;
   cards.forEach(card => {
-    if (newCollection[card.card_id]) {
-      essenceGained += ESSENCE_VALUES[card.rarity] || 5;
-    } else {
-      newCollection[card.card_id] = 1;
-    }
+    newCollection[card.card_id] = (newCollection[card.card_id] || 0) + 1;
   });
-  return { newCollection, essenceGained };
+  return { newCollection, essenceGained: 0 };
+}
+
+export function exchangeCards(collection, cardIds) {
+  const newCollection = { ...(collection || {}) };
+  let gemsGained = 0;
+  cardIds.forEach(id => {
+    const card = getCardById(id);
+    if (!card || !newCollection[id]) return;
+    gemsGained += GEM_EXCHANGE_VALUES[card.rarity] || 0;
+    newCollection[id] = newCollection[id] - 1;
+    if (newCollection[id] <= 0) delete newCollection[id];
+  });
+  return { newCollection, gemsGained };
 }

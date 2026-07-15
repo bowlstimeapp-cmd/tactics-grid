@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
-import { Sword, ShieldHalf, Bot, Library, Layers, Store, Trophy, Scroll, Star, ChevronRight, LogOut, Settings } from 'lucide-react';
+import { Sword, ShieldHalf, Bot, Library, Layers, Store, Trophy, Scroll, Star, ChevronRight, LogOut, Settings, Repeat } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { getRankForElo, FACTION_CONFIG } from '@/lib/gameData';
@@ -20,6 +20,7 @@ const MENU_ITEMS = [
   { label: 'Collection', icon: Library, path: '/collection' },
   { label: 'Deck Builder', icon: Layers, path: '/decks' },
   { label: 'Shop', icon: Store, path: '/shop' },
+  { label: 'Card Exchange', icon: Repeat, path: '/exchange' },
   { label: 'Leaderboard', icon: Trophy, path: '/leaderboard' },
   { label: 'Achievements', icon: Star, path: '/achievements' },
   { label: 'Quests', icon: Scroll, path: '/quests' },
