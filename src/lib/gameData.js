@@ -426,6 +426,18 @@ export const PASSIVES = {
       return { cardMods: { north: bonus, east: bonus, south: bonus, west: bonus } };
     }
   },
+  card_synergy: {
+    id: "card_synergy", name: "Bonded", icon: "🤝",
+    description: "Bonus when paired card is on the board",
+    apply: (ctx) => {
+      const target = ctx.card.synergy_target;
+      const bonus = ctx.card.synergy_bonus || 2;
+      if (!target) return {};
+      const found = ctx.board.flat().some(c => c && c.name === target && c !== ctx.card);
+      if (!found) return {};
+      return { cardMods: { north: bonus, east: bonus, south: bonus, west: bonus } };
+    }
+  },
 };
 
 // ── Passive Ability Directory (flat list for dropdowns) ──

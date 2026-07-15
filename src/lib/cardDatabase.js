@@ -119,6 +119,38 @@ const CARDS = [
 
   // ── SPECIAL (1) ──
   { card_id:"C201",name:"Synergy",faction:"Mages",north:5,east:4,south:4,west:5,rarity:"Epic",passive_id:"synergy_bond",flavour_text:"Apart, we are fragments. Together, we are unstoppable." },
+
+  // ── SYNERGY PAIRS (20 cards, 10 pairs) ──
+  // Pair 1 — Knights (Rare): Dawnblade & Duskblade
+  { card_id:"C202",name:"Dawnblade",faction:"Knights",north:4,east:5,south:4,west:4,rarity:"Rare",passive_id:"card_synergy",synergy_target:"Duskblade",synergy_bonus:2,flavour_text:"At sunrise, its edge gleams with golden fire." },
+  { card_id:"C203",name:"Duskblade",faction:"Knights",north:4,east:4,south:4,west:5,rarity:"Rare",passive_id:"card_synergy",synergy_target:"Dawnblade",synergy_bonus:2,flavour_text:"At sunset, its shadow cuts deeper than steel." },
+  // Pair 2 — Mages (Rare): Ember Mage & Frost Sage
+  { card_id:"C204",name:"Ember Mage",faction:"Mages",north:4,east:5,south:3,west:5,rarity:"Rare",passive_id:"card_synergy",synergy_target:"Frost Sage",synergy_bonus:2,flavour_text:"Fire and frost, an eternal dance of opposites." },
+  { card_id:"C205",name:"Frost Sage",faction:"Mages",north:5,east:3,south:5,west:4,rarity:"Rare",passive_id:"card_synergy",synergy_target:"Ember Mage",synergy_bonus:2,flavour_text:"Where ice meets flame, true power is born." },
+  // Pair 3 — Beasts (Rare): Wolf Alpha & Wolf Pup
+  { card_id:"C206",name:"Wolf Alpha",faction:"Beasts",north:5,east:4,south:4,west:4,rarity:"Rare",passive_id:"card_synergy",synergy_target:"Wolf Pup",synergy_bonus:2,flavour_text:"The alpha fights twice as hard with its pup nearby." },
+  { card_id:"C207",name:"Wolf Pup",faction:"Beasts",north:3,east:5,south:4,west:5,rarity:"Rare",passive_id:"card_synergy",synergy_target:"Wolf Alpha",synergy_bonus:2,flavour_text:"With its alpha watching, the pup becomes a wolf." },
+  // Pair 4 — Spirits (Rare): Light Wisp & Shadow Wisp
+  { card_id:"C208",name:"Light Wisp",faction:"Spirits",north:4,east:4,south:5,west:4,rarity:"Rare",passive_id:"card_synergy",synergy_target:"Shadow Wisp",synergy_bonus:2,flavour_text:"Light means nothing without shadow to define it." },
+  { card_id:"C209",name:"Shadow Wisp",faction:"Spirits",north:4,east:5,south:4,west:4,rarity:"Rare",passive_id:"card_synergy",synergy_target:"Light Wisp",synergy_bonus:2,flavour_text:"Shadow is strongest where light struggles brightest." },
+  // Pair 5 — Dragons (Epic): Inferno Drake & Glacier Drake
+  { card_id:"C210",name:"Inferno Drake",faction:"Dragons",north:5,east:5,south:4,west:4,rarity:"Epic",passive_id:"card_synergy",synergy_target:"Glacier Drake",synergy_bonus:2,flavour_text:"Its flames burn hotter when the glacier breathes frost." },
+  { card_id:"C211",name:"Glacier Drake",faction:"Dragons",north:4,east:4,south:5,west:5,rarity:"Epic",passive_id:"card_synergy",synergy_target:"Inferno Drake",synergy_bonus:2,flavour_text:"Its ice grows sharper when the inferno roars." },
+  // Pair 6 — Machines (Epic): Siege Breaker & Wall Builder
+  { card_id:"C212",name:"Siege Breaker",faction:"Machines",north:6,east:4,south:4,west:5,rarity:"Epic",passive_id:"card_synergy",synergy_target:"Wall Builder",synergy_bonus:2,flavour_text:"Built to shatter what its twin was built to defend." },
+  { card_id:"C213",name:"Wall Builder",faction:"Machines",north:5,east:4,south:4,west:6,rarity:"Epic",passive_id:"card_synergy",synergy_target:"Siege Breaker",synergy_bonus:2,flavour_text:"Built to endure what its twin was built to destroy." },
+  // Pair 7 — Undead (Epic): Grave Warden & Soul Priest
+  { card_id:"C214",name:"Grave Warden",faction:"Undead",north:5,east:5,south:4,west:5,rarity:"Epic",passive_id:"card_synergy",synergy_target:"Soul Priest",synergy_bonus:2,flavour_text:"It guards the boundary between life and death." },
+  { card_id:"C215",name:"Soul Priest",faction:"Undead",north:5,east:4,south:5,west:5,rarity:"Epic",passive_id:"card_synergy",synergy_target:"Grave Warden",synergy_bonus:2,flavour_text:"It guides souls to where the warden waits." },
+  // Pair 8 — Assassins (Legendary): Twin Reaper & Silent Blade
+  { card_id:"C216",name:"Twin Reaper",faction:"Assassins",north:6,east:7,south:5,west:6,rarity:"Legendary",passive_id:"card_synergy",synergy_target:"Silent Blade",synergy_bonus:1,flavour_text:"Two blades, one purpose, zero survivors." },
+  { card_id:"C217",name:"Silent Blade",faction:"Assassins",north:6,east:5,south:7,west:6,rarity:"Legendary",passive_id:"card_synergy",synergy_target:"Twin Reaper",synergy_bonus:1,flavour_text:"You never hear it coming — until its twin arrives." },
+  // Pair 9 — Mages (Legendary): Storm Lord & Earth Keeper
+  { card_id:"C218",name:"Storm Lord",faction:"Mages",north:6,east:7,south:5,west:6,rarity:"Legendary",passive_id:"card_synergy",synergy_target:"Earth Keeper",synergy_bonus:1,flavour_text:"The sky obeys him; the ground obeys her." },
+  { card_id:"C219",name:"Earth Keeper",faction:"Mages",north:6,east:5,south:7,west:6,rarity:"Legendary",passive_id:"card_synergy",synergy_target:"Storm Lord",synergy_bonus:1,flavour_text:"She roots the mountain; he brings the lightning." },
+  // Pair 10 — Spirits (Legendary): Astral Lord & Void Walker
+  { card_id:"C220",name:"Astral Lord",faction:"Spirits",north:6,east:7,south:6,west:7,rarity:"Legendary",passive_id:"card_synergy",synergy_target:"Void Walker",synergy_bonus:1,flavour_text:"The stars whisper where the void walks." },
+  { card_id:"C221",name:"Void Walker",faction:"Spirits",north:7,east:6,south:7,west:6,rarity:"Legendary",passive_id:"card_synergy",synergy_target:"Astral Lord",synergy_bonus:1,flavour_text:"The void hungers where the stars shine." },
   ...EXPANSION_CARDS,
 ];
 
@@ -150,12 +182,20 @@ CARDS.forEach(c => {
 
 export const ALL_CARDS = CARDS.map(c => {
   const passive = PASSIVES[c.passive_id];
+  let passiveName = passive ? passive.name : '';
+  let passiveDescription = passive ? passive.description : '';
+  let passiveIcon = passive ? passive.icon : '';
+  if (c.passive_id === 'card_synergy' && c.synergy_target) {
+    const bonus = c.synergy_bonus || 2;
+    passiveName = 'Bond: ' + c.synergy_target;
+    passiveDescription = '+' + bonus + ' all sides if ' + c.synergy_target + ' is on the board';
+  }
   return {
     ...c,
     rarity: c.rarity || assignRarity(c),
-    passive_name: passive ? passive.name : '',
-    passive_description: passive ? passive.description : '',
-    passive_icon: passive ? passive.icon : '',
+    passive_name: passiveName,
+    passive_description: passiveDescription,
+    passive_icon: passiveIcon,
     card_type: c.faction,
     artwork_url: CARD_ARTWORK[c.card_id] || "",
   };
