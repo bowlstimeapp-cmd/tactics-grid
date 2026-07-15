@@ -6,6 +6,15 @@ const DIR_OFFSETS = {
   north: [-1, 0], south: [1, 0], east: [0, 1], west: [0, -1]
 };
 
+// Passives that explicitly grant bonuses AFTER the card has been flipped.
+// All other passives are deactivated once the card is captured.
+const POST_FLIP_PASSIVES = ['flip_revenge', 'phoenix'];
+
+function isPassiveActive(card) {
+  if (!card.wasFlipped) return true;
+  return POST_FLIP_PASSIVES.includes(card.passive_id);
+}
+
 export function createGameState(player1Cards, player2Cards, layoutKey = 'standard', firstPlayer = 1) {
   const layout = BOARD_LAYOUTS[layoutKey] || BOARD_LAYOUTS.standard;
   return {
@@ -34,9 +43,9 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
   const tileIdx = position[0] * 3 + position[1];
   const tile = board._tiles?.[tileIdx];
 
-  // Card's own passive
+  // Card's own passive (deactivated if flipped, unless it explicitly works post-flip)
   const passive = PASSIVES[card.passive_id];
-  if (passive) {
+  if (passive && isPassiveActive(card)) {
     const ctx = { card, position, board, turn, phase, totalTurns: 9 };
     const result = passive.apply(ctx);
 
@@ -93,7 +102,7 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
     const adj = board[nr]?.[nc];
     if (!adj) continue;
     const adjPassive = PASSIVES[adj.passive_id];
-    if (!adjPassive) continue;
+    if (!adjPassive || !isPassiveActive(adj)) continue;
     const adjCtx = { card: adj, position: [nr, nc], board, turn, phase };
     const adjResult = adjPassive.apply(adjCtx);
     if (adjResult.aura) {
@@ -132,7 +141,7 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
       const other = board[ri]?.[ci];
       if (!other) continue;
       const otherPassive = PASSIVES[other.passive_id];
-      if (!otherPassive) continue;
+      if (!otherPassive || !isPassiveActive(other)) continue;
       const otherResult = otherPassive.apply({ card: other, position: [ri, ci], board, turn, phase });
       if (otherResult.globalAura) {
         const ga = otherResult.globalAura;
@@ -315,7 +324,7 @@ export function getActiveBoardEffects(gameState) {
       const card = board[r][c];
       if (!card) continue;
       const passive = PASSIVES[card.passive_id];
-      if (!passive) continue;
+      if (!passive || !isPassiveActive(card)) continue;
       const result = passive.apply({ card, position: [r, c], board, turn: gameState.turn, phase: 'static' });
 
       if (result.aura && result.aura.mod) {
@@ -360,7 +369,7 @@ export function getHandCardPreview(card, gameState) {
       const boardCard = board[r][c];
       if (!boardCard) continue;
       const passive = PASSIVES[boardCard.passive_id];
-      if (!passive) continue;
+      if (!passive || !isPassiveActive(boardCard)) continue;
       const result = passive.apply({ card: boardCard, position: [r, c], board, turn: gameState.turn, phase: 'static' });
 
       if (result.globalAura) {
