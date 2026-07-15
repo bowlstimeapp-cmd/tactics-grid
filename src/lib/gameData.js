@@ -417,6 +417,15 @@ export const PASSIVES = {
       return { cardMods: { north: empty, east: empty, south: empty, west: empty } };
     }
   },
+  synergy_bond: {
+    id: "synergy_bond", name: "Synergy Bond", icon: "🔗",
+    description: "+2 all sides for every other Synergy card on the board",
+    apply: (ctx) => {
+      const others = ctx.board.flat().filter(c => c && c.name === "Synergy" && c !== ctx.card).length;
+      const bonus = others * 2;
+      return { cardMods: { north: bonus, east: bonus, south: bonus, west: bonus } };
+    }
+  },
 };
 
 // ── Passive Ability Directory (flat list for dropdowns) ──

@@ -116,6 +116,9 @@ const CARDS = [
   { card_id:"C098",name:"Corpse Titan",faction:"Undead",north:8,east:6,south:9,west:5,passive_id:"endgame_boost",flavour_text:"It rises when the battle is almost over." },
   { card_id:"C099",name:"Banshee Queen",faction:"Undead",north:7,east:7,south:5,west:7,passive_id:"domination",flavour_text:"Her scream commands obedience." },
   { card_id:"C100",name:"Plague Bearer",faction:"Undead",north:4,east:5,south:4,west:3,passive_id:"plague",flavour_text:"It carries the end of all things." },
+
+  // ── SPECIAL (1) ──
+  { card_id:"C201",name:"Synergy",faction:"Mages",north:5,east:4,south:4,west:5,rarity:"Epic",passive_id:"synergy_bond",flavour_text:"Apart, we are fragments. Together, we are unstoppable." },
   ...EXPANSION_CARDS,
 ];
 
@@ -149,7 +152,7 @@ export const ALL_CARDS = CARDS.map(c => {
   const passive = PASSIVES[c.passive_id];
   return {
     ...c,
-    rarity: assignRarity(c),
+    rarity: c.rarity || assignRarity(c),
     passive_name: passive ? passive.name : '',
     passive_description: passive ? passive.description : '',
     passive_icon: passive ? passive.icon : '',
