@@ -22,12 +22,19 @@ export default function Shop() {
   const [revealIndex, setRevealIndex] = useState(-1);
   const [lastPack, setLastPack] = useState(null);
 
-  const getPackName = (type, faction) => {
+  const getPackName = (type, faction, pack) => {
+    if (type === 'custom') return pack?.name || 'Pack';
     if (type === 'standard') return 'Standard Pack';
     if (type === 'faction') return `${faction} Pack`;
     if (type === 'guaranteed_rare') return 'Guaranteed Rare';
     if (type === 'guaranteed_epic') return 'Guaranteed Epic';
     return 'Pack';
+  };
+
+  const getReopenCost = () => {
+    if (!lastPack) return 0;
+    if (lastPack.type === 'custom') return lastPack.pack?.cost || 0;
+    return getPackCost(lastPack.type, config);
   };
 
   useEffect(() => {
@@ -47,15 +54,15 @@ export default function Shop() {
     load();
   }, []);
 
-  const buyPack = async (type, faction) => {
+  const buyPack = async (type, faction, customPack) => {
     if (!profile || !config || opening) return;
-    const cost = getPackCost(type, config);
+    const cost = type === 'custom' ? (customPack?.cost || 0) : getPackCost(type, config);
     if (profile.coins < cost) return;
 
     setOpening(true);
     setRevealIndex(-1);
-    setLastPack({ type, faction });
-    const cards = openPack(type, config, faction);
+    setLastPack({ type, faction, pack: customPack });
+    const cards = openPack(type, config, faction, customPack);
     setPackCards(cards);
 
     const { newCollection, essenceGained } = applyCardsToCollection(profile.collection, cards);
@@ -70,6 +77,7 @@ export default function Shop() {
       await new Promise(r => setTimeout(r, 600));
       setRevealIndex(i);
     }
+    setOpening(false);
   };
 
   if (loading) return (
@@ -120,13 +128,13 @@ export default function Shop() {
               >
                 Close
               </Button>
-              {lastPack && profile && profile.coins >= getPackCost(lastPack.type, config) && (
+              {lastPack && profile && profile.coins >= getReopenCost() && (
                 <Button
-                  onClick={() => buyPack(lastPack.type, lastPack.faction)}
+                  onClick={() => buyPack(lastPack.type, lastPack.faction, lastPack.pack)}
                   disabled={opening}
                   className="bg-gradient-to-r from-amber-600 to-amber-700 text-black font-heading"
                 >
-                  Open Another {getPackName(lastPack.type, lastPack.faction)}
+                  Open Another {getPackName(lastPack.type, lastPack.faction, lastPack.pack)}
                 </Button>
               )}
             </div>
@@ -235,6 +243,38 @@ export default function Shop() {
             })}
           </div>
         </div>
+
+        {/* Custom Packs */}
+        {config?.custom_packs?.filter(p => p.in_shop).length > 0 && (
+          <div>
+            <h3 className="font-heading text-sm text-amber-400/70 uppercase tracking-widest mb-3">Featured Packs</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {config.custom_packs.filter(p => p.in_shop).map(pack => (
+                <motion.div
+                  key={pack.id}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`bg-gradient-to-br from-amber-900/30 to-slate-800/60 rounded-xl border border-amber-500/20 p-4 ${opening ? 'pointer-events-none opacity-50' : 'cursor-pointer'}`}
+                  onClick={() => buyPack('custom', null, pack)}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-16 rounded-lg bg-gradient-to-br from-amber-600 to-amber-800 flex items-center justify-center">
+                      <Package className="w-6 h-6 text-black" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-heading text-sm text-amber-100">{pack.name}</h3>
+                      <p className="text-xs text-muted-foreground">{pack.card_ids.length} cards · curated pool</p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>🪙</span>
+                      <span className="text-sm font-heading text-amber-300">{pack.cost}</span>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {(profile?.coins || 0) < (config?.standard_pack_cost ?? 100) && (
           <p className="text-center text-xs text-muted-foreground">Not enough coins. Play matches to earn more!</p>

@@ -1,4 +1,4 @@
-import { ALL_CARDS, getCardsByFaction } from '@/lib/cardDatabase';
+import { ALL_CARDS, getCardsByFaction, getCardById } from '@/lib/cardDatabase';
 import { ESSENCE_VALUES } from '@/lib/gameData';
 
 export const PACK_TYPES = {
@@ -56,7 +56,34 @@ function openGuaranteedPack(rarity) {
   return [pool[Math.floor(Math.random() * pool.length)]];
 }
 
-export function openPack(packType, config, faction) {
+export function openCustomPack(pack, config) {
+  const pool = (pack.card_ids || []).map(getCardById).filter(Boolean);
+  if (pool.length === 0) return [];
+  const size = config.standard_pack_size || 3;
+  const cards = [];
+  for (let i = 0; i < size; i++) {
+    const rarity = rollRarity(config.pack_odds);
+    let matches = pool.filter(c => c.rarity === rarity);
+    if (matches.length === 0) matches = pool;
+    cards.push(matches[Math.floor(Math.random() * matches.length)]);
+  }
+  return cards;
+}
+
+export function getCustomPackCost(pack) {
+  return pack?.cost ?? 0;
+}
+
+export function getCustomPackRarityAllocation(pack) {
+  const counts = {};
+  (pack.card_ids || []).forEach(id => {
+    const card = getCardById(id);
+    if (card) counts[card.rarity] = (counts[card.rarity] || 0) + 1;
+  });
+  return counts;
+}
+
+export function openPack(packType, config, faction, customPack) {
   switch (packType) {
     case 'standard':
       return openStandardPack(config.standard_pack_size || 3, config.pack_odds);
@@ -66,6 +93,8 @@ export function openPack(packType, config, faction) {
       return openGuaranteedPack('Rare');
     case 'guaranteed_epic':
       return openGuaranteedPack('Epic');
+    case 'custom':
+      return openCustomPack(customPack, config);
     default:
       return [];
   }

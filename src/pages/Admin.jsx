@@ -9,6 +9,7 @@ import { ALL_CARDS } from '@/lib/cardDatabase';
 import { FACTION_CONFIG, RARITY_CONFIG, ACHIEVEMENTS, PASSIVE_LIST } from '@/lib/gameData';
 import { loadGameConfig, saveGameConfig } from '@/lib/gameConfig';
 import { REWARD_PACK_OPTIONS, REWARD_LABELS } from '@/lib/packLogic';
+import PackBuilder from '@/components/admin/PackBuilder';
 
 const FACTIONS = Object.keys(FACTION_CONFIG);
 
@@ -26,6 +27,7 @@ export default function Admin() {
   const [packOdds, setPackOdds] = useState([]);
   const [cardStats, setCardStats] = useState({});
   const [achievementRewards, setAchievementRewards] = useState({});
+  const [customPacks, setCustomPacks] = useState([]);
   const [factionFilter, setFactionFilter] = useState('all');
   const [search, setSearch] = useState('');
 
@@ -46,6 +48,7 @@ export default function Admin() {
         setGuaranteedEpicCost(cfg.guaranteed_epic_cost ?? 600);
         setPackOdds(cfg.pack_odds || []);
         setAchievementRewards(cfg.achievement_rewards || {});
+        setCustomPacks(cfg.custom_packs || []);
         const stats = {};
         ALL_CARDS.forEach(c => {
           stats[c.card_id] = { north: c.north, east: c.east, south: c.south, west: c.west, passive_id: c.passive_id };
@@ -93,6 +96,7 @@ export default function Admin() {
         pack_odds: packOdds,
         card_overrides: cardStats,
         achievement_rewards: achievementRewards,
+        custom_packs: customPacks,
       });
       setSavedMsg('Saved successfully!');
       setTimeout(() => setSavedMsg(''), 3000);
@@ -129,8 +133,9 @@ export default function Admin() {
       {savedMsg && <p className="text-sm text-emerald-400 mb-4">{savedMsg}</p>}
 
       <Tabs defaultValue="packs" className="max-w-5xl mx-auto">
-        <TabsList className="grid grid-cols-3 mb-4">
+        <TabsList className="grid grid-cols-4 mb-4">
           <TabsTrigger value="packs">Pack Settings</TabsTrigger>
+          <TabsTrigger value="builder">Pack Builder</TabsTrigger>
           <TabsTrigger value="achievements">Achievement Rewards</TabsTrigger>
           <TabsTrigger value="cards">Card Stats</TabsTrigger>
         </TabsList>
@@ -186,6 +191,10 @@ export default function Admin() {
               ))}
             </div>
           </div>
+        </TabsContent>
+
+        <TabsContent value="builder" className="space-y-4">
+          <PackBuilder customPacks={customPacks} setCustomPacks={setCustomPacks} />
         </TabsContent>
 
         <TabsContent value="achievements" className="space-y-4">

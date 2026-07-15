@@ -70,6 +70,13 @@
         "gold_rank": "guaranteed_rare",
         "diamond_rank": "guaranteed_epic"
       }
+    },
+    "custom_packs": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "default": []
     }
   },
   "required": []
