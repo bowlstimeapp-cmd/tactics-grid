@@ -11,8 +11,7 @@ export const PASSIVES = {
     id: "played_last_boost", name: "Final Stand", icon: "⏳",
     description: "+2 all sides if played as your last card",
     apply: (ctx) => {
-      const playerCards = ctx.board.flat().filter(c => c && c.owner === ctx.card.owner);
-      if (playerCards.length === 4) return { cardMods: { north: 2, east: 2, south: 2, west: 2 } };
+      if (ctx.turn >= 9) return { cardMods: { north: 2, east: 2, south: 2, west: 2 } };
       return {};
     }
   },
@@ -164,8 +163,7 @@ export const PASSIVES = {
     id: "final_card_boost", name: "Crescendo", icon: "🎵",
     description: "+3 all sides if this is your final card placed",
     apply: (ctx) => {
-      const playerCards = ctx.board.flat().filter(c => c && c.owner === ctx.card.owner);
-      if (playerCards.length === 4) return { cardMods: { north: 3, east: 3, south: 3, west: 3 } };
+      if (ctx.turn >= 9) return { cardMods: { north: 3, east: 3, south: 3, west: 3 } };
       return {};
     }
   },
