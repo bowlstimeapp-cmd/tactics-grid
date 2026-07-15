@@ -10,6 +10,7 @@ import { FACTION_CONFIG, RARITY_CONFIG, ACHIEVEMENTS, PASSIVE_LIST } from '@/lib
 import { loadGameConfig, saveGameConfig } from '@/lib/gameConfig';
 import { REWARD_PACK_OPTIONS, REWARD_LABELS } from '@/lib/packLogic';
 import PackBuilder from '@/components/admin/PackBuilder';
+import PresetDecks from '@/components/admin/PresetDecks';
 
 const FACTIONS = Object.keys(FACTION_CONFIG);
 
@@ -133,11 +134,12 @@ export default function Admin() {
       {savedMsg && <p className="text-sm text-emerald-400 mb-4">{savedMsg}</p>}
 
       <Tabs defaultValue="packs" className="max-w-5xl mx-auto">
-        <TabsList className="grid grid-cols-4 mb-4">
+        <TabsList className="grid grid-cols-5 mb-4">
           <TabsTrigger value="packs">Pack Settings</TabsTrigger>
           <TabsTrigger value="builder">Pack Builder</TabsTrigger>
-          <TabsTrigger value="achievements">Achievement Rewards</TabsTrigger>
+          <TabsTrigger value="achievements">Rewards</TabsTrigger>
           <TabsTrigger value="cards">Card Stats</TabsTrigger>
+          <TabsTrigger value="decks">Preset Decks</TabsTrigger>
         </TabsList>
 
         <TabsContent value="packs" className="space-y-4">
@@ -264,6 +266,10 @@ export default function Admin() {
               </div>
             ))}
           </div>
+        </TabsContent>
+
+        <TabsContent value="decks" className="space-y-4">
+          <PresetDecks />
         </TabsContent>
       </Tabs>
     </div>

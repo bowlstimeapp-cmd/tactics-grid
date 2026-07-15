@@ -1,0 +1,82 @@
+// Predetermined synergy decks — each is a set of 7 cards (duplicates allowed)
+// identified through analysis of passive interactions, faction synergies,
+// and positional/combat combos across the non-Legendary card pool.
+export const PRESET_DECKS = [
+  {
+    name: "The Golden Host",
+    faction: "Knights",
+    power: 82,
+    cards: ["C006", "C006", "C005", "C005", "C109", "C004", "C011"],
+    description: "A disciplined Knight formation led by dual War Marshals whose Commander aura blankets the entire board (capped at 2 sources for +2 all sides). Paladins and Dawnbringer stack adjacent ally buffs, while Royal Guard and Knight Errant exploit positional corners and edges. Non-anchor recipients gain up to +4 all sides from combined auras alone.",
+  },
+  {
+    name: "Dragon Flight",
+    faction: "Dragons",
+    power: 78,
+    cards: ["C014", "C014", "C017", "C021", "C022", "C015", "C023"],
+    description: "A flight of Dragons where even the lowly Whelpling becomes formidable. Each Whelpling gains +2 all sides when adjacent to any Dragon, transforming from 11 to 19 total. Storm Dragon holds the centre, Sky Leviathan claims corners, and Void Dragon grows stronger as the battle turns against you.",
+  },
+  {
+    name: "Beast Pack",
+    faction: "Beasts",
+    power: 85,
+    cards: ["C027", "C027", "C027", "C037", "C019", "C033", "C028"],
+    description: "A feral pack that overwhelms through numbers. Three Forest Wolves each gain +1 from adjacent Beasts and +1 from Alpha Wolf's Commander aura, turning 13-total Commons into 21-total threats. The Hatchling can reach a monstrous 30 total when surrounded by allies, while Mammoth and Great Bear anchor the defence.",
+  },
+  {
+    name: "Machine Swarm",
+    faction: "Machines",
+    power: 88,
+    cards: ["C057", "C057", "C057", "C056", "C062", "C058", "C055"],
+    description: "A mechanical collective that amplifies through proximity. Three Automatons each gain +1 per adjacent ally, plus +2 from Repair Drone's Machine aura and +1 from Arc Generator — potentially reaching +7 all sides per card. Steam Tank provides unbreakable defense while War Mech converts losses into fuel.",
+  },
+  {
+    name: "Spirit Court",
+    faction: "Spirits",
+    power: 87,
+    cards: ["C064", "C064", "C064", "C171", "C068", "C074", "C072"],
+    description: "An ethereal court where every Spirit empowers every other. Wisps and Spectral Hound gain +1 all sides per Spirit on the board — with five Spirits deployed, a humble Wisp soars from 8 to 28 total. Moon Spirit claims the centre while Banshee and Phoenix Spirit punish opponents who dare flip your cards.",
+  },
+  {
+    name: "Undead Legion",
+    faction: "Undead",
+    power: 89,
+    cards: ["C089", "C089", "C089", "C096", "C196", "C095", "C091"],
+    description: "The endless horde grows stronger with every corpse. Each Skeleton gains +1 all sides per Undead on the board — with five Undead deployed, a 9-total Common becomes a 33-total monster. Necromancer's Commander aura adds another +1 across the board. Vampire Lord and Lich ensure that even losses feed your power.",
+  },
+  {
+    name: "Shadow Syndicate",
+    faction: "Assassins",
+    power: 83,
+    cards: ["C084", "C084", "C085", "C079", "C078", "C088", "C082"],
+    description: "A guild of killers who strike from every angle. Dual Phantom Blades deal devastating 11/12 directional damage while attacking. Silent Death gains +3 all sides on the offensive. Shadow Dancer and Infiltrator claim the edges and corners, while Blade Master and Twin Daggers dominate one-on-one encounters.",
+  },
+  {
+    name: "Arcane Circle",
+    faction: "Mages",
+    power: 80,
+    cards: ["C043", "C046", "C204", "C205", "C044", "C047", "C048"],
+    description: "A circle of mages whose powers amplify in concert. Ember Mage and Frost Sage each gain +2 all sides when the other is present. Archmage commands the centre for +2, while Enchantress weaves +1 into adjacent allies. Storm Caller surges when you're ahead, Void Scholar thrives in open space, and Battlemage handles close combat.",
+  },
+  {
+    name: "The Immovable",
+    faction: "Mixed",
+    power: 76,
+    cards: ["C010", "C010", "C033", "C093", "C112", "C055", "C136"],
+    description: "An unbreakable wall of fortified units. Four cards with flip immunity reject any attacker with total power under 22, while two Titans reject anything under 18. Ironclad's Anchor provides +2 all sides without relying on auras. This deck sacrifices offensive synergy for near-impenetrable board control.",
+  },
+  {
+    name: "Phoenix Rising",
+    faction: "Mixed",
+    power: 79,
+    cards: ["C022", "C022", "C091", "C066", "C095", "C024", "C097"],
+    description: "A deck that turns defeat into devastation. Blood Pact cards gain +1 all sides per card you've lost — with three losses, Void Dragons surge to 37 total. Shade gains +2 when outnumbered. Vampire Lord and Phoenix Spirit gain massive buffs when flipped, ensuring your opponent's victories become your power.",
+  },
+  {
+    name: "Edge Lords",
+    faction: "Mixed",
+    power: 77,
+    cards: ["C011", "C011", "C078", "C088", "C162", "C023", "C108"],
+    description: "A coalition of edge-dwellers who dominate the board's perimeter. Edge boost cards gain +2 all sides on non-corner edges, while Flankers add +2 to east and west. Knight Errants reach 26 total on edges, Railgun Mech hits 28, and Shadow Dancer covers 26 — creating an impenetrable ring of power around the board.",
+  },
+];
