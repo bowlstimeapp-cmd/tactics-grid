@@ -46,7 +46,9 @@ export default function GameCard({ card, size = 'md', onClick, selected, showSta
 
   const rarity = RARITY_CONFIG[card.rarity] || RARITY_CONFIG.Common;
   const faction = FACTION_CONFIG[card.faction] || {};
-  const passive = PASSIVES[card.passive_id];
+  const passive = card.passive_name
+    ? { name: card.passive_name, description: card.passive_description, icon: card.passive_icon }
+    : PASSIVES[card.passive_id];
 
   const es = effectiveStats;
   const getMod = (dir) => (es && es.mods ? es.mods[dir] : 0) || 0;

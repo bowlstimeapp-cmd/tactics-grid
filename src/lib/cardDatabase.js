@@ -188,7 +188,7 @@ export const ALL_CARDS = CARDS.map(c => {
   if (c.passive_id === 'card_synergy' && c.synergy_target) {
     const bonus = c.synergy_bonus || 2;
     passiveName = 'Bond: ' + c.synergy_target;
-    passiveDescription = '+' + bonus + ' all sides if ' + c.synergy_target + ' is on the board';
+    passiveDescription = "+" + bonus + " all sides when '" + c.synergy_target + "' is played";
   }
   return {
     ...c,
