@@ -1,4 +1,4 @@
-import { PASSIVES, BOARD_LAYOUTS } from './gameData';
+import { PASSIVES, BOARD_LAYOUTS, isSupportPassive } from './gameData';
 
 // Directions: N, E, S, W
 const OPPOSITE = { north: 'south', south: 'north', east: 'west', west: 'east' };
@@ -10,9 +10,108 @@ const DIR_OFFSETS = {
 // All other passives are deactivated once the card is captured.
 const POST_FLIP_PASSIVES = ['flip_revenge', 'phoenix'];
 
-function isPassiveActive(card) {
+function isPassiveActive(card, turn) {
   if (!card.wasFlipped) return true;
-  return POST_FLIP_PASSIVES.includes(card.passive_id);
+  if (POST_FLIP_PASSIVES.includes(card.passive_id)) return true;
+  // Support passives linger until end of owner's next turn after being flipped
+  if (isSupportPassive(card.passive_id)) {
+    if (card.flippedTurn !== undefined && turn !== undefined) {
+      return turn < card.flippedTurn + 2;
+    }
+    return false;
+  }
+  // Self passives: deactivated immediately when flipped
+  return false;
+}
+
+// Returns 'active' | 'lingering' | 'expired' | 'inactive' | 'none'
+export function getCardPassiveStatus(card, turn) {
+  if (!card || !card.passive_id || card.passive_id === 'none') return 'none';
+  if (!card.wasFlipped) return 'active';
+  if (POST_FLIP_PASSIVES.includes(card.passive_id)) return 'active';
+  if (isSupportPassive(card.passive_id)) {
+    if (card.flippedTurn !== undefined && turn !== undefined && turn < card.flippedTurn + 2) {
+      return 'lingering';
+    }
+    return 'expired';
+  }
+  return 'inactive';
+}
+
+// Locks aura bonuses from support abilities that are about to expire (last lingering turn).
+// Called in placeCard before the turn increments — frozen bonuses persist permanently.
+function lockExpiringAuras(gs) {
+  const turn = gs.turn;
+  const gridSize = gs.gridSize || 3;
+  const totalTurns = gridSize * gridSize;
+  const tiles = gs.tiles;
+
+  for (let r = 0; r < gridSize; r++) {
+    for (let c = 0; c < gridSize; c++) {
+      const card = gs.board[r]?.[c];
+      if (!card) continue;
+      if (!isSupportPassive(card.passive_id)) continue;
+      // Only lock on the last lingering turn (about to expire after this turn)
+      if (card.flippedTurn === undefined || turn !== card.flippedTurn + 1) continue;
+
+      const passive = PASSIVES[card.passive_id];
+      if (!passive) continue;
+      const ctx = { card, position: [r, c], board: gs.board, turn, phase: 'static', totalTurns };
+      const result = passive.apply(ctx);
+
+      // Lock adjacent aura
+      if (result.aura && result.aura.mod) {
+        const aura = result.aura;
+        for (const [dr, dc] of Object.values(DIR_OFFSETS)) {
+          const nr = r + dr, nc = c + dc;
+          if (nr < 0 || nr >= gridSize || nc < 0 || nc >= gridSize) continue;
+          const recipient = gs.board[nr][nc];
+          if (!recipient) continue;
+          if (recipient.passive_id === 'anchor') continue;
+          const tileIdx = nr * gridSize + nc;
+          if (tiles?.[tileIdx]?.noBuff) continue;
+          const isAlly = recipient.owner === card.originalOwner;
+          const isEnemy = recipient.owner !== card.originalOwner;
+          if ((aura.target === 'allies' && isAlly) || (aura.target === 'enemies' && isEnemy)) {
+            if (aura.factionFilter && recipient.faction !== aura.factionFilter) continue;
+            if (!recipient.lockedAuraMods) recipient.lockedAuraMods = { north: 0, east: 0, south: 0, west: 0 };
+            recipient.lockedAuraMods.north += aura.mod;
+            recipient.lockedAuraMods.east += aura.mod;
+            recipient.lockedAuraMods.south += aura.mod;
+            recipient.lockedAuraMods.west += aura.mod;
+          }
+        }
+      }
+
+      // Lock global aura (capped at 2 per recipient)
+      if (result.globalAura && result.globalAura.mod) {
+        const ga = result.globalAura;
+        let count = 0;
+        for (let ri = 0; ri < gridSize; ri++) {
+          for (let ci = 0; ci < gridSize; ci++) {
+            if (ri === r && ci === c) continue;
+            const recipient = gs.board[ri][ci];
+            if (!recipient) continue;
+            if (recipient.passive_id === 'anchor') continue;
+            const tileIdx = ri * gridSize + ci;
+            if (tiles?.[tileIdx]?.noBuff) continue;
+            const isAlly = recipient.owner === card.originalOwner;
+            const isEnemy = recipient.owner !== card.originalOwner;
+            if ((ga.target === 'allies' && isAlly) || (ga.target === 'enemies' && isEnemy)) {
+              if (count < 2) {
+                count++;
+                if (!recipient.lockedAuraMods) recipient.lockedAuraMods = { north: 0, east: 0, south: 0, west: 0 };
+                recipient.lockedAuraMods.north += ga.mod;
+                recipient.lockedAuraMods.east += ga.mod;
+                recipient.lockedAuraMods.south += ga.mod;
+                recipient.lockedAuraMods.west += ga.mod;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 export function createGameState(player1Cards, player2Cards, layoutKey = 'standard', firstPlayer = 1, gameMode = 'standard') {
@@ -49,6 +148,14 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
   let mods = { north: 0, east: 0, south: 0, west: 0 };
   let effects = [];
 
+  // Persistent locked aura bonuses from expired support abilities (remain permanently)
+  if (card.lockedAuraMods) {
+    mods.north += card.lockedAuraMods.north || 0;
+    mods.east += card.lockedAuraMods.east || 0;
+    mods.south += card.lockedAuraMods.south || 0;
+    mods.west += card.lockedAuraMods.west || 0;
+  }
+
   const gridSize = board.length;
   const totalTurns = gridSize * gridSize;
   const tileIdx = position[0] * gridSize + position[1];
@@ -56,7 +163,7 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
 
   // Card's own passive (deactivated if flipped, unless it explicitly works post-flip)
   const passive = PASSIVES[card.passive_id];
-  if (passive && isPassiveActive(card)) {
+  if (passive && isPassiveActive(card, turn)) {
     const ctx = { card, position, board, turn, phase, totalTurns };
     const result = passive.apply(ctx);
 
@@ -113,13 +220,14 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
     const adj = board[nr]?.[nc];
     if (!adj) continue;
     const adjPassive = PASSIVES[adj.passive_id];
-    if (!adjPassive || !isPassiveActive(adj)) continue;
+    if (!adjPassive || !isPassiveActive(adj, turn)) continue;
     const adjCtx = { card: adj, position: [nr, nc], board, turn, phase, totalTurns };
     const adjResult = adjPassive.apply(adjCtx);
     if (adjResult.aura) {
       const aura = adjResult.aura;
-      const isAlly = adj.owner === card.owner;
-      const isEnemy = adj.owner !== card.owner;
+      const auraSourceOwner = adj.originalOwner ?? adj.owner;
+      const isAlly = card.owner === auraSourceOwner;
+      const isEnemy = card.owner !== auraSourceOwner;
       if ((aura.target === 'allies' && isAlly) || (aura.target === 'enemies' && isEnemy)) {
         if (aura.factionFilter && card.faction !== aura.factionFilter) continue;
         if (aura.mod && !tile?.noBuff) {
@@ -132,8 +240,9 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
     // Global auras (capped at 2 sources per card)
     if (adjResult.globalAura) {
       const ga = adjResult.globalAura;
-      const isAlly = adj.owner === card.owner;
-      const isEnemy = adj.owner !== card.owner;
+      const auraSourceOwner = adj.originalOwner ?? adj.owner;
+      const isAlly = card.owner === auraSourceOwner;
+      const isEnemy = card.owner !== auraSourceOwner;
       if ((ga.target === 'allies' && isAlly) || (ga.target === 'enemies' && isEnemy)) {
         if (ga.mod && !tile?.noBuff && globalAuraCount < 2) {
           globalAuraCount++;
@@ -152,12 +261,13 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
       const other = board[ri]?.[ci];
       if (!other) continue;
       const otherPassive = PASSIVES[other.passive_id];
-      if (!otherPassive || !isPassiveActive(other)) continue;
+      if (!otherPassive || !isPassiveActive(other, turn)) continue;
       const otherResult = otherPassive.apply({ card: other, position: [ri, ci], board, turn, phase, totalTurns });
       if (otherResult.globalAura) {
         const ga = otherResult.globalAura;
-        const isAlly = other.owner === card.owner;
-        const isEnemy = other.owner !== card.owner;
+        const auraSourceOwner = other.originalOwner ?? other.owner;
+        const isAlly = card.owner === auraSourceOwner;
+        const isEnemy = card.owner !== auraSourceOwner;
         if ((ga.target === 'allies' && isAlly) || (ga.target === 'enemies' && isEnemy)) {
           if (ga.mod && !tile?.noBuff && globalAuraCount < 2) {
             globalAuraCount++;
@@ -190,7 +300,7 @@ export function placeCard(gameState, cardIndex, row, col) {
   const hand = gs.currentPlayer === 1 ? gs.player1Hand : gs.player2Hand;
   if (cardIndex < 0 || cardIndex >= hand.length) return gs;
 
-  const card = { ...hand[cardIndex], placedTurn: gs.turn };
+  const card = { ...hand[cardIndex], placedTurn: gs.turn, lockedAuraMods: { north: 0, east: 0, south: 0, west: 0 } };
   gs.board[row][col] = card;
   hand.splice(cardIndex, 1);
 
@@ -223,6 +333,9 @@ export function placeCard(gameState, cardIndex, row, col) {
   p1 += gs.player1Hand.length;
   p2 += gs.player2Hand.length;
   gs.scores = { 1: p1, 2: p2 };
+
+  // Lock aura bonuses from support abilities about to expire (before turn increments)
+  lockExpiringAuras(gs);
 
   // Switch turn
   gs.turn++;
@@ -307,6 +420,7 @@ function processCaptures(gs, row, col, card, animations, chainOrder) {
       const oldOwner = defender.owner;
       gs.board[nr][nc].owner = card.owner;
       gs.board[nr][nc].wasFlipped = true;
+      if (gs.board[nr][nc].flippedTurn === undefined) gs.board[nr][nc].flippedTurn = gs.turn;
 
       if (!gs.board[row][col].flipsEarned) gs.board[row][col].flipsEarned = 0;
       gs.board[row][col].flipsEarned++;
@@ -341,7 +455,7 @@ export function getActiveBoardEffects(gameState) {
       const card = board[r][c];
       if (!card) continue;
       const passive = PASSIVES[card.passive_id];
-      if (!passive || !isPassiveActive(card)) continue;
+      if (!passive || !isPassiveActive(card, gameState.turn)) continue;
       const result = passive.apply({ card, position: [r, c], board, turn: gameState.turn, phase: 'static', totalTurns });
 
       if (result.aura && result.aura.mod) {
@@ -388,13 +502,14 @@ export function getHandCardPreview(card, gameState) {
       const boardCard = board[r][c];
       if (!boardCard) continue;
       const passive = PASSIVES[boardCard.passive_id];
-      if (!passive || !isPassiveActive(boardCard)) continue;
+      if (!passive || !isPassiveActive(boardCard, gameState.turn)) continue;
       const result = passive.apply({ card: boardCard, position: [r, c], board, turn: gameState.turn, phase: 'static', totalTurns });
 
       if (result.globalAura) {
         const ga = result.globalAura;
-        const isAlly = boardCard.owner === card.owner;
-        const isEnemy = boardCard.owner !== card.owner;
+        const auraSourceOwner = boardCard.originalOwner ?? boardCard.owner;
+        const isAlly = card.owner === auraSourceOwner;
+        const isEnemy = card.owner !== auraSourceOwner;
         if ((ga.target === 'allies' && isAlly) || (ga.target === 'enemies' && isEnemy)) {
           if (ga.mod) {
             mods.north += ga.mod; mods.east += ga.mod; mods.south += ga.mod; mods.west += ga.mod;

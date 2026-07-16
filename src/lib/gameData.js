@@ -506,6 +506,21 @@ export const PASSIVES = {
   },
 };
 
+// ── Support vs Self Ability Classification ──
+// Support passives affect other cards (auras/debuffs). Self passives only modify the card itself.
+// Only support passives linger after being flipped; self passives deactivate immediately.
+export const SUPPORT_PASSIVES = [
+  'ally_aura',      // Rally — adjacent allies +1
+  'enemy_debuff',   // Intimidation — adjacent enemies -1
+  'machine_shield', // Firewall — adjacent Machines +2
+  'commander',      // Commander — all friendly +1 (global)
+  'plague',         // Plague — all enemies -1 (global)
+  'frost',          // Frost — adjacent enemies -2
+];
+export function isSupportPassive(passiveId) {
+  return SUPPORT_PASSIVES.includes(passiveId);
+}
+
 // ── Passive Ability Directory (flat list for dropdowns) ──
 export const PASSIVE_LIST = [
   { id: 'none', name: 'None', icon: '🚫', description: 'No passive ability' },

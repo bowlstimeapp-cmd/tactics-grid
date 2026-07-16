@@ -2,7 +2,7 @@ import React from 'react';
 import GameCard from './GameCard';
 import TileIcon, { TILE_BG } from './TileIcon';
 import TileLegend from './TileLegend';
-import { getEffectiveStats } from '@/lib/gameEngine';
+import { getEffectiveStats, getCardPassiveStatus } from '@/lib/gameEngine';
 
 export default function GameBoard({ gameState, onCellClick, selectedTile, flippingCells, myPlayerNum = 1 }) {
   const { board, tiles, turn } = gameState;
@@ -69,6 +69,7 @@ export default function GameBoard({ gameState, onCellClick, selectedTile, flippi
                     effectiveStats={effectiveStats}
                     isFlipping={isFlipping}
                     myPlayerNum={myPlayerNum}
+                    passiveStatus={getCardPassiveStatus(card, turn)}
                     className="w-full h-full"
                   />
                 )}

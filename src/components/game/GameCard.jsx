@@ -20,7 +20,7 @@ const STAT_SIZES = {
   '2xl': 'text-base min-w-[30px] h-7 px-1',
 };
 
-export default function GameCard({ card, size = 'md', onClick, selected, showStats = true, effectiveStats, isFlipping, myPlayerNum = 1, faceDown = false, displayMode = 'effective', className = '' }) {
+export default function GameCard({ card, size = 'md', onClick, selected, showStats = true, effectiveStats, isFlipping, myPlayerNum = 1, faceDown = false, displayMode = 'effective', passiveStatus, className = '' }) {
   if (!card) return null;
 
   if (faceDown) {
@@ -119,6 +119,18 @@ export default function GameCard({ card, size = 'md', onClick, selected, showSta
             {/* Rarity top bar */}
             <div className="absolute top-0 left-0 right-0 h-1" style={{ background: rarity.color }} />
 
+            {/* Lingering / Expired indicator for support abilities */}
+            {passiveStatus === 'lingering' && (
+              <div className={`absolute top-1 left-0.5 z-20 px-0.5 py-0.5 rounded bg-purple-600/90 text-white font-bold uppercase tracking-wide leading-none ${size === 'sm' ? 'text-[5px]' : 'text-[7px]'}`}>
+                Lingering
+              </div>
+            )}
+            {passiveStatus === 'expired' && (
+              <div className={`absolute top-1 left-0.5 z-20 px-0.5 py-0.5 rounded bg-slate-700/90 text-slate-400 font-bold uppercase tracking-wide leading-none ${size === 'sm' ? 'text-[5px]' : 'text-[7px]'}`}>
+                Expired
+              </div>
+            )}
+
 
 
             {/* Stats — top-right corner, below rarity bar */}
@@ -144,7 +156,7 @@ export default function GameCard({ card, size = 'md', onClick, selected, showSta
               )}
               {/* Ability caption box — reduced by ~1/3 */}
               {passive && (
-                <div className="bg-gradient-to-t from-black/95 via-black/85 to-black/60 border-t border-amber-500/20 px-1 pt-0.5 pb-0.5">
+                <div className={`bg-gradient-to-t from-black/95 via-black/85 to-black/60 border-t border-amber-500/20 px-1 pt-0.5 pb-0.5 ${passiveStatus === 'expired' ? 'opacity-40' : ''}`}>
                   <div className="flex items-center gap-0.5">
                     <span className={`font-heading leading-tight truncate text-amber-200/90 ${size === 'sm' ? 'text-[5px]' : size === 'md' ? 'text-[6px]' : size === 'lg' ? 'text-[7px]' : size === 'xl' ? 'text-[7px]' : 'text-[8px]'}`}>{passive.name}</span>
                   </div>
