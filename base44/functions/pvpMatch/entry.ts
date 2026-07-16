@@ -3,6 +3,7 @@ import { createGameState, placeCard, getRandomLayout } from './gameEngine.ts';
 
 // Move-timing guard: minimum ms between moves from the same player
 const MIN_MOVE_INTERVAL_MS = 300;
+const MAX_TURN_TIME_MS = 60000; // 60 seconds per turn before auto-forfeit
 
 Deno.serve(async (req) => {
   try {
@@ -134,6 +135,12 @@ Deno.serve(async (req) => {
       }
       if (match.status !== 'active') {
         return Response.json({ error: 'Match not active' }, { status: 400 });
+      }
+
+      // Check for turn timeout before processing move
+      const timeoutResult = await checkAndProcessTimeout(base44, match);
+      if (timeoutResult) {
+        return Response.json(timeoutResult);
       }
 
       const playerNum = match.player1_id === user.id ? 1 : 2;
@@ -309,6 +316,24 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ── CHECK TIMEOUT (polled by clients) ──
+    if (action === 'check_timeout') {
+      const user = await base44.auth.me();
+      if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
+      const { match_id } = body;
+      const match = await base44.asServiceRole.entities.PvpMatch.get(match_id);
+      if (!match) return Response.json({ error: 'Match not found' }, { status: 404 });
+      if (match.player1_id !== user.id && match.player2_id !== user.id) {
+        return Response.json({ error: 'Not in match' }, { status: 403 });
+      }
+
+      const timeoutResult = await checkAndProcessTimeout(base44, match);
+      if (timeoutResult) return Response.json(timeoutResult);
+
+      return Response.json({ timeout: false });
+    }
+
     return Response.json({ error: 'Invalid action' }, { status: 400 });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
@@ -348,4 +373,49 @@ async function updatePlayerProfiles(base44: any, match: any, winner: number) {
       best_win_streak: Math.max(p2Profiles[0].best_win_streak || 0, streak),
     });
   }
+}
+
+async function checkAndProcessTimeout(base44: any, match: any) {
+  if (match.status !== 'active') return null;
+  if (!match.last_move_at) return null;
+
+  const now = Date.now();
+  const elapsed = now - new Date(match.last_move_at).getTime();
+  if (elapsed < MAX_TURN_TIME_MS) return null;
+
+  const gs = match.game_state;
+  if (!gs) return null;
+  const currentPlayer = gs.currentPlayer ?? match.current_player ?? 1;
+  const winner = currentPlayer === 1 ? 2 : 1;
+
+  const p1Elo = match.player1_elo_before;
+  const p2Elo = match.player2_elo_before;
+  const expected1 = 1 / (1 + Math.pow(10, (p2Elo - p1Elo) / 400));
+  const expected2 = 1 - expected1;
+  const K = 32;
+  const s1 = winner === 1 ? 1 : winner === 2 ? 0 : 0.5;
+  const s2 = 1 - s1;
+  const newElo1 = Math.round(p1Elo + K * (s1 - expected1));
+  const newElo2 = Math.round(p2Elo + K * (s2 - expected2));
+
+  const updated = await base44.asServiceRole.entities.PvpMatch.update(match.id, {
+    status: 'completed',
+    winner,
+    player1_elo_after: newElo1,
+    player2_elo_after: newElo2,
+  });
+
+  await updatePlayerProfiles(base44, match, winner);
+
+  return {
+    match: updated,
+    elo: {
+      player1_elo_before: p1Elo,
+      player2_elo_before: p2Elo,
+      player1_elo_after: newElo1,
+      player2_elo_after: newElo2,
+    },
+    timeout: true,
+    forfeitedPlayer: currentPlayer,
+  };
 }

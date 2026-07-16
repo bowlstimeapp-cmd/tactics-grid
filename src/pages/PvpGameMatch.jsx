@@ -44,6 +44,7 @@ export default function PvpGameMatch() {
   const [inspectCard, setInspectCard] = useState(null);
   const [inspectStats, setInspectStats] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [turnTimeLeft, setTurnTimeLeft] = useState(60);
 
   const isAnimatingRef = useRef(false);
   const displayTurnRef = useRef(0);
@@ -160,6 +161,63 @@ export default function PvpGameMatch() {
     });
     return unsubscribe;
   }, [matchId]);
+
+  // Turn timer countdown
+  useEffect(() => {
+    if (phase !== 'playing' || !match?.last_move_at) {
+      setTurnTimeLeft(60);
+      return;
+    }
+    const update = () => {
+      const elapsed = (Date.now() - new Date(match.last_move_at).getTime()) / 1000;
+      setTurnTimeLeft(Math.max(0, 60 - elapsed));
+    };
+    update();
+    const interval = setInterval(update, 500);
+    return () => clearInterval(interval);
+  }, [match?.last_move_at, phase]);
+
+  // Poll for turn timeout (catches opponent disconnects)
+  useEffect(() => {
+    if (!matchId || phase !== 'playing') return;
+
+    const checkTimeout = async () => {
+      if (gameOverHandledRef.current) return;
+      try {
+        const res = await base44.functions.invoke('pvpMatch', {
+          action: 'check_timeout',
+          match_id: matchId,
+        });
+        if (res.data?.timeout) {
+          setEloResult(res.data.elo);
+          setMatch(res.data.match);
+          gameOverHandledRef.current = true;
+          setPhase('gameover');
+        }
+      } catch (e) { console.error(e); }
+    };
+
+    const interval = setInterval(checkTimeout, 5000);
+    return () => clearInterval(interval);
+  }, [matchId, phase]);
+
+  // Trigger timeout check immediately when timer hits 0
+  useEffect(() => {
+    if (turnTimeLeft > 0 || !matchId || phase !== 'playing') return;
+    if (gameOverHandledRef.current) return;
+
+    base44.functions.invoke('pvpMatch', {
+      action: 'check_timeout',
+      match_id: matchId,
+    }).then(res => {
+      if (res.data?.timeout && !gameOverHandledRef.current) {
+        setEloResult(res.data.elo);
+        setMatch(res.data.match);
+        gameOverHandledRef.current = true;
+        setPhase('gameover');
+      }
+    }).catch(e => console.error(e));
+  }, [turnTimeLeft, matchId, phase]);
 
   const processAnimations = useCallback(async (animations) => {
     if (!animations || animations.length === 0) return;
@@ -386,8 +444,11 @@ export default function PvpGameMatch() {
               <span className="text-blue-400 font-bold text-lg">{myScore}</span>
               <span className="text-xs text-muted-foreground ml-1">You</span>
             </div>
-            <div className="px-3 py-1 rounded-full bg-slate-800/60 text-xs text-amber-400 font-heading">
-              Turn {displayState.turn}
+            <div className="px-3 py-1 rounded-full bg-slate-800/60 text-xs font-heading flex items-center gap-1.5">
+              <span className="text-amber-400">Turn {displayState.turn}</span>
+              <span className={turnTimeLeft <= 10 ? 'text-red-400 animate-pulse font-bold' : 'text-amber-400/60'}>
+                ⏱{Math.ceil(turnTimeLeft)}s
+              </span>
             </div>
             <div className="flex-1 text-center">
               <span className="text-xs text-muted-foreground mr-1">{oppName}</span>
