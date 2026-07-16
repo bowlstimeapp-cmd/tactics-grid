@@ -259,7 +259,7 @@ export default function DeckBuilder() {
           </div>
           <Button
             onClick={saveDeck}
-            disabled={!deckName.trim() || deckCards.length !== 7}
+            disabled={!deckName.trim() || deckCards.length !== getDeckSize(gameMode)}
             className="mt-4 w-full bg-amber-600 hover:bg-amber-500 text-black font-heading"
           >
             Save Deck ({deckCards.length}/{getDeckSize(gameMode)})

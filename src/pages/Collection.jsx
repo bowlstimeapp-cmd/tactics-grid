@@ -132,8 +132,9 @@ export default function Collection() {
                 size="md"
                 onClick={() => setSelectedCard(card)}
               />
+              <p className="text-center text-[10px] font-heading text-amber-200/90 mt-0.5 truncate px-0.5">{card.name}</p>
               {count > 0 && (
-                <p className="text-center text-[10px] font-heading text-amber-300/70 mt-0.5"># {count} owned</p>
+                <p className="text-center text-[9px] text-amber-300/60"># {count} owned</p>
               )}
             </motion.div>
           );
