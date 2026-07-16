@@ -22,6 +22,7 @@ export default function GameMatch() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const difficulty = searchParams.get('difficulty') || 'medium';
+  const gameMode = searchParams.get('mode') || 'standard';
 
   const [phase, setPhase] = useState('deckselect'); // deckselect, coinflip, layout, playing, gameover
   const [playerCards, setPlayerCards] = useState([]);
@@ -123,14 +124,15 @@ export default function GameMatch() {
       aiPool = aiPool.filter(c => c.rarity !== 'Common');
     }
     const shuffled = aiPool.sort(() => Math.random() - 0.5);
-    const aiCards = shuffled.slice(0, 7);
+    const deckSize = gameMode === 'enlarged' ? 12 : 7;
+    const aiCards = shuffled.slice(0, deckSize);
 
-    const lk = getRandomLayout();
+    const lk = getRandomLayout(gameMode === 'enlarged' ? 4 : 3);
     setLayoutKey(lk);
     setPhase('layout');
 
     setTimeout(() => {
-      const gs = createGameState(playerCards, aiCards, lk, firstPlayer);
+      const gs = createGameState(playerCards, aiCards, lk, firstPlayer, gameMode);
       setGameState(gs);
       setHistory([]);
       setPhase('playing');
@@ -272,7 +274,7 @@ export default function GameMatch() {
           <ArrowLeft className="w-4 h-4 mr-1" /> Back
         </Button>
         <span className="font-heading text-amber-200 text-sm">
-          {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)} AI Match
+          {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)} AI Match · {gameMode === 'enlarged' ? '4×4' : '3×3'}
         </span>
         <div className="flex items-center gap-1">
           {phase === 'playing' && (
@@ -295,7 +297,7 @@ export default function GameMatch() {
 
       {/* Deck Select Phase */}
       {phase === 'deckselect' && (
-        <DeckSelectModal open={true} onConfirm={handleDeckSelect} />
+        <DeckSelectModal open={true} onConfirm={handleDeckSelect} gameMode={gameMode} />
       )}
 
       {/* Coin Flip Phase */}
@@ -309,7 +311,7 @@ export default function GameMatch() {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <h2 className="font-heading text-2xl text-amber-200 text-center">{layout.name}</h2>
             <p className="text-sm text-muted-foreground text-center mt-1">{layout.description}</p>
-            <div className="grid grid-cols-3 gap-2 mt-6">
+            <div className={`grid ${gameMode === 'enlarged' ? 'grid-cols-4' : 'grid-cols-3'} gap-2 mt-6`}>
               {layout.tiles.map((tile, i) => (
                 <div key={i} className="w-16 h-20 rounded-lg border border-slate-700/40 bg-slate-800/30 flex flex-col items-center justify-center">
                   {tile ? (

@@ -130,3 +130,73 @@ export function generateBoardLayouts() {
 
   return layouts;
 }
+
+export function generateBoardLayouts4x4() {
+  const layouts = {};
+  const F = Object.keys(FACTION_TILES);
+  let n = 1;
+
+  function add(name, desc, tiles) {
+    layouts[`4x4_var_${n}`] = { name, description: desc, tiles };
+    n++;
+  }
+
+  function make(faction, positions) {
+    const tiles = Array(16).fill(null);
+    for (const p of positions) tiles[p] = ftile(faction);
+    return tiles;
+  }
+
+  function makeMixed(assignments) {
+    const tiles = Array(16).fill(null);
+    for (const [positions, faction] of assignments) {
+      for (const p of positions) tiles[p] = ftile(faction);
+    }
+    return tiles;
+  }
+
+  // 4×4 grid positions (indices 0-15 row-major):
+  // 0  1  2  3
+  // 4  5  6  7
+  // 8  9  10 11
+  // 12 13 14 15
+  const corners = [0, 3, 12, 15];
+  const edges = [1, 2, 4, 7, 8, 11, 13, 14];
+  const center = [5, 6, 9, 10];
+  const topRow = [0, 1, 2, 3];
+  const lowRow = [12, 13, 14, 15];
+  const leftCol = [0, 4, 8, 12];
+  const rightCol = [3, 7, 11, 15];
+
+  const singlePatterns = [
+    ['Corners', corners], ['Edges', edges], ['Centre', center]
+  ];
+  for (const faction of F) {
+    for (const [label, pos] of singlePatterns) {
+      add(`${faction} ${label}`, `${faction} gain +1 on ${label.toLowerCase()}`, make(faction, pos));
+    }
+  }
+
+  for (let i = 0; i < F.length; i++) {
+    const f1 = F[i];
+    const f2 = F[(i + 1) % F.length];
+    add(`${f1}/${f2} Top/Bottom`, `${f1} and ${f2} split grid`, makeMixed([[topRow, f1], [lowRow, f2]]));
+    add(`${f1}/${f2} Left/Right`, `${f1} and ${f2} split grid`, makeMixed([[leftCol, f1], [rightCol, f2]]));
+  }
+
+  const powerTile = { type: "power", label: "+1", icon: "⚡", mod: { north: 1, east: 1, south: 1, west: 1 } };
+  add('Power Center', 'Centre tiles: +1 all sides', (() => {
+    const tiles = Array(16).fill(null);
+    tiles[5] = powerTile; tiles[6] = powerTile; tiles[9] = powerTile; tiles[10] = powerTile;
+    return tiles;
+  })());
+
+  const sanctuaryTile = { type: "sanctuary", label: "Sanctuary", icon: "🕊️", noBuff: true };
+  add('Sanctuary', 'Corners: Cards cannot receive buffs', (() => {
+    const tiles = Array(16).fill(null);
+    tiles[0] = sanctuaryTile; tiles[3] = sanctuaryTile; tiles[12] = sanctuaryTile; tiles[15] = sanctuaryTile;
+    return tiles;
+  })());
+
+  return layouts;
+}

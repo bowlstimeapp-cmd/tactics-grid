@@ -67,6 +67,14 @@
       "type": "string",
       "default": "standard"
     },
+    "game_mode": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "enlarged"
+      ],
+      "default": "standard"
+    },
     "last_move_at": {
       "type": "string"
     }

@@ -6,15 +6,20 @@ import { getEffectiveStats } from '@/lib/gameEngine';
 
 export default function GameBoard({ gameState, onCellClick, selectedTile, flippingCells, myPlayerNum = 1 }) {
   const { board, tiles, turn } = gameState;
+  const gridSize = board.length;
+  const gridClass = gridSize === 4 ? 'grid-cols-4' : 'grid-cols-3';
+  const cellSize = gridSize === 4
+    ? 'min-w-[56px] min-h-[74px] sm:min-w-[68px] sm:min-h-[90px]'
+    : 'min-w-[72px] min-h-[96px] sm:min-w-[88px] sm:min-h-[116px]';
 
   return (
     <div>
       <TileLegend tiles={tiles} />
-      <div className="grid grid-cols-3 gap-1.5 sm:gap-2 p-2 sm:p-3 rounded-xl bg-gradient-to-br from-slate-900/80 to-slate-800/60 border border-amber-900/30 shadow-2xl">
-        {[0, 1, 2].map(row =>
-          [0, 1, 2].map(col => {
+      <div className={`grid ${gridClass} gap-1.5 sm:gap-2 p-2 sm:p-3 rounded-xl bg-gradient-to-br from-slate-900/80 to-slate-800/60 border border-amber-900/30 shadow-2xl`}>
+        {Array.from({ length: gridSize }, (_, row) =>
+          Array.from({ length: gridSize }, (_, col) => {
             const card = board[row][col];
-            const tileIdx = row * 3 + col;
+            const tileIdx = row * gridSize + col;
             const tile = tiles?.[tileIdx];
             const isJustPlaced = card && card.placedTurn === turn - 1;
             const effectiveStats = card ? getEffectiveStats(card, [row, col], board, turn, isJustPlaced ? 'attack' : 'defend') : null;
@@ -28,7 +33,7 @@ export default function GameBoard({ gameState, onCellClick, selectedTile, flippi
                 onClick={() => onCellClick(row, col)}
                 className={`
                   relative aspect-[3/4] rounded-lg border transition-all duration-200 cursor-pointer
-                  min-w-[72px] min-h-[96px] sm:min-w-[88px] sm:min-h-[116px]
+                  ${cellSize}
                   ${card
                     ? 'border-transparent'
                     : selectedTile && selectedTile.row === row && selectedTile.col === col
@@ -60,7 +65,7 @@ export default function GameBoard({ gameState, onCellClick, selectedTile, flippi
                 {card && (
                   <GameCard
                     card={card}
-                    size="md"
+                    size={gridSize === 4 ? 'sm' : 'md'}
                     effectiveStats={effectiveStats}
                     isFlipping={isFlipping}
                     myPlayerNum={myPlayerNum}

@@ -15,21 +15,30 @@ function isPassiveActive(card) {
   return POST_FLIP_PASSIVES.includes(card.passive_id);
 }
 
-export function createGameState(player1Cards, player2Cards, layoutKey = 'standard', firstPlayer = 1) {
-  const layout = BOARD_LAYOUTS[layoutKey] || BOARD_LAYOUTS.standard;
+export function createGameState(player1Cards, player2Cards, layoutKey = 'standard', firstPlayer = 1, gameMode = 'standard') {
+  const gridSize = gameMode === 'enlarged' ? 4 : 3;
+  const fallbackKey = gridSize === 4 ? '4x4_standard' : 'standard';
+  let layout = BOARD_LAYOUTS[layoutKey];
+  if (!layout || !layout.tiles || layout.tiles.length !== gridSize * gridSize) {
+    layout = BOARD_LAYOUTS[fallbackKey];
+  }
+  const board = Array.from({ length: gridSize }, () => Array(gridSize).fill(null));
   return {
-    board: [[null,null,null],[null,null,null],[null,null,null]],
+    board,
     tiles: layout.tiles,
     layoutKey,
     layoutName: layout.name,
+    gameMode,
+    gridSize,
+    totalTurns: gridSize * gridSize,
     turn: 1,
-    currentPlayer: firstPlayer, // 1 or 2
+    currentPlayer: firstPlayer,
     player1Hand: player1Cards.map(c => ({ ...c, owner: 1, originalOwner: 1 })),
     player2Hand: player2Cards.map(c => ({ ...c, owner: 2, originalOwner: 2 })),
     moves: [],
     gameOver: false,
     winner: null,
-    scores: { 1: 7, 2: 7 },
+    scores: { 1: player1Cards.length, 2: player2Cards.length },
     animations: [],
     passiveActivations: [],
   };
@@ -40,13 +49,15 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
   let mods = { north: 0, east: 0, south: 0, west: 0 };
   let effects = [];
 
-  const tileIdx = position[0] * 3 + position[1];
+  const gridSize = board.length;
+  const totalTurns = gridSize * gridSize;
+  const tileIdx = position[0] * gridSize + position[1];
   const tile = board._tiles?.[tileIdx];
 
   // Card's own passive (deactivated if flipped, unless it explicitly works post-flip)
   const passive = PASSIVES[card.passive_id];
   if (passive && isPassiveActive(card)) {
-    const ctx = { card, position, board, turn, phase, totalTurns: 9 };
+    const ctx = { card, position, board, turn, phase, totalTurns };
     const result = passive.apply(ctx);
 
     const times = (tile && tile.doublePassive) ? 2 : 1;
@@ -98,12 +109,12 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
   let globalAuraCount = 0;
   for (const [dir, [dr, dc]] of Object.entries(DIR_OFFSETS)) {
     const nr = r + dr, nc = c + dc;
-    if (nr < 0 || nr > 2 || nc < 0 || nc > 2) continue;
+    if (nr < 0 || nr >= gridSize || nc < 0 || nc >= gridSize) continue;
     const adj = board[nr]?.[nc];
     if (!adj) continue;
     const adjPassive = PASSIVES[adj.passive_id];
     if (!adjPassive || !isPassiveActive(adj)) continue;
-    const adjCtx = { card: adj, position: [nr, nc], board, turn, phase };
+    const adjCtx = { card: adj, position: [nr, nc], board, turn, phase, totalTurns };
     const adjResult = adjPassive.apply(adjCtx);
     if (adjResult.aura) {
       const aura = adjResult.aura;
@@ -134,15 +145,15 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
   }
 
   // Also global auras from non-adjacent cards
-  for (let ri = 0; ri < 3; ri++) {
-    for (let ci = 0; ci < 3; ci++) {
+  for (let ri = 0; ri < gridSize; ri++) {
+    for (let ci = 0; ci < gridSize; ci++) {
       if (ri === r && ci === c) continue;
       if (Math.abs(ri - r) <= 1 && Math.abs(ci - c) <= 1 && (ri === r || ci === c)) continue; // already handled adjacent
       const other = board[ri]?.[ci];
       if (!other) continue;
       const otherPassive = PASSIVES[other.passive_id];
       if (!otherPassive || !isPassiveActive(other)) continue;
-      const otherResult = otherPassive.apply({ card: other, position: [ri, ci], board, turn, phase });
+      const otherResult = otherPassive.apply({ card: other, position: [ri, ci], board, turn, phase, totalTurns });
       if (otherResult.globalAura) {
         const ga = otherResult.globalAura;
         const isAlly = other.owner === card.owner;
@@ -217,9 +228,10 @@ export function placeCard(gameState, cardIndex, row, col) {
   gs.turn++;
   gs.currentPlayer = gs.currentPlayer === 1 ? 2 : 1;
 
-  // Check game over (all 9 placed)
+  // Check game over (all tiles filled)
+  const gridSize = gs.gridSize || 3;
   const filled = gs.board.flat().filter(c => c).length;
-  if (filled === 9) {
+  if (filled === gridSize * gridSize) {
     gs.gameOver = true;
     // Count board control
     let b1 = 0, b2 = 0;
@@ -238,8 +250,9 @@ export function placeCard(gameState, cardIndex, row, col) {
 
 export function getValidMoves(gameState) {
   const moves = [];
-  for (let r = 0; r < 3; r++) {
-    for (let c = 0; c < 3; c++) {
+  const gridSize = gameState.gridSize || (gameState.board ? gameState.board.length : 3);
+  for (let r = 0; r < gridSize; r++) {
+    for (let c = 0; c < gridSize; c++) {
       if (!gameState.board[r][c]) {
         moves.push([r, c]);
       }
@@ -250,8 +263,9 @@ export function getValidMoves(gameState) {
 
 export function evaluateBoard(gameState, player) {
   let score = 0;
-  for (let r = 0; r < 3; r++) {
-    for (let c = 0; c < 3; c++) {
+  const gridSize = gameState.gridSize || (gameState.board ? gameState.board.length : 3);
+  for (let r = 0; r < gridSize; r++) {
+    for (let c = 0; c < gridSize; c++) {
       const card = gameState.board[r][c];
       if (card) {
         if (card.owner === player) score += 10;
@@ -264,10 +278,11 @@ export function evaluateBoard(gameState, player) {
 
 function processCaptures(gs, row, col, card, animations, chainOrder) {
   const newlyFlipped = [];
+  const gridSize = gs.gridSize || 3;
 
   for (const [dir, [dr, dc]] of Object.entries(DIR_OFFSETS)) {
     const nr = row + dr, nc = col + dc;
-    if (nr < 0 || nr > 2 || nc < 0 || nc > 2) continue;
+    if (nr < 0 || nr >= gridSize || nc < 0 || nc >= gridSize) continue;
     const defender = gs.board[nr][nc];
     if (!defender || defender.owner === card.owner) continue;
 
@@ -319,13 +334,15 @@ export function getActiveBoardEffects(gameState) {
   const effects = [];
   const board = gameState.board;
 
-  for (let r = 0; r < 3; r++) {
-    for (let c = 0; c < 3; c++) {
+  const gridSize = board.length;
+  const totalTurns = gridSize * gridSize;
+  for (let r = 0; r < gridSize; r++) {
+    for (let c = 0; c < gridSize; c++) {
       const card = board[r][c];
       if (!card) continue;
       const passive = PASSIVES[card.passive_id];
       if (!passive || !isPassiveActive(card)) continue;
-      const result = passive.apply({ card, position: [r, c], board, turn: gameState.turn, phase: 'static' });
+      const result = passive.apply({ card, position: [r, c], board, turn: gameState.turn, phase: 'static', totalTurns });
 
       if (result.aura && result.aura.mod) {
         effects.push({
@@ -364,13 +381,15 @@ export function getHandCardPreview(card, gameState) {
   let effects = [];
   const board = gameState.board;
 
-  for (let r = 0; r < 3; r++) {
-    for (let c = 0; c < 3; c++) {
+  const gridSize = board.length;
+  const totalTurns = gridSize * gridSize;
+  for (let r = 0; r < gridSize; r++) {
+    for (let c = 0; c < gridSize; c++) {
       const boardCard = board[r][c];
       if (!boardCard) continue;
       const passive = PASSIVES[boardCard.passive_id];
       if (!passive || !isPassiveActive(boardCard)) continue;
-      const result = passive.apply({ card: boardCard, position: [r, c], board, turn: gameState.turn, phase: 'static' });
+      const result = passive.apply({ card: boardCard, position: [r, c], board, turn: gameState.turn, phase: 'static', totalTurns });
 
       if (result.globalAura) {
         const ga = result.globalAura;

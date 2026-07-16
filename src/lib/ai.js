@@ -23,7 +23,9 @@ export function mediumAI(gameState) {
       const newState = placeCard(gameState, ci, r, c);
       const score = evaluateBoard(newState, player);
       // Prefer corners and center
-      const posBonus = (r === 1 && c === 1) ? 3 : ((r + c) % 2 === 0 ? 1 : 0);
+      const gridSize = newState.board.length;
+      const isCenter = gridSize === 4 ? (r >= 1 && r <= 2 && c >= 1 && c <= 2) : (r === 1 && c === 1);
+      const posBonus = isCenter ? 3 : ((r + c) % 2 === 0 ? 1 : 0);
       const total = score + posBonus + (newState.animations?.length || 0) * 5;
       if (total > bestScore) {
         bestScore = total;

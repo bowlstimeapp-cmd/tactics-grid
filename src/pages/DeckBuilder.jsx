@@ -8,7 +8,7 @@ import { ArrowLeft, Plus, Trash2, Copy, Pencil, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import GameCard from '@/components/game/GameCard';
 import { ALL_CARDS, getCardById } from '@/lib/cardDatabase';
-import { RARITY_CONFIG, FACTION_CONFIG } from '@/lib/gameData';
+import { RARITY_CONFIG, FACTION_CONFIG, getDeckSize } from '@/lib/gameData';
 
 const RARITIES = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'];
 const FACTIONS = Object.keys(FACTION_CONFIG);
@@ -24,6 +24,7 @@ export default function DeckBuilder() {
   const [loading, setLoading] = useState(true);
   const [filterRarities, setFilterRarities] = useState([]);
   const [filterFactions, setFilterFactions] = useState([]);
+  const [gameMode, setGameMode] = useState('standard');
 
   useEffect(() => {
     async function load() {
@@ -51,12 +52,12 @@ export default function DeckBuilder() {
   const countInDeck = (cardId) => deckCards.filter(id => id === cardId).length;
 
   const saveDeck = async () => {
-    if (!deckName.trim() || deckCards.length !== 7) return;
+    if (!deckName.trim() || deckCards.length !== getDeckSize(gameMode)) return;
     if (editingDeck) {
-      await base44.entities.Deck.update(editingDeck.id, { name: deckName, card_ids: deckCards });
+      await base44.entities.Deck.update(editingDeck.id, { name: deckName, card_ids: deckCards, game_mode: gameMode });
       setDecks(prev => prev.map(d => d.id === editingDeck.id ? { ...d, name: deckName, card_ids: deckCards } : d));
     } else {
-      const newDeck = await base44.entities.Deck.create({ name: deckName, card_ids: deckCards });
+      const newDeck = await base44.entities.Deck.create({ name: deckName, card_ids: deckCards, game_mode: gameMode });
       setDecks(prev => [...prev, newDeck]);
     }
     setShowCreate(false);
@@ -79,7 +80,7 @@ export default function DeckBuilder() {
     const ownedCount = owned[cardId] || 0;
     setDeckCards(prev => {
       const inDeck = prev.filter(id => id === cardId).length;
-      if (inDeck >= ownedCount || prev.length >= 7) return prev;
+      if (inDeck >= ownedCount || prev.length >= getDeckSize(gameMode)) return prev;
       return [...prev, cardId];
     });
   };
@@ -99,6 +100,7 @@ export default function DeckBuilder() {
     setEditingDeck(deck);
     setDeckName(deck.name);
     setDeckCards(deck.card_ids || []);
+    setGameMode(deck.game_mode || 'standard');
     setShowCreate(true);
   };
 
@@ -115,7 +117,7 @@ export default function DeckBuilder() {
           <ArrowLeft className="w-4 h-4" />
         </Button>
         <h1 className="font-heading text-xl text-amber-200">Deck Builder</h1>
-        <Button size="sm" onClick={() => { setEditingDeck(null); setDeckName(''); setDeckCards([]); setShowCreate(true); }} className="ml-auto bg-amber-600 hover:bg-amber-500 text-black">
+        <Button size="sm" onClick={() => { setEditingDeck(null); setDeckName(''); setDeckCards([]); setGameMode('standard'); setShowCreate(true); }} className="ml-auto bg-amber-600 hover:bg-amber-500 text-black">
           <Plus className="w-4 h-4 mr-1" /> New Deck
         </Button>
       </div>
@@ -154,7 +156,7 @@ export default function DeckBuilder() {
                   ))}
                   {cards.length > 10 && <span className="self-center text-xs text-muted-foreground">+{cards.length - 10} more</span>}
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">{cards.length}/7 cards</p>
+                <p className="text-xs text-muted-foreground mt-2">{cards.length}/{getDeckSize(deck.game_mode || 'standard')} cards · {(deck.game_mode || 'standard') === 'enlarged' ? '4×4' : '3×3'}</p>
               </motion.div>
             );
           })}
@@ -175,8 +177,24 @@ export default function DeckBuilder() {
             onChange={e => setDeckName(e.target.value)}
             className="bg-slate-800/50 border-slate-700/40"
           />
+
+          <div className="flex gap-2">
+            {['standard', 'enlarged'].map(mode => (
+              <button
+                key={mode}
+                onClick={() => setGameMode(mode)}
+                className={`flex-1 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                  gameMode === mode
+                    ? 'bg-amber-600/30 border-amber-500/50 text-amber-200'
+                    : 'bg-slate-800/50 border-slate-700/30 text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {mode === 'standard' ? 'Standard (3×3, 7 cards)' : 'Enlarged (4×4, 12 cards)'}
+              </button>
+            ))}
+          </div>
           <p className="text-sm text-muted-foreground">
-            Select 7 cards ({deckCards.length}/7) — add up to the number of copies you own
+            Select {getDeckSize(gameMode)} cards ({deckCards.length}/{getDeckSize(gameMode)}) — add up to the number of copies you own
             {ownedCards.length === 0 && ' — You need to own cards first!'}
           </p>
 
@@ -244,7 +262,7 @@ export default function DeckBuilder() {
             disabled={!deckName.trim() || deckCards.length !== 7}
             className="mt-4 w-full bg-amber-600 hover:bg-amber-500 text-black font-heading"
           >
-            Save Deck ({deckCards.length}/7)
+            Save Deck ({deckCards.length}/{getDeckSize(gameMode)})
           </Button>
         </DialogContent>
       </Dialog>

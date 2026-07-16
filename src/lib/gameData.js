@@ -1,4 +1,4 @@
-import { generateBoardLayouts } from './boardLayouts';
+import { generateBoardLayouts, generateBoardLayouts4x4 } from './boardLayouts';
 
 // ── Passive Ability Registry ──
 // Each passive is { id, name, icon, description, apply(ctx) }
@@ -11,7 +11,8 @@ export const PASSIVES = {
     id: "played_last_boost", name: "Final Stand", icon: "⏳",
     description: "+2 all sides if played as your last card",
     apply: (ctx) => {
-      if (ctx.turn >= 9) return { cardMods: { north: 2, east: 2, south: 2, west: 2 } };
+      const lastTurn = ctx.totalTurns >= 16 ? ctx.totalTurns - 1 : ctx.totalTurns;
+      if (ctx.turn >= lastTurn) return { cardMods: { north: 2, east: 2, south: 2, west: 2 } };
       return {};
     }
   },
@@ -163,7 +164,8 @@ export const PASSIVES = {
     id: "final_card_boost", name: "Crescendo", icon: "🎵",
     description: "+3 all sides if this is your final card placed",
     apply: (ctx) => {
-      if (ctx.turn >= 9) return { cardMods: { north: 3, east: 3, south: 3, west: 3 } };
+      const lastTurn = ctx.totalTurns >= 16 ? ctx.totalTurns - 1 : ctx.totalTurns;
+      if (ctx.turn >= lastTurn) return { cardMods: { north: 3, east: 3, south: 3, west: 3 } };
       return {};
     }
   },
@@ -521,6 +523,7 @@ function getAdjacentCards(pos, board) {
 // ── Board Tile Layouts ──
 export const BOARD_LAYOUTS = {
   standard: { name: "Standard", description: "No special tiles", tiles: Array(9).fill(null) },
+  '4x4_standard': { name: "Standard 4×4", description: "No special tiles", tiles: Array(16).fill(null) },
   power_center: {
     name: "Power Center", description: "Centre tile: +1 all sides",
     tiles: [null,null,null,null,{ type: "power", label: "+1", icon: "⚡", mod: { north:1,east:1,south:1,west:1 } },null,null,null,null]
@@ -572,10 +575,14 @@ export const BOARD_LAYOUTS = {
 
 // Merge 100 generated board layout variations
 Object.assign(BOARD_LAYOUTS, generateBoardLayouts());
+Object.assign(BOARD_LAYOUTS, generateBoardLayouts4x4());
 
-export function getRandomLayout() {
-  const keys = Object.keys(BOARD_LAYOUTS);
-  return keys[Math.floor(Math.random() * keys.length)];
+export function getRandomLayout(gridSize = 3) {
+  const keys = Object.keys(BOARD_LAYOUTS).filter(k => {
+    const layout = BOARD_LAYOUTS[k];
+    return layout && layout.tiles.length === gridSize * gridSize;
+  });
+  return keys[Math.floor(Math.random() * keys.length)] || (gridSize === 4 ? '4x4_standard' : 'standard');
 }
 
 // ── Rarity colors & config ──
@@ -632,6 +639,10 @@ export const ACHIEVEMENTS = [
 export const PACK_COST = 100;
 export const PACK_SIZE = 3;
 export const DECK_SIZE = 7;
+export const DECK_SIZE_ENLARGED = 12;
+export function getDeckSize(gameMode) {
+  return gameMode === 'enlarged' ? DECK_SIZE_ENLARGED : DECK_SIZE;
+}
 export const PACK_ODDS = [
   { rarity: "Common", weight: 65 },
   { rarity: "Uncommon", weight: 23 },

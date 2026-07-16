@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 import GameCard from './GameCard';
 import { getCardById } from '@/lib/cardDatabase';
+import { getDeckSize } from '@/lib/gameData';
 import { Loader2, Layers, Plus } from 'lucide-react';
 
-export default function DeckSelectModal({ open, onConfirm }) {
+export default function DeckSelectModal({ open, onConfirm, gameMode = 'standard' }) {
   const navigate = useNavigate();
   const [decks, setDecks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -19,7 +20,7 @@ export default function DeckSelectModal({ open, onConfirm }) {
       try {
         const me = await base44.auth.me();
         const userDecks = await base44.entities.Deck.filter({ created_by_id: me.id });
-        setDecks(userDecks);
+        setDecks(userDecks.filter(d => (d.game_mode || 'standard') === gameMode));
       } catch (e) {
         console.error(e);
       }
@@ -70,7 +71,7 @@ export default function DeckSelectModal({ open, onConfirm }) {
                   >
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-heading text-amber-100 text-sm">{deck.name}</h3>
-                      <span className="text-xs text-muted-foreground">{cards.length}/7</span>
+                      <span className="text-xs text-muted-foreground">{cards.length}/{getDeckSize(gameMode)}</span>
                     </div>
                     <div className="flex gap-1">
                       {cards.map((c, i) => (
@@ -84,7 +85,7 @@ export default function DeckSelectModal({ open, onConfirm }) {
 
             <Button
               onClick={() => onConfirm(selectedCards)}
-              disabled={!selectedDeck || selectedCards.length < 7}
+              disabled={!selectedDeck || selectedCards.length < getDeckSize(gameMode)}
               className="mt-4 w-full bg-amber-600 hover:bg-amber-500 text-black font-heading"
             >
               Use This Deck

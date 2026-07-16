@@ -2,6 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 const BOARD_LAYOUTS = {
   standard: { name: "Standard", tiles: [null,null,null,null,null,null,null,null,null] },
+  '4x4_standard': { name: "Standard 4×4", tiles: Array(16).fill(null) },
   power_center: { name: "Power Center", tiles: [null,null,null,null,{type:"power",label:"+1",icon:"⚡",mod:{north:1,east:1,south:1,west:1}},null,null,null,null] },
   forest_corners: { name: "Wild Corners", tiles: [{type:"forest",label:"Forest",icon:"🌲",factionBonus:{faction:"Beasts",mod:1}},null,{type:"forest",label:"Forest",icon:"🌲",factionBonus:{faction:"Beasts",mod:1}},null,null,null,{type:"forest",label:"Forest",icon:"🌲",factionBonus:{faction:"Beasts",mod:1}},null,{type:"forest",label:"Forest",icon:"🌲",factionBonus:{faction:"Beasts",mod:1}}] },
   forge_line: { name: "Forge Line", tiles: [null,null,null,{type:"forge",label:"Forge",icon:"🔨",factionBonus:{faction:"Machines",mod:2,phase:"attack"}},{type:"forge",label:"Forge",icon:"🔨",factionBonus:{faction:"Machines",mod:2,phase:"attack"}},{type:"forge",label:"Forge",icon:"🔨",factionBonus:{faction:"Machines",mod:2,phase:"attack"}},null,null,null] },
@@ -10,18 +11,30 @@ const BOARD_LAYOUTS = {
   sanctuary_corners: { name: "Sanctuary", tiles: [{type:"sanctuary",label:"Sanctuary",icon:"🕊️",noBuff:true},null,{type:"sanctuary",label:"Sanctuary",icon:"🕊️",noBuff:true},null,null,null,{type:"sanctuary",label:"Sanctuary",icon:"🕊️",noBuff:true},null,{type:"sanctuary",label:"Sanctuary",icon:"🕊️",noBuff:true}] },
 };
 
-function getRandomLayout() {
-  const keys = Object.keys(BOARD_LAYOUTS);
-  return keys[Math.floor(Math.random() * keys.length)];
+function getRandomLayout(gridSize = 3) {
+  const keys = Object.keys(BOARD_LAYOUTS).filter(k => {
+    const layout = BOARD_LAYOUTS[k];
+    return layout && layout.tiles.length === gridSize * gridSize;
+  });
+  return keys[Math.floor(Math.random() * keys.length)] || (gridSize === 4 ? '4x4_standard' : 'standard');
 }
 
-function createGameState(player1Cards, player2Cards, layoutKey, firstPlayer) {
-  const layout = BOARD_LAYOUTS[layoutKey] || BOARD_LAYOUTS.standard;
+function createGameState(player1Cards, player2Cards, layoutKey, firstPlayer, gameMode = 'standard') {
+  const gridSize = gameMode === 'enlarged' ? 4 : 3;
+  const fallbackKey = gridSize === 4 ? '4x4_standard' : 'standard';
+  let layout = BOARD_LAYOUTS[layoutKey];
+  if (!layout || !layout.tiles || layout.tiles.length !== gridSize * gridSize) {
+    layout = BOARD_LAYOUTS[fallbackKey];
+  }
+  const board = Array.from({ length: gridSize }, () => Array(gridSize).fill(null));
   return {
-    board: [[null,null,null],[null,null,null],[null,null,null]],
+    board,
     tiles: layout.tiles,
     layoutKey,
     layoutName: layout.name,
+    gameMode,
+    gridSize,
+    totalTurns: gridSize * gridSize,
     turn: 1,
     currentPlayer: firstPlayer,
     player1Hand: player1Cards.map(c => ({ ...c, owner: 1, originalOwner: 1 })),
@@ -29,7 +42,7 @@ function createGameState(player1Cards, player2Cards, layoutKey, firstPlayer) {
     moves: [],
     gameOver: false,
     winner: null,
-    scores: { 1: 5, 2: 5 },
+    scores: { 1: player1Cards.length, 2: player2Cards.length },
     animations: [],
     passiveActivations: [],
   };
@@ -46,7 +59,7 @@ Deno.serve(async (req) => {
       const user = await base44.auth.me();
       if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-      const { player_name, elo, cards } = body;
+      const { player_name, elo, cards, game_mode } = body;
       if (!cards || cards.length === 0) return Response.json({ error: 'No cards provided' }, { status: 400 });
 
       // Check for existing matched queue entry
@@ -68,7 +81,8 @@ Deno.serve(async (req) => {
         status: 'searching'
       });
       const eligible = allSearching.filter(q =>
-        q.player_id !== user.id && Math.abs(q.elo - elo) <= 200
+        q.player_id !== user.id && Math.abs(q.elo - elo) <= 200 &&
+        (q.game_mode || 'standard') === (game_mode || 'standard')
       );
 
       if (eligible.length > 0) {
@@ -83,9 +97,11 @@ Deno.serve(async (req) => {
           ? { id: opp.player_id, name: opp.player_name, elo: opp.elo, cards: opp.cards }
           : { id: user.id, name: player_name, elo, cards };
 
-        const layoutKey = getRandomLayout();
+        const mode = game_mode || 'standard';
+        const gridSize = mode === 'enlarged' ? 4 : 3;
+        const layoutKey = getRandomLayout(gridSize);
         const firstPlayer = Math.random() < 0.5 ? 1 : 2;
-        const gameState = createGameState(p1.cards, p2.cards, layoutKey, firstPlayer);
+        const gameState = createGameState(p1.cards, p2.cards, layoutKey, firstPlayer, mode);
 
         const match = await base44.asServiceRole.entities.PvpMatch.create({
           player1_id: p1.id,
@@ -103,6 +119,7 @@ Deno.serve(async (req) => {
           player1_elo_after: 0,
           player2_elo_after: 0,
           layout_key: layoutKey,
+          game_mode: game_mode || 'standard',
           last_move_at: new Date().toISOString(),
         });
 
@@ -131,6 +148,7 @@ Deno.serve(async (req) => {
         elo,
         status: 'searching',
         match_id: '',
+        game_mode: game_mode || 'standard',
       });
 
       return Response.json({ status: 'searching' });

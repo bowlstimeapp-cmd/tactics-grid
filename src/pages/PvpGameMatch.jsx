@@ -119,8 +119,9 @@ export default function PvpGameMatch() {
           // Find the newly placed card for reveal
           let placedCard = null;
           let placedPos = null;
-          for (let r = 0; r < 3; r++) {
-            for (let c = 0; c < 3; c++) {
+          const gridSize = gs.board.length;
+          for (let r = 0; r < gridSize; r++) {
+            for (let c = 0; c < gridSize; c++) {
               if (gs.board[r][c] && gs.board[r][c].placedTurn === gs.turn - 1) {
                 placedCard = gs.board[r][c];
                 placedPos = [r, c];

@@ -22,6 +22,14 @@
     "match_id": {
       "type": "string",
       "default": ""
+    },
+    "game_mode": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "enlarged"
+      ],
+      "default": "standard"
     }
   },
   "required": [
