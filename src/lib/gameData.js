@@ -39,7 +39,8 @@ export const PASSIVES = {
     id: "corner_boost", name: "Fortification", icon: "🏰",
     description: "+2 all sides when placed in a corner",
     apply: (ctx) => {
-      const corners = [[0,0],[0,2],[2,0],[2,2]];
+      const max = ctx.board.length - 1;
+      const corners = [[0,0],[0,max],[max,0],[max,max]];
       if (corners.some(([r,c]) => r === ctx.position[0] && c === ctx.position[1]))
         return { cardMods: { north: 2, east: 2, south: 2, west: 2 } };
       return {};
@@ -59,8 +60,9 @@ export const PASSIVES = {
     description: "+2 all sides when placed on an edge (not corner)",
     apply: (ctx) => {
       const [r, c] = ctx.position;
-      const isEdge = (r === 0 || r === 2 || c === 0 || c === 2);
-      const isCorner = (r === 0 || r === 2) && (c === 0 || c === 2);
+      const max = ctx.board.length - 1;
+      const isEdge = (r === 0 || r === max || c === 0 || c === max);
+      const isCorner = (r === 0 || r === max) && (c === 0 || c === max);
       if (isEdge && !isCorner) return { cardMods: { north: 2, east: 2, south: 2, west: 2 } };
       return {};
     }
@@ -515,7 +517,7 @@ function getAdjacentCards(pos, board) {
   const dirs = [[-1,0],[1,0],[0,-1],[0,1]];
   return dirs.map(([dr, dc]) => {
     const nr = r + dr, nc = c + dc;
-    if (nr >= 0 && nr < 3 && nc >= 0 && nc < 3) return board[nr][nc];
+    if (nr >= 0 && nr < board.length && nc >= 0 && nc < board.length) return board[nr][nc];
     return null;
   });
 }
