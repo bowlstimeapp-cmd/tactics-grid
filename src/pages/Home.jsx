@@ -2,14 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
-import { Sword, ShieldHalf, Bot, Library, Layers, Store, Trophy, Scroll, Star, ChevronRight, LogOut, Settings, Repeat } from 'lucide-react';
+import { Sword, ShieldHalf, Bot, Library, Layers, Store, Trophy, Scroll, Star, ChevronRight, LogOut, Settings, Repeat, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { getRankForElo, FACTION_CONFIG } from '@/lib/gameData';
-import { loadGameConfig } from '@/lib/gameConfig';
-import { applyCardOverrides } from '@/lib/cardDatabase';
-import { openPack, applyCardsToCollection } from '@/lib/packLogic';
-
 const NAV_ITEMS = [
   { label: 'Play Ranked', icon: Sword, path: '/pvp', color: 'text-amber-400', desc: 'Live PvP matches' },
   { label: 'Play Casual', icon: ShieldHalf, path: '/match?difficulty=medium', color: 'text-blue-400', desc: 'Relaxed games' },
@@ -24,6 +20,7 @@ const MENU_ITEMS = [
   { label: 'Leaderboard', icon: Trophy, path: '/leaderboard' },
   { label: 'Achievements', icon: Star, path: '/achievements' },
   { label: 'Quests', icon: Scroll, path: '/quests' },
+  { label: 'Help Guide', icon: BookOpen, path: '/help' },
 ];
 
 export default function Home() {
@@ -38,11 +35,12 @@ export default function Home() {
         const me = await base44.auth.me();
         setUser(me);
         const profiles = await base44.entities.PlayerProfile.filter({ created_by_id: me.id });
+        let currentProfile = null;
         if (profiles.length > 0) {
-          setProfile(profiles[0]);
+          currentProfile = profiles[0];
         } else {
-          // Create initial profile with 3 free starter packs
-          const newProfile = await base44.entities.PlayerProfile.create({
+          // Create initial profile — starter packs are claimed on the Welcome screen
+          currentProfile = await base44.entities.PlayerProfile.create({
             username: me.full_name || me.email?.split('@')[0] || 'Player',
             coins: 500,
             xp: 0,
@@ -50,24 +48,11 @@ export default function Home() {
             elo: 1200,
             collection: {},
           });
-
-          try {
-            const cfg = await loadGameConfig();
-            applyCardOverrides(cfg.card_overrides);
-            let allCards = [];
-            for (let i = 0; i < 3; i++) {
-              allCards.push(...openPack('standard', cfg));
-            }
-            const { newCollection, essenceGained } = applyCardsToCollection({}, allCards);
-            const updated = await base44.entities.PlayerProfile.update(newProfile.id, {
-              collection: newCollection,
-              essence: essenceGained,
-            });
-            setProfile(updated);
-          } catch (e) {
-            console.error('Starter pack error:', e);
-            setProfile(newProfile);
-          }
+        }
+        setProfile(currentProfile);
+        if (!currentProfile.has_seen_welcome) {
+          navigate('/welcome', { replace: true });
+          return;
         }
       } catch (e) {
         console.error(e);
@@ -75,7 +60,7 @@ export default function Home() {
       setLoading(false);
     }
     load();
-  }, []);
+  }, [navigate]);
 
   if (loading) {
     return (

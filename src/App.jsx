@@ -29,6 +29,8 @@ import CardExchange from '@/pages/CardExchange';
 import PvpMatchmaking from '@/pages/PvpMatchmaking';
 import PvpGameMatch from '@/pages/PvpGameMatch';
 import BalanceReport from '@/pages/BalanceReport';
+import Welcome from '@/pages/Welcome';
+import HelpGuide from '@/pages/HelpGuide';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -74,6 +76,8 @@ const AuthenticatedApp = () => {
         <Route path="/pvp" element={<PvpMatchmaking />} />
         <Route path="/pvp-match" element={<PvpGameMatch />} />
         <Route path="/balancereport" element={<BalanceReport />} />
+        <Route path="/welcome" element={<Welcome />} />
+        <Route path="/help" element={<HelpGuide />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

@@ -106,13 +106,13 @@ export default function GameCard({ card, size = 'md', onClick, selected, showSta
           >
             {/* Artwork area */}
             {card.artwork_url ? (
-              <div className="absolute inset-0 overflow-hidden">
+              <div className="absolute inset-0 overflow-hidden bg-slate-800">
                 <img src={card.artwork_url} alt={card.name} className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/50" />
               </div>
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center opacity-20">
-                <FactionIcon faction={card.faction} size={32} />
+              <div className="absolute inset-0 flex items-center justify-center opacity-25" style={{ background: `radial-gradient(circle at center, ${(FACTION_CONFIG[card.faction] || {}).color || '#444'}33, transparent 70%)` }}>
+                <FactionIcon faction={card.faction} size={48} />
               </div>
             )}
 
@@ -150,8 +150,8 @@ export default function GameCard({ card, size = 'md', onClick, selected, showSta
               {/* Card name — above caption, increased size */}
               {size !== 'sm' && (
                 <div className="px-1 pb-0.5 bg-gradient-to-t from-black/90 to-transparent">
-                  <p className={`font-heading truncate text-amber-100 ${size === 'md' ? 'text-[9px]' : size === 'lg' ? 'text-[10px]' : size === 'xl' ? 'text-[11px]' : 'text-[13px]'}`}>{card.name}</p>
-                  <p className={`uppercase tracking-widest text-amber-400/50 ${size === 'md' ? 'text-[5px]' : size === 'lg' ? 'text-[6px]' : size === 'xl' ? 'text-[7px]' : 'text-[8px]'}`}>{card.faction}</p>
+                  <p className={`font-heading truncate text-amber-100 leading-none ${size === 'md' ? 'text-[9px]' : size === 'lg' ? 'text-[10px]' : size === 'xl' ? 'text-[11px]' : 'text-[13px]'}`}>{card.name}</p>
+                  <p className={`uppercase tracking-widest text-amber-400/50 leading-none ${size === 'md' ? 'text-[5px]' : size === 'lg' ? 'text-[6px]' : size === 'xl' ? 'text-[7px]' : 'text-[8px]'}`}>{card.faction}</p>
                 </div>
               )}
               {/* Ability caption box — reduced by ~1/3 */}

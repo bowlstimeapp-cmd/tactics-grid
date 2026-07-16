@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ArrowLeft, Plus, Trash2, Copy, Pencil, X } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Copy, Pencil, X, Minus } from 'lucide-react';
 import { motion } from 'framer-motion';
 import GameCard from '@/components/game/GameCard';
 import { ALL_CARDS, getCardById } from '@/lib/cardDatabase';
@@ -255,9 +255,10 @@ export default function DeckBuilder() {
                   {inDeck > 0 && (
                     <button
                       onClick={() => removeCard(card.card_id)}
-                      className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-amber-600 text-black text-[10px] font-bold flex items-center justify-center shadow-lg hover:bg-amber-500"
+                      className="absolute -top-1 -right-1 h-5 px-1 rounded-full bg-red-600/90 text-white text-[9px] font-bold flex items-center gap-0.5 shadow-lg hover:bg-red-500"
+                      title={`Remove a copy (${inDeck} in deck)`}
                     >
-                      {inDeck}
+                      <Minus className="w-2.5 h-2.5" />{inDeck}
                     </button>
                   )}
                 </div>
