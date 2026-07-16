@@ -1,31 +1,31 @@
-import { PASSIVES, BOARD_LAYOUTS, isSupportPassive } from './gameData';
+// ============================================================================
+// SERVER-SIDE GAME ENGINE — DUPLICATED FROM src/lib/gameEngine.js
+// Any future balance/engine change MUST be applied to BOTH this file and
+// the client copy at src/lib/gameEngine.js. They must stay line-for-line in sync.
+// ============================================================================
 
-// Directions: N, E, S, W
-const OPPOSITE = { north: 'south', south: 'north', east: 'west', west: 'east' };
-const DIR_OFFSETS = {
+import { PASSIVES, BOARD_LAYOUTS, isSupportPassive, getRandomLayout } from './gameData.ts';
+
+const OPPOSITE: Record<string, string> = { north: 'south', south: 'north', east: 'west', west: 'east' };
+const DIR_OFFSETS: Record<string, number[]> = {
   north: [-1, 0], south: [1, 0], east: [0, 1], west: [0, -1]
 };
 
-// Passives that explicitly grant bonuses AFTER the card has been flipped.
-// All other passives are deactivated once the card is captured.
 const POST_FLIP_PASSIVES = ['flip_revenge', 'phoenix'];
 
-function isPassiveActive(card, turn) {
+function isPassiveActive(card: any, turn?: number) {
   if (!card.wasFlipped) return true;
   if (POST_FLIP_PASSIVES.includes(card.passive_id)) return true;
-  // Support passives linger until end of owner's next turn after being flipped
   if (isSupportPassive(card.passive_id)) {
     if (card.flippedTurn !== undefined && turn !== undefined) {
       return turn < card.flippedTurn + 2;
     }
     return false;
   }
-  // Self passives: deactivated immediately when flipped
   return false;
 }
 
-// Returns 'active' | 'lingering' | 'expired' | 'inactive' | 'none'
-export function getCardPassiveStatus(card, turn) {
+export function getCardPassiveStatus(card: any, turn?: number) {
   if (!card || !card.passive_id || card.passive_id === 'none') return 'none';
   if (!card.wasFlipped) return 'active';
   if (POST_FLIP_PASSIVES.includes(card.passive_id)) return 'active';
@@ -38,9 +38,7 @@ export function getCardPassiveStatus(card, turn) {
   return 'inactive';
 }
 
-// Locks aura bonuses from support abilities that are about to expire (last lingering turn).
-// Called in placeCard before the turn increments — frozen bonuses persist permanently.
-function lockExpiringAuras(gs) {
+function lockExpiringAuras(gs: any) {
   const turn = gs.turn;
   const gridSize = gs.gridSize || 3;
   const totalTurns = gridSize * gridSize;
@@ -51,7 +49,6 @@ function lockExpiringAuras(gs) {
       const card = gs.board[r]?.[c];
       if (!card) continue;
       if (!isSupportPassive(card.passive_id)) continue;
-      // Only lock on the last lingering turn (about to expire after this turn)
       if (card.flippedTurn === undefined || turn !== card.flippedTurn + 1) continue;
 
       const passive = PASSIVES[card.passive_id];
@@ -120,7 +117,7 @@ function lockExpiringAuras(gs) {
   }
 }
 
-export function createGameState(player1Cards, player2Cards, layoutKey = 'standard', firstPlayer = 1, gameMode = 'standard') {
+export function createGameState(player1Cards: any[], player2Cards: any[], layoutKey = 'standard', firstPlayer = 1, gameMode = 'standard') {
   const gridSize = gameMode === 'enlarged' ? 4 : 3;
   const fallbackKey = gridSize === 4 ? '4x4_standard' : 'standard';
   let layout = BOARD_LAYOUTS[layoutKey];
@@ -149,12 +146,11 @@ export function createGameState(player1Cards, player2Cards, layoutKey = 'standar
   };
 }
 
-export function getEffectiveStats(card, position, board, turn, phase = 'static') {
+export function getEffectiveStats(card: any, position: number[], board: any, turn?: number, phase = 'static') {
   if (!card) return null;
-  let mods = { north: 0, east: 0, south: 0, west: 0 };
-  let effects = [];
+  let mods: any = { north: 0, east: 0, south: 0, west: 0 };
+  let effects: any[] = [];
 
-  // Persistent locked aura bonuses from expired support abilities (remain permanently)
   if (card.lockedAuraMods) {
     mods.north += card.lockedAuraMods.north || 0;
     mods.east += card.lockedAuraMods.east || 0;
@@ -165,9 +161,8 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
   const gridSize = board.length;
   const totalTurns = gridSize * gridSize;
   const tileIdx = position[0] * gridSize + position[1];
-  const tile = board._tiles?.[tileIdx];
+  const tile = (board as any)._tiles?.[tileIdx];
 
-  // Card's own passive (deactivated if flipped, unless it explicitly works post-flip)
   const passive = PASSIVES[card.passive_id];
   if (passive && isPassiveActive(card, turn)) {
     const ctx = { card, position, board, turn, phase, totalTurns, getEffectiveStats };
@@ -198,7 +193,6 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
     }
   }
 
-  // Tile faction bonus
   if (tile) {
     if (tile.mod) {
       mods.north += tile.mod.north || 0;
@@ -217,7 +211,6 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
     }
   }
 
-  // Auras from adjacent cards
   const [r, c] = position;
   let globalAuraCount = 0;
   for (const [dir, [dr, dc]] of Object.entries(DIR_OFFSETS)) {
@@ -237,7 +230,7 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
       if ((aura.target === 'allies' && isAlly) || (aura.target === 'enemies' && isEnemy)) {
         if (aura.factionFilter && card.faction !== aura.factionFilter) continue;
         const adjTileIdx = nr * gridSize + nc;
-        const adjTile = board._tiles?.[adjTileIdx];
+        const adjTile = (board as any)._tiles?.[adjTileIdx];
         const auraMod = (adjTile && adjTile.doublePassive) ? aura.mod * 2 : aura.mod;
         if (auraMod && !tile?.noBuff) {
           mods.north += auraMod; mods.east += auraMod; mods.south += auraMod; mods.west += auraMod;
@@ -245,7 +238,6 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
         }
       }
     }
-    // Global auras (capped at 2 sources per card)
     if (adjResult.globalAura) {
       const ga = adjResult.globalAura;
       const auraSourceOwner = adj.originalOwner ?? adj.owner;
@@ -253,7 +245,7 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
       const isEnemy = card.owner !== auraSourceOwner;
       if ((ga.target === 'allies' && isAlly) || (ga.target === 'enemies' && isEnemy)) {
         const adjTileIdx = nr * gridSize + nc;
-        const adjTile = board._tiles?.[adjTileIdx];
+        const adjTile = (board as any)._tiles?.[adjTileIdx];
         const gaMod = (adjTile && adjTile.doublePassive) ? ga.mod * 2 : ga.mod;
         if (gaMod && !tile?.noBuff && globalAuraCount < 2) {
           globalAuraCount++;
@@ -264,11 +256,10 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
     }
   }
 
-  // Also global auras from non-adjacent cards
   for (let ri = 0; ri < gridSize; ri++) {
     for (let ci = 0; ci < gridSize; ci++) {
       if (ri === r && ci === c) continue;
-      if (Math.abs(ri - r) <= 1 && Math.abs(ci - c) <= 1 && (ri === r || ci === c)) continue; // already handled adjacent
+      if (Math.abs(ri - r) <= 1 && Math.abs(ci - c) <= 1 && (ri === r || ci === c)) continue;
       const other = board[ri]?.[ci];
       if (!other) continue;
       const otherPassive = PASSIVES[other.passive_id];
@@ -281,7 +272,7 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
         const isEnemy = card.owner !== auraSourceOwner;
         if ((ga.target === 'allies' && isAlly) || (ga.target === 'enemies' && isEnemy)) {
           const otherTileIdx = ri * gridSize + ci;
-          const otherTile = board._tiles?.[otherTileIdx];
+          const otherTile = (board as any)._tiles?.[otherTileIdx];
           const gaMod = (otherTile && otherTile.doublePassive) ? ga.mod * 2 : ga.mod;
           if (gaMod && !tile?.noBuff && globalAuraCount < 2) {
             globalAuraCount++;
@@ -303,9 +294,8 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
   };
 }
 
-export function placeCard(gameState, cardIndex, row, col) {
+export function placeCard(gameState: any, cardIndex: number, row: number, col: number) {
   const gs = JSON.parse(JSON.stringify(gameState));
-  // Attach tiles reference - use Object.defineProperty so it survives on the array
   Object.defineProperty(gs.board, '_tiles', { value: gs.tiles, writable: true, enumerable: false, configurable: true });
 
   if (gs.gameOver) return gs;
@@ -318,12 +308,10 @@ export function placeCard(gameState, cardIndex, row, col) {
   gs.board[row][col] = card;
   hand.splice(cardIndex, 1);
 
-  const animations = [];
+  const animations: any[] = [];
 
-  // Process captures with chaining
   processCaptures(gs, row, col, card, animations, 0);
 
-  // Record move
   gs.moves.push({
     player: gs.currentPlayer,
     cardId: card.card_id,
@@ -333,7 +321,6 @@ export function placeCard(gameState, cardIndex, row, col) {
     flips: animations.map(a => ({ row: a.row, col: a.col })),
   });
 
-  // Calculate scores
   let p1 = 0, p2 = 0;
   const gridSize = gs.gridSize || 3;
   for (let r = 0; r < gridSize; r++) {
@@ -344,29 +331,24 @@ export function placeCard(gameState, cardIndex, row, col) {
       }
     }
   }
-  // Add remaining hand cards
   p1 += gs.player1Hand.length;
   p2 += gs.player2Hand.length;
   gs.scores = { 1: p1, 2: p2 };
 
-  // Lock aura bonuses from support abilities about to expire (before turn increments)
   lockExpiringAuras(gs);
 
-  // Switch turn
   gs.turn++;
   gs.currentPlayer = gs.currentPlayer === 1 ? 2 : 1;
 
-  // Check game over (all tiles filled)
-  const filled = gs.board.flat().filter(c => c).length;
+  const filled = gs.board.flat().filter((c: any) => c).length;
   if (filled === gridSize * gridSize) {
     gs.gameOver = true;
-    // Count board control
     let b1 = 0, b2 = 0;
-    gs.board.flat().forEach(c => { if (c.owner === 1) b1++; else b2++; });
+    gs.board.flat().forEach((c: any) => { if (c.owner === 1) b1++; else b2++; });
     gs.scores = { 1: b1, 2: b2 };
     if (b1 > b2) gs.winner = 1;
     else if (b2 > b1) gs.winner = 2;
-    else gs.winner = 0; // draw
+    else gs.winner = 0;
   }
 
   gs.animations = animations;
@@ -375,36 +357,8 @@ export function placeCard(gameState, cardIndex, row, col) {
   return gs;
 }
 
-export function getValidMoves(gameState) {
-  const moves = [];
-  const gridSize = gameState.gridSize || (gameState.board ? gameState.board.length : 3);
-  for (let r = 0; r < gridSize; r++) {
-    for (let c = 0; c < gridSize; c++) {
-      if (!gameState.board[r][c]) {
-        moves.push([r, c]);
-      }
-    }
-  }
-  return moves;
-}
-
-export function evaluateBoard(gameState, player) {
-  let score = 0;
-  const gridSize = gameState.gridSize || (gameState.board ? gameState.board.length : 3);
-  for (let r = 0; r < gridSize; r++) {
-    for (let c = 0; c < gridSize; c++) {
-      const card = gameState.board[r][c];
-      if (card) {
-        if (card.owner === player) score += 10;
-        else score -= 10;
-      }
-    }
-  }
-  return score;
-}
-
-function processCaptures(gs, row, col, card, animations, chainOrder) {
-  const newlyFlipped = [];
+function processCaptures(gs: any, row: number, col: number, card: any, animations: any[], chainOrder: number) {
+  const newlyFlipped: any[] = [];
   const gridSize = gs.gridSize || 3;
 
   for (const [dir, [dr, dc]] of Object.entries(DIR_OFFSETS)) {
@@ -419,15 +373,13 @@ function processCaptures(gs, row, col, card, animations, chainOrder) {
     const attackVal = attackStats[dir];
     const defendVal = defendStats[OPPOSITE[dir]];
 
-    // Check flip immunity
     const defEffects = defendStats.effects || [];
-    const immunity = defEffects.find(e => e.type === 'flip_immunity');
+    const immunity = defEffects.find((e: any) => e.type === 'flip_immunity');
     if (immunity) {
       const attackTotal = attackStats.north + attackStats.east + attackStats.south + attackStats.west;
       if (attackTotal < immunity.minTotalPower) continue;
     }
-    // Check chain immunity (prevents flips from chain reactions, not direct attacks)
-    const hasChainImmunity = defEffects.some(e => e.type === 'chain_immunity');
+    const hasChainImmunity = defEffects.some((e: any) => e.type === 'chain_immunity');
     if (hasChainImmunity && chainOrder > 0) continue;
 
     if (attackVal > defendVal) {
@@ -450,16 +402,14 @@ function processCaptures(gs, row, col, card, animations, chainOrder) {
     }
   }
 
-  // Chain: newly flipped cards attempt to flip their adjacent enemies
   for (const { row: fr, col: fc } of newlyFlipped) {
     processCaptures(gs, fr, fc, gs.board[fr][fc], animations, chainOrder + 1);
   }
 }
 
-// Returns all active aura/debuff effects currently on the board
-export function getActiveBoardEffects(gameState) {
+export function getActiveBoardEffects(gameState: any) {
   if (!gameState?.board) return [];
-  const effects = [];
+  const effects: any[] = [];
   const board = gameState.board;
 
   const gridSize = board.length;
@@ -471,7 +421,7 @@ export function getActiveBoardEffects(gameState) {
       const passive = PASSIVES[card.passive_id];
       if (!passive || !isPassiveActive(card, gameState.turn)) continue;
       const sourceTileIdx = r * gridSize + c;
-      const sourceTile = board._tiles?.[sourceTileIdx];
+      const sourceTile = (board as any)._tiles?.[sourceTileIdx];
       const sourceDouble = sourceTile && sourceTile.doublePassive;
       const result = passive.apply({ card, position: [r, c], board, turn: gameState.turn, phase: 'static', totalTurns, getEffectiveStats });
 
@@ -505,13 +455,11 @@ export function getActiveBoardEffects(gameState) {
   return effects;
 }
 
-// Computes preview stats for a card still in hand — accounts for global auras
-// that apply regardless of placement (e.g., Plague, Commander)
-export function getHandCardPreview(card, gameState) {
+export function getHandCardPreview(card: any, gameState: any) {
   if (!card || !gameState?.board) return null;
 
-  let mods = { north: 0, east: 0, south: 0, west: 0 };
-  let effects = [];
+  let mods: any = { north: 0, east: 0, south: 0, west: 0 };
+  let effects: any[] = [];
   const board = gameState.board;
 
   const gridSize = board.length;
@@ -548,3 +496,5 @@ export function getHandCardPreview(card, gameState) {
     effects,
   };
 }
+
+export { getRandomLayout };

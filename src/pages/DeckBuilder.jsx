@@ -8,7 +8,7 @@ import { ArrowLeft, Plus, Trash2, Copy, Pencil, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import GameCard from '@/components/game/GameCard';
 import { ALL_CARDS, getCardById } from '@/lib/cardDatabase';
-import { RARITY_CONFIG, FACTION_CONFIG, getDeckSize } from '@/lib/gameData';
+import { RARITY_CONFIG, FACTION_CONFIG, getDeckSize, MAX_COPIES_PER_CARD } from '@/lib/gameData';
 
 const RARITIES = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'];
 const FACTIONS = Object.keys(FACTION_CONFIG);
@@ -53,6 +53,11 @@ export default function DeckBuilder() {
 
   const saveDeck = async () => {
     if (!deckName.trim() || deckCards.length !== getDeckSize(gameMode)) return;
+    const counts = {};
+    for (const id of deckCards) {
+      counts[id] = (counts[id] || 0) + 1;
+      if (counts[id] > MAX_COPIES_PER_CARD) return;
+    }
     if (editingDeck) {
       await base44.entities.Deck.update(editingDeck.id, { name: deckName, card_ids: deckCards, game_mode: gameMode });
       setDecks(prev => prev.map(d => d.id === editingDeck.id ? { ...d, name: deckName, card_ids: deckCards } : d));
@@ -78,9 +83,10 @@ export default function DeckBuilder() {
 
   const addCard = (cardId) => {
     const ownedCount = owned[cardId] || 0;
+    const maxCopies = Math.min(ownedCount, MAX_COPIES_PER_CARD);
     setDeckCards(prev => {
       const inDeck = prev.filter(id => id === cardId).length;
-      if (inDeck >= ownedCount || prev.length >= getDeckSize(gameMode)) return prev;
+      if (inDeck >= maxCopies || prev.length >= getDeckSize(gameMode)) return prev;
       return [...prev, cardId];
     });
   };
@@ -243,8 +249,9 @@ export default function DeckBuilder() {
                     size="sm"
                     selected={inDeck > 0}
                     onClick={() => addCard(card.card_id)}
+                    className={inDeck >= Math.min(ownedCount, MAX_COPIES_PER_CARD) ? 'opacity-40 pointer-events-none' : ''}
                   />
-                  <p className="text-center text-[9px] text-amber-300/60 mt-0.5"># {ownedCount}</p>
+                  <p className="text-center text-[9px] text-amber-300/60 mt-0.5">{inDeck}/{Math.min(ownedCount, MAX_COPIES_PER_CARD)}</p>
                   {inDeck > 0 && (
                     <button
                       onClick={() => removeCard(card.card_id)}

@@ -209,38 +209,48 @@ export default function PvpGameMatch() {
       base44.functions.invoke('pvpMatch', {
         action: 'submit_move',
         match_id: matchId,
-        game_state: pending.newState,
-      }).then(() => {
+        card_index: pending.cardIndex,
+        row: pending.row,
+        col: pending.col,
+      }).then(res => {
         setSubmitting(false);
+        // Reconcile with server's authoritative state
+        const updatedMatch = res.data?.match;
+        if (updatedMatch?.game_state) {
+          const serverGs = reconstructGameState(updatedMatch.game_state);
+          setDisplayState(serverGs);
+          displayTurnRef.current = serverGs.turn;
+          setMatch(updatedMatch);
+        }
+        // If game over, settle ELO after animations (chained after submit_move completes)
+        if (pending.newState.gameOver) {
+          gameOverHandledRef.current = true;
+          const animCount = pending.newState.animations?.length || 0;
+          const hasChain = pending.newState.animations?.some(a => a.chainOrder > 0);
+          const animTime = animCount * 650 + (hasChain ? 500 : 0);
+          const delay = Math.max(5000, animTime + 1000);
+          setTimeout(() => {
+            base44.functions.invoke('pvpMatch', {
+              action: 'end_match',
+              match_id: matchId,
+            }).then(endRes => {
+              setEloResult(endRes.data.elo);
+              setMatch(endRes.data?.match || updatedMatch || match);
+              setPhase('gameover');
+            }).catch(e => {
+              console.error(e);
+              setPhase('gameover');
+            });
+          }, delay);
+        }
       }).catch(e => {
         console.error(e);
         setSubmitting(false);
       });
     }
-
-    if (pending.newState.gameOver) {
-      gameOverHandledRef.current = true;
-      const animCount = pending.newState.animations?.length || 0;
-      const hasChain = pending.newState.animations?.some(a => a.chainOrder > 0);
-      const animTime = animCount * 650 + (hasChain ? 500 : 0);
-      const delay = Math.max(5000, animTime + 1000);
-      setTimeout(() => {
-        base44.functions.invoke('pvpMatch', {
-          action: 'end_match',
-          match_id: matchId,
-          winner: pending.newState.winner,
-        }).then(res => {
-          setEloResult(res.data.elo);
-          setPhase('gameover');
-        }).catch(e => {
-          console.error(e);
-          setPhase('gameover');
-        });
-      }, delay);
-    }
   };
 
-  const startReveal = (newState, row, col, isMyMove, opponentName) => {
+  const startReveal = (newState, row, col, isMyMove, opponentName, cardIndex) => {
     const placedCard = newState.board[row][col];
     const boardWithTiles = newState.board;
     if (!boardWithTiles._tiles) {
@@ -251,7 +261,7 @@ export default function PvpGameMatch() {
     const stats = getEffectiveStats(placedCard, [row, col], boardWithTiles, newState.turn, 'attack');
     const playerName = isMyMove ? 'You' : opponentName;
 
-    pendingAfterReveal.current = { newState, isMyMove };
+    pendingAfterReveal.current = { newState, isMyMove, cardIndex, row, col };
     isRevealingRef.current = true;
     setRevealedCard(placedCard);
     setRevealedStats(stats);
@@ -296,7 +306,7 @@ export default function PvpGameMatch() {
     setDisplayState(newState);
     setSelectedTile(null);
     const oppName = myPlayerNum === 1 ? match?.player2_name : match?.player1_name;
-    startReveal(newState, selectedTile.row, selectedTile.col, true, oppName);
+    startReveal(newState, selectedTile.row, selectedTile.col, true, oppName, cardIndex);
   }, [displayState, selectedTile, isAnimating, myPlayerNum, submitting]);
 
   const handleHandInspect = useCallback((card) => {
@@ -313,11 +323,11 @@ export default function PvpGameMatch() {
     if (submitting || isAnimating || !matchId) return;
     gameOverHandledRef.current = true;
     base44.functions.invoke('pvpMatch', {
-      action: 'end_match',
+      action: 'forfeit',
       match_id: matchId,
-      winner: myPlayerNum === 1 ? 2 : 1,
     }).then(res => {
       setEloResult(res.data.elo);
+      setMatch(res.data?.match || match);
       setPhase('gameover');
     }).catch(e => console.error(e));
   };
