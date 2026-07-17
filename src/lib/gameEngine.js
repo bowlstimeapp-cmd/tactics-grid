@@ -153,6 +153,7 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
   if (!card) return null;
   let mods = { north: 0, east: 0, south: 0, west: 0 };
   let effects = [];
+  let breakdown = [{ source: 'Base', north: card.north, east: card.east, south: card.south, west: card.west }];
 
   // Persistent locked aura bonuses from expired support abilities (remain permanently)
   if (card.lockedAuraMods) {
@@ -160,6 +161,7 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
     mods.east += card.lockedAuraMods.east || 0;
     mods.south += card.lockedAuraMods.south || 0;
     mods.west += card.lockedAuraMods.west || 0;
+    breakdown.push({ source: 'Locked Aura', north: card.lockedAuraMods.north || 0, east: card.lockedAuraMods.east || 0, south: card.lockedAuraMods.south || 0, west: card.lockedAuraMods.west || 0 });
   }
 
   const gridSize = board.length;
@@ -185,6 +187,7 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
       }
       if (result.cardMods.north || result.cardMods.east || result.cardMods.south || result.cardMods.west) {
         effects.push({ type: 'self_passive', name: passive.name, icon: passive.icon });
+        breakdown.push({ source: passive.name + ' (self)', north: (result.cardMods.north || 0) * times, east: (result.cardMods.east || 0) * times, south: (result.cardMods.south || 0) * times, west: (result.cardMods.west || 0) * times });
       }
     }
     if (result.flipImmunity) {
@@ -194,7 +197,7 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
       effects.push({ type: 'chain_immunity' });
     }
     if (result.noAuras) {
-      return { north: card.north + mods.north, east: card.east + mods.east, south: card.south + mods.south, west: card.west + mods.west, mods, effects };
+      return { north: card.north + mods.north, east: card.east + mods.east, south: card.south + mods.south, west: card.west + mods.west, mods, effects, breakdown };
     }
   }
 
@@ -206,6 +209,7 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
       mods.south += tile.mod.south || 0;
       mods.west += tile.mod.west || 0;
       effects.push({ type: 'tile', label: tile.label });
+      breakdown.push({ source: tile.label + ' (tile)', north: tile.mod.north || 0, east: tile.mod.east || 0, south: tile.mod.south || 0, west: tile.mod.west || 0 });
     }
     if (tile.factionBonus && card.faction === tile.factionBonus.faction) {
       const m = tile.factionBonus.mod || 0;
@@ -213,6 +217,7 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
       if (!tilePhase || tilePhase === phase) {
         mods.north += m; mods.east += m; mods.south += m; mods.west += m;
         effects.push({ type: 'tile_faction', label: tile.label, faction: tile.factionBonus.faction });
+        breakdown.push({ source: tile.label + ' faction', north: m, east: m, south: m, west: m });
       }
     }
   }
@@ -242,6 +247,7 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
         if (auraMod && !tile?.noBuff) {
           mods.north += auraMod; mods.east += auraMod; mods.south += auraMod; mods.west += auraMod;
           effects.push({ type: 'aura', from: adj.name, mod: auraMod });
+          breakdown.push({ source: adj.name + ' aura', north: auraMod, east: auraMod, south: auraMod, west: auraMod });
         }
       }
     }
@@ -259,6 +265,7 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
           globalAuraCount++;
           mods.north += gaMod; mods.east += gaMod; mods.south += gaMod; mods.west += gaMod;
           effects.push({ type: 'global_aura', from: adj.name, mod: gaMod });
+          breakdown.push({ source: adj.name + ' global', north: gaMod, east: gaMod, south: gaMod, west: gaMod });
         }
       }
     }
@@ -287,6 +294,7 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
             globalAuraCount++;
             mods.north += gaMod; mods.east += gaMod; mods.south += gaMod; mods.west += gaMod;
             effects.push({ type: 'global_aura', from: other.name, mod: gaMod });
+          breakdown.push({ source: other.name + ' global', north: gaMod, east: gaMod, south: gaMod, west: gaMod });
           }
         }
       }
@@ -300,6 +308,7 @@ export function getEffectiveStats(card, position, board, turn, phase = 'static')
     west: card.west + mods.west,
     mods,
     effects,
+    breakdown,
   };
 }
 
@@ -324,13 +333,17 @@ export function placeCard(gameState, cardIndex, row, col) {
   processCaptures(gs, row, col, card, animations, 0);
 
   // Record move
+  const maxChainOrder = animations.length > 0 ? Math.max(...animations.map(a => a.chainOrder || 0)) : 0;
   gs.moves.push({
-    player: gs.currentPlayer,
-    cardId: card.card_id,
-    cardName: card.name,
-    row, col,
     turn: gs.turn,
-    flips: animations.map(a => ({ row: a.row, col: a.col })),
+    player: gs.currentPlayer,
+    card_id: card.card_id,
+    card_name: card.name,
+    passive_id: card.passive_id || '',
+    row, col,
+    captures: animations.map(a => ({ row: a.row, col: a.col, chain_order: a.chainOrder || 0 })),
+    chain_order: maxChainOrder,
+    timestamp: new Date().toISOString(),
   });
 
   // Calculate scores

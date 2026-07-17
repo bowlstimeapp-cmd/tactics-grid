@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
-import { Sword, ShieldHalf, Bot, Library, Layers, Store, Trophy, Scroll, Star, ChevronRight, LogOut, Settings, Repeat, BookOpen } from 'lucide-react';
+import { Sword, ShieldHalf, Bot, Library, Layers, Store, Trophy, Scroll, Star, ChevronRight, LogOut, Settings, Repeat, BookOpen, Users, Flame } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { getRankForElo, FACTION_CONFIG } from '@/lib/gameData';
@@ -13,6 +13,7 @@ const NAV_ITEMS = [
 ];
 
 const MENU_ITEMS = [
+  { label: 'Friends', icon: Users, path: '/friends', badge: true },
   { label: 'Collection', icon: Library, path: '/collection' },
   { label: 'Deck Builder', icon: Layers, path: '/decks' },
   { label: 'Shop', icon: Store, path: '/shop' },
@@ -28,6 +29,7 @@ export default function Home() {
   const [profile, setProfile] = useState(null);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [friendsBadge, setFriendsBadge] = useState(0);
 
   useEffect(() => {
     async function load() {
@@ -49,7 +51,31 @@ export default function Home() {
             collection: {},
           });
         }
+        // Login streak logic
+        const today = new Date().toISOString().split('T')[0];
+        const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+        if (currentProfile.last_login_date !== today) {
+          let newStreak = 1;
+          if (currentProfile.last_login_date === yesterday) {
+            newStreak = (currentProfile.login_streak || 0) + 1;
+          }
+          currentProfile = await base44.entities.PlayerProfile.update(currentProfile.id, {
+            login_streak: newStreak,
+            last_login_date: today,
+          });
+        }
+
         setProfile(currentProfile);
+
+        // Friends notification badge
+        try {
+          const [reqs, challenges] = await Promise.all([
+            base44.entities.Friendship.filter({ recipient_id: me.id, status: 'pending' }),
+            base44.entities.MatchQueue.filter({ challenged_id: me.id, status: 'searching' }),
+          ]);
+          setFriendsBadge(reqs.length + challenges.length);
+        } catch (e) { console.error(e); }
+
         if (!currentProfile.has_seen_welcome) {
           navigate('/welcome', { replace: true });
           return;
@@ -110,6 +136,11 @@ export default function Home() {
                 <div className="flex items-center gap-1 mt-1.5">
                   <span className="text-xs text-amber-400">Lv.{profile?.level || 1}</span>
                   <Progress value={xpProgress} className="h-1.5 flex-1 bg-slate-700" />
+                  {profile?.login_streak > 1 && (
+                    <span className="flex items-center gap-0.5 text-xs text-orange-400 font-medium">
+                      <Flame className="w-3 h-3" /> {profile.login_streak}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -178,6 +209,11 @@ export default function Home() {
               >
                 <item.icon className="w-5 h-5 text-amber-400/60" />
                 <span className="text-sm font-medium flex-1">{item.label}</span>
+                {item.badge && friendsBadge > 0 && (
+                  <span className="bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                    {friendsBadge}
+                  </span>
+                )}
                 <ChevronRight className="w-4 h-4 text-muted-foreground" />
               </Link>
             </motion.div>

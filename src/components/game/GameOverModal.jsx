@@ -2,6 +2,7 @@ import React from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
+import { computeMatchSummary } from '@/lib/matchSummary';
 
 export default function GameOverModal({ open, gameState, onPlayAgain, onGoHome, rewards }) {
   if (!gameState) return null;
@@ -46,6 +47,34 @@ export default function GameOverModal({ open, gameState, onPlayAgain, onGoHome, 
               </div>
             </div>
           )}
+
+          {(() => {
+            const summary = computeMatchSummary(gameState?.moves);
+            if (!summary) return null;
+            return (
+              <div className="bg-slate-800/60 rounded-lg p-3 space-y-2 text-left">
+                <p className="text-xs text-amber-400 font-heading text-center">Match Highlights</p>
+                {summary.biggestCapture && summary.biggestCapture.count > 0 && (
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-lg">💥</span>
+                    <span className="text-amber-100">Biggest capture: <b>{summary.biggestCapture.card_name}</b> flipped {summary.biggestCapture.count} card{summary.biggestCapture.count > 1 ? 's' : ''}</span>
+                  </div>
+                )}
+                {summary.mvpCard && summary.mvpCard.totalCaptures > 0 && (
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-lg">{summary.mvpCard.passive_icon || '⭐'}</span>
+                    <span className="text-amber-100">MVP: <b>{summary.mvpCard.card_name}</b> ({summary.mvpCard.totalCaptures} captures)</span>
+                  </div>
+                )}
+                {summary.keyChain && summary.keyChain.chain_order > 0 && (
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-lg">⚡</span>
+                    <span className="text-amber-100"><b>{summary.keyChain.card_name}</b> triggered a {summary.keyChain.chain_order}-chain reaction</span>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           <div className="flex gap-3 pt-2">
             <Button onClick={onPlayAgain} className="flex-1 bg-amber-600 hover:bg-amber-500 text-black font-heading">

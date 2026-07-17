@@ -16,7 +16,7 @@ Deno.serve(async (req) => {
       const user = await base44.auth.me();
       if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-      const { player_name, elo, cards, game_mode } = body;
+      const { player_name, elo, cards, game_mode, challenged_id } = body;
       if (!cards || cards.length === 0) return Response.json({ error: 'No cards provided' }, { status: 400 });
 
       // Check for existing matched queue entry
@@ -33,14 +33,64 @@ Deno.serve(async (req) => {
         player_id: user.id, status: 'searching'
       });
 
-      // Search for opponents within ELO range
-      const allSearching = await base44.asServiceRole.entities.MatchQueue.filter({
-        status: 'searching'
-      });
-      const eligible = allSearching.filter(q =>
-        q.player_id !== user.id && Math.abs(q.elo - elo) <= 200 &&
-        (q.game_mode || 'standard') === (game_mode || 'standard')
-      );
+      // Challenge-based matchmaking: check for mutual challenge
+      if (challenged_id) {
+        const mutualEntries = await base44.asServiceRole.entities.MatchQueue.filter({
+          player_id: challenged_id, status: 'searching'
+        });
+        const mutualEntry = mutualEntries.find(q => q.challenged_id === user.id);
+        if (mutualEntry && mutualEntry.cards) {
+          const player1First = Math.random() < 0.5;
+          const p1 = player1First
+            ? { id: user.id, name: player_name, elo, cards }
+            : { id: mutualEntry.player_id, name: mutualEntry.player_name, elo: mutualEntry.elo, cards: mutualEntry.cards };
+          const p2 = player1First
+            ? { id: mutualEntry.player_id, name: mutualEntry.player_name, elo: mutualEntry.elo, cards: mutualEntry.cards }
+            : { id: user.id, name: player_name, elo, cards };
+
+          const mode = game_mode || 'standard';
+          const gridSize = mode === 'enlarged' ? 4 : 3;
+          const layoutKey = getRandomLayout(gridSize);
+          const firstPlayer = Math.random() < 0.5 ? 1 : 2;
+          const gameState = createGameState(p1.cards, p2.cards, layoutKey, firstPlayer, mode);
+
+          const match = await base44.asServiceRole.entities.PvpMatch.create({
+            player1_id: p1.id, player2_id: p2.id,
+            player1_name: p1.name, player2_name: p2.name,
+            player1_cards: p1.cards, player2_cards: p2.cards,
+            game_state: gameState, current_player: firstPlayer,
+            status: 'active', winner: 0,
+            player1_elo_before: p1.elo, player2_elo_before: p2.elo,
+            player1_elo_after: 0, player2_elo_after: 0,
+            layout_key: layoutKey, game_mode: mode,
+            last_move_at: new Date().toISOString(),
+          });
+
+          await base44.asServiceRole.entities.MatchQueue.updateMany(
+            { player_id: mutualEntry.player_id, status: 'searching' },
+            { $set: { status: 'matched', match_id: match.id } }
+          );
+          await base44.asServiceRole.entities.MatchQueue.create({
+            player_id: user.id, player_name, elo, cards,
+            status: 'matched', match_id: match.id,
+          });
+
+          return Response.json({ status: 'matched', match });
+        }
+      }
+
+      // Open matchmaking (skip if challenging a specific friend)
+      let eligible: any[] = [];
+      if (!challenged_id) {
+        const allSearching = await base44.asServiceRole.entities.MatchQueue.filter({
+          status: 'searching'
+        });
+        eligible = allSearching.filter(q =>
+          q.player_id !== user.id && Math.abs(q.elo - elo) <= 200 &&
+          (q.game_mode || 'standard') === (game_mode || 'standard') &&
+          !q.challenged_id
+        );
+      }
 
       if (eligible.length > 0) {
         const opp = eligible[0];
@@ -99,9 +149,11 @@ Deno.serve(async (req) => {
         player_id: user.id,
         player_name,
         elo,
+        cards,
         status: 'searching',
         match_id: '',
         game_mode: game_mode || 'standard',
+        challenged_id: challenged_id || '',
       });
 
       return Response.json({ status: 'searching' });
@@ -248,6 +300,8 @@ Deno.serve(async (req) => {
       });
 
       await updatePlayerProfiles(base44, match, winner);
+      const eloChangeEnd = winner === 1 ? newElo1 - p1Elo : newElo2 - p2Elo;
+      await createMatchRecord(base44, match, winner, eloChangeEnd);
 
       return Response.json({
         match: updated,
@@ -304,6 +358,8 @@ Deno.serve(async (req) => {
       });
 
       await updatePlayerProfiles(base44, match, winner);
+      const eloChangeForfeit = winner === 1 ? newElo1 - p1Elo : newElo2 - p2Elo;
+      await createMatchRecord(base44, match, winner, eloChangeForfeit);
 
       return Response.json({
         match: updated,
@@ -375,6 +431,34 @@ async function updatePlayerProfiles(base44: any, match: any, winner: number) {
   }
 }
 
+async function createMatchRecord(base44: any, match: any, winner: number, eloChange: number) {
+  try {
+    const gs = match.game_state;
+    const moves = gs?.moves || [];
+    const durationSeconds = match.created_date ? Math.round((Date.now() - new Date(match.created_date).getTime()) / 1000) : 0;
+    const winnerId = winner === 1 ? match.player1_id : winner === 2 ? match.player2_id : '';
+
+    await base44.asServiceRole.entities.MatchRecord.create({
+      match_type: 'ranked',
+      player1_id: match.player1_id,
+      player2_id: match.player2_id,
+      player1_name: match.player1_name || '',
+      player2_name: match.player2_name || '',
+      winner_id: winnerId,
+      player1_score: gs?.scores?.[1] ?? 0,
+      player2_score: gs?.scores?.[2] ?? 0,
+      player1_cards: (match.player1_cards || []).map((c: any) => typeof c === 'string' ? c : c.card_id),
+      player2_cards: (match.player2_cards || []).map((c: any) => typeof c === 'string' ? c : c.card_id),
+      moves,
+      board_layout: match.layout_key || 'standard',
+      duration_seconds: durationSeconds,
+      elo_change: eloChange,
+    });
+  } catch (e) {
+    console.error('Failed to create MatchRecord:', e);
+  }
+}
+
 async function checkAndProcessTimeout(base44: any, match: any) {
   if (match.status !== 'active') return null;
   if (!match.last_move_at) return null;
@@ -406,6 +490,8 @@ async function checkAndProcessTimeout(base44: any, match: any) {
   });
 
   await updatePlayerProfiles(base44, match, winner);
+  const eloChangeTimeout = winner === 1 ? newElo1 - p1Elo : newElo2 - p2Elo;
+  await createMatchRecord(base44, match, winner, eloChangeTimeout);
 
   return {
     match: updated,

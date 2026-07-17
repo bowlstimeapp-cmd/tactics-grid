@@ -30,6 +30,17 @@
         "enlarged"
       ],
       "default": "standard"
+    },
+    "challenged_id": {
+      "type": "string",
+      "default": ""
+    },
+    "cards": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "default": []
     }
   },
   "required": [

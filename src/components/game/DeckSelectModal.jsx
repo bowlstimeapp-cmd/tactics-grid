@@ -8,7 +8,7 @@ import { getCardById } from '@/lib/cardDatabase';
 import { getDeckSize } from '@/lib/gameData';
 import { Loader2, Layers, Plus } from 'lucide-react';
 
-export default function DeckSelectModal({ open, onConfirm, gameMode = 'standard' }) {
+export default function DeckSelectModal({ open, onConfirm, gameMode = 'standard', onClose }) {
   const navigate = useNavigate();
   const [decks, setDecks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,7 +35,7 @@ export default function DeckSelectModal({ open, onConfirm, gameMode = 'standard'
     : [];
 
   return (
-    <Dialog open={open}>
+    <Dialog open={open} onOpenChange={(v) => { if (!v && onClose) onClose(); }}>
       <DialogContent className="max-w-2xl bg-slate-900 border-amber-900/30 max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-heading text-amber-200">Choose Your Deck</DialogTitle>

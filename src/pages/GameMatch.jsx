@@ -47,6 +47,8 @@ export default function GameMatch() {
   const isRevealingRef = useRef(false);
   const pendingAfterReveal = useRef(null);
   const [revealTick, setRevealTick] = useState(0);
+  const [aiCards, setAiCards] = useState([]);
+  const [matchStartTime, setMatchStartTime] = useState(0);
 
   useEffect(() => {
     async function init() {
@@ -78,6 +80,28 @@ export default function GameMatch() {
       best_win_streak: Math.max(profile.best_win_streak || 0, newWinStreak),
     });
     setProfile(updated);
+  };
+
+  const createAiMatchRecord = async (finalState, won) => {
+    try {
+      const me = await base44.auth.me();
+      await base44.entities.MatchRecord.create({
+        match_type: 'ai',
+        player1_id: me.id,
+        player2_id: 'ai_opponent',
+        player1_name: profile?.username || 'Player',
+        player2_name: 'AI Opponent',
+        winner_id: won ? me.id : 'ai_opponent',
+        player1_score: finalState.scores?.[1] ?? 0,
+        player2_score: finalState.scores?.[2] ?? 0,
+        player1_cards: playerCards.map(c => c.card_id),
+        player2_cards: aiCards.map(c => c.card_id),
+        moves: finalState.moves || [],
+        board_layout: layoutKey || 'standard',
+        duration_seconds: matchStartTime ? Math.round((Date.now() - matchStartTime) / 1000) : 0,
+        elo_change: 0,
+      });
+    } catch (e) { console.error(e); }
   };
 
   const processAnimations = useCallback(async (animations) => {
@@ -125,17 +149,19 @@ export default function GameMatch() {
     }
     const shuffled = aiPool.sort(() => Math.random() - 0.5);
     const deckSize = gameMode === 'enlarged' ? 12 : 7;
-    const aiCards = shuffled.slice(0, deckSize);
+    const aiDeckCards = shuffled.slice(0, deckSize);
+    setAiCards(aiDeckCards);
 
     const lk = getRandomLayout(gameMode === 'enlarged' ? 4 : 3);
     setLayoutKey(lk);
     setPhase('layout');
 
     setTimeout(() => {
-      const gs = createGameState(playerCards, aiCards, lk, firstPlayer, gameMode);
+      const gs = createGameState(playerCards, aiDeckCards, lk, firstPlayer, gameMode);
       setGameState(gs);
       setHistory([]);
       setPhase('playing');
+      setMatchStartTime(Date.now());
     }, 2000);
   };
 
@@ -188,6 +214,7 @@ export default function GameMatch() {
       const won = pending.newState.winner === 1;
       setRewards({ coins: won ? 50 : 10, xp: won ? 30 : 10 });
       persistRewards(won);
+      createAiMatchRecord(pending.newState, won);
     }
     setRevealTick(t => t + 1);
   };

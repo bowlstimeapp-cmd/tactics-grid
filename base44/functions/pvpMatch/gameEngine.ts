@@ -312,13 +312,17 @@ export function placeCard(gameState: any, cardIndex: number, row: number, col: n
 
   processCaptures(gs, row, col, card, animations, 0);
 
+  const maxChainOrder = animations.length > 0 ? Math.max(...animations.map((a: any) => a.chainOrder || 0)) : 0;
   gs.moves.push({
-    player: gs.currentPlayer,
-    cardId: card.card_id,
-    cardName: card.name,
-    row, col,
     turn: gs.turn,
-    flips: animations.map(a => ({ row: a.row, col: a.col })),
+    player: gs.currentPlayer,
+    card_id: card.card_id,
+    card_name: card.name,
+    passive_id: card.passive_id || '',
+    row, col,
+    captures: animations.map((a: any) => ({ row: a.row, col: a.col, chain_order: a.chainOrder || 0 })),
+    chain_order: maxChainOrder,
+    timestamp: new Date().toISOString(),
   });
 
   let p1 = 0, p2 = 0;

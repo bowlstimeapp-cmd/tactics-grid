@@ -31,6 +31,7 @@ import PvpGameMatch from '@/pages/PvpGameMatch';
 import BalanceReport from '@/pages/BalanceReport';
 import Welcome from '@/pages/Welcome';
 import HelpGuide from '@/pages/HelpGuide';
+import Friends from '@/pages/Friends';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -78,6 +79,7 @@ const AuthenticatedApp = () => {
         <Route path="/balancereport" element={<BalanceReport />} />
         <Route path="/welcome" element={<Welcome />} />
         <Route path="/help" element={<HelpGuide />} />
+        <Route path="/friends" element={<Friends />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

@@ -118,6 +118,14 @@
     "has_seen_welcome": {
       "type": "boolean",
       "default": false
+    },
+    "login_streak": {
+      "type": "number",
+      "default": 0
+    },
+    "last_login_date": {
+      "type": "string",
+      "default": ""
     }
   },
   "required": [

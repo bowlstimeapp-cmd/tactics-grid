@@ -3,6 +3,7 @@ import { Swords } from 'lucide-react';
 import { RARITY_CONFIG, FACTION_CONFIG, PASSIVES } from '@/lib/gameData';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import FactionIcon from './FactionIcon';
+import StatBreakdown from './StatBreakdown';
 
 const SIZES = {
   sm: 'w-16 h-20 text-[10px]',
@@ -188,6 +189,9 @@ export default function GameCard({ card, size = 'md', onClick, selected, showSta
             )}
             {card.flavour_text && (
               <p className="text-xs italic text-muted-foreground">{card.flavour_text}</p>
+            )}
+            {effectiveStats?.breakdown && (
+              <StatBreakdown breakdown={effectiveStats.breakdown} />
             )}
           </div>
         </TooltipContent>
