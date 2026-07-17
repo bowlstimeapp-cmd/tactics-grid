@@ -111,12 +111,20 @@ export function getPackCost(packType, config) {
   return config?.[packDef.costField] ?? 0;
 }
 
+export const MAX_COPIES_PER_CARD = 3;
+
 export function applyCardsToCollection(collection, cards) {
   const newCollection = { ...(collection || {}) };
+  let essenceGained = 0;
   cards.forEach(card => {
-    newCollection[card.card_id] = (newCollection[card.card_id] || 0) + 1;
+    const currentCount = newCollection[card.card_id] || 0;
+    if (currentCount >= MAX_COPIES_PER_CARD) {
+      essenceGained += GEM_EXCHANGE_VALUES[card.rarity] || 0;
+    } else {
+      newCollection[card.card_id] = currentCount + 1;
+    }
   });
-  return { newCollection, essenceGained: 0 };
+  return { newCollection, essenceGained };
 }
 
 export function exchangeCards(collection, cardIds) {

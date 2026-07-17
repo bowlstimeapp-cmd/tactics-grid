@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Search, UserPlus, Check, X, Swords, Users } from 'lucide-react';
+import { ArrowLeft, Search, UserPlus, Check, X, Swords, Users, Ban, Trash2 } from 'lucide-react';
 import { getRankForElo } from '@/lib/gameData';
 import DeckSelectModal from '@/components/game/DeckSelectModal';
 
@@ -65,9 +65,18 @@ export default function Friends() {
       if (!active || cancelRef.current) return;
       try {
         const me = await base44.auth.me();
-        const queues = await base44.entities.MatchQueue.filter({ player_id: me.id, status: 'matched' });
-        if (active && queues.length > 0 && queues[0].match_id) {
-          navigate(`/pvp-match?match_id=${queues[0].match_id}`);
+        const [matchedEntries, declinedEntries] = await Promise.all([
+          base44.entities.MatchQueue.filter({ player_id: me.id, status: 'matched' }),
+          base44.entities.MatchQueue.filter({ player_id: me.id, status: 'declined' }),
+        ]);
+        if (!active) return;
+        if (matchedEntries.length > 0 && matchedEntries[0].match_id) {
+          navigate(`/pvp-match?match_id=${matchedEntries[0].match_id}`);
+        } else if (declinedEntries.length > 0) {
+          setChallengeError('Challenge declined');
+          setChallengePhase('idle');
+          setChallengeTarget(null);
+          await base44.entities.MatchQueue.delete(declinedEntries[0].id);
         }
       } catch (e) { console.error(e); }
     };
@@ -93,7 +102,7 @@ export default function Friends() {
   const sendRequest = async (targetProfile) => {
     try {
       const me = await base44.auth.me();
-      await base44.entities.Friendship.create({
+      const created = await base44.entities.Friendship.create({
         requester_id: me.id,
         recipient_id: targetProfile.created_by_id,
         requester_name: profile?.username || 'Player',
@@ -102,7 +111,7 @@ export default function Friends() {
         created_at: new Date().toISOString(),
       });
       setSearchResults(prev => prev.filter(p => p.created_by_id !== targetProfile.created_by_id));
-      setOutgoingRequests(prev => [...prev, { recipient_id: targetProfile.created_by_id, recipient_name: targetProfile.username }]);
+      setOutgoingRequests(prev => [...prev, created]);
     } catch (e) { console.error(e); }
   };
 
@@ -114,6 +123,51 @@ export default function Friends() {
   const declineRequest = async (friendship) => {
     await base44.entities.Friendship.update(friendship.id, { status: 'declined' });
     setIncomingRequests(prev => prev.filter(r => r.id !== friendship.id));
+  };
+
+  const removeFriend = async (friendProfile) => {
+    if (!window.confirm(`Remove ${friendProfile.username} from your friends?`)) return;
+    try {
+      const [sent, received] = await Promise.all([
+        base44.entities.Friendship.filter({ requester_id: user.id, recipient_id: friendProfile.created_by_id, status: 'accepted' }),
+        base44.entities.Friendship.filter({ requester_id: friendProfile.created_by_id, recipient_id: user.id, status: 'accepted' }),
+      ]);
+      const friendship = [...sent, ...received][0];
+      if (friendship) await base44.entities.Friendship.delete(friendship.id);
+      loadData();
+    } catch (e) { console.error(e); }
+  };
+
+  const cancelOutgoingRequest = async (req) => {
+    try {
+      await base44.entities.Friendship.delete(req.id);
+      setOutgoingRequests(prev => prev.filter(r => r.id !== req.id));
+    } catch (e) { console.error(e); }
+  };
+
+  const declineChallenge = async (challenge) => {
+    try {
+      await base44.entities.MatchQueue.update(challenge.id, { status: 'declined' });
+      setIncomingChallenges(prev => prev.filter(c => c.id !== challenge.id));
+    } catch (e) { console.error(e); }
+  };
+
+  const blockUser = async (targetProfile) => {
+    if (!window.confirm(`Block ${targetProfile.username}? They won't be able to send you friend requests.`)) return;
+    try {
+      const newBlocked = [...(profile?.blocked_user_ids || []), targetProfile.created_by_id];
+      const updated = await base44.entities.PlayerProfile.update(profile.id, { blocked_user_ids: newBlocked });
+      setProfile(updated);
+      const [sent, received] = await Promise.all([
+        base44.entities.Friendship.filter({ requester_id: user.id, recipient_id: targetProfile.created_by_id }),
+        base44.entities.Friendship.filter({ requester_id: targetProfile.created_by_id, recipient_id: user.id }),
+      ]);
+      for (const f of [...sent, ...received]) {
+        await base44.entities.Friendship.delete(f.id);
+      }
+      setSearchResults(prev => prev.filter(p => p.created_by_id !== targetProfile.created_by_id));
+      loadData();
+    } catch (e) { console.error(e); }
   };
 
   const startChallenge = (friendProfile) => {
@@ -182,9 +236,17 @@ export default function Friends() {
     );
   }
 
-  const isAlreadyFriend = (profileId) => {
-    return friends.some(f => f.created_by_id === profileId) ||
-      outgoingRequests.some(r => r.recipient_id === profileId);
+  const isBlockedEitherWay = (targetProfile) => {
+    const iBlockedThem = (profile?.blocked_user_ids || []).includes(targetProfile.created_by_id);
+    const theyBlockedMe = (targetProfile?.blocked_user_ids || []).includes(user?.id);
+    return iBlockedThem || theyBlockedMe;
+  };
+
+  const getRelationshipStatus = (profileId) => {
+    if (friends.some(f => f.created_by_id === profileId)) return 'friend';
+    if (outgoingRequests.some(r => r.recipient_id === profileId)) return 'pending_out';
+    if (incomingRequests.some(r => r.requester_id === profileId)) return 'pending_in';
+    return null;
   };
 
   return (
@@ -213,21 +275,36 @@ export default function Friends() {
       {searchResults.length > 0 && (
         <div className="mb-6 space-y-2">
           <h3 className="text-xs text-amber-400/70 uppercase tracking-widest">Search Results</h3>
-          {searchResults.map(p => (
-            <div key={p.created_by_id} className="flex items-center gap-3 p-3 rounded-lg bg-slate-800/40 border border-slate-700/30">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-600 to-amber-800 flex items-center justify-center text-xs font-heading text-black">
-                {(p.username || 'P')[0].toUpperCase()}
-              </div>
-              <span className="flex-1 text-sm text-amber-100">{p.username}</span>
-              {!isAlreadyFriend(p.created_by_id) ? (
-                <Button size="sm" variant="ghost" onClick={() => sendRequest(p)} className="text-amber-400">
-                  <UserPlus className="w-4 h-4 mr-1" /> Add
+          {searchResults.map(p => {
+            const status = getRelationshipStatus(p.created_by_id);
+            const blocked = isBlockedEitherWay(p);
+            return (
+              <div key={p.created_by_id} className="flex items-center gap-3 p-3 rounded-lg bg-slate-800/40 border border-slate-700/30">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-600 to-amber-800 flex items-center justify-center text-xs font-heading text-black">
+                  {(p.username || 'P')[0].toUpperCase()}
+                </div>
+                <span className="flex-1 text-sm text-amber-100">{p.username}</span>
+                {blocked ? (
+                  <span className="text-xs text-red-400">Blocked</span>
+                ) : status === 'friend' ? (
+                  <span className="text-xs text-emerald-400">Friends</span>
+                ) : status === 'pending_out' ? (
+                  <span className="text-xs text-muted-foreground">Pending</span>
+                ) : status === 'pending_in' ? (
+                  <Button size="sm" variant="ghost" onClick={() => acceptRequest(incomingRequests.find(r => r.requester_id === p.created_by_id))} className="text-emerald-400">
+                    <Check className="w-4 h-4 mr-1" /> Accept
+                  </Button>
+                ) : (
+                  <Button size="sm" variant="ghost" onClick={() => sendRequest(p)} className="text-amber-400">
+                    <UserPlus className="w-4 h-4 mr-1" /> Add
+                  </Button>
+                )}
+                <Button size="sm" variant="ghost" onClick={() => blockUser(p)} className="text-red-400/60 hover:text-red-400">
+                  <Ban className="w-4 h-4" />
                 </Button>
-              ) : (
-                <span className="text-xs text-muted-foreground">Pending</span>
-              )}
-            </div>
-          ))}
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -244,9 +321,14 @@ export default function Friends() {
                 <span className="text-sm text-amber-100">{ch.player_name}</span>
                 <span className="text-xs text-muted-foreground ml-2">ELO {ch.elo}</span>
               </div>
-              <Button size="sm" onClick={() => acceptChallenge(ch)} className="bg-amber-600 hover:bg-amber-500 text-black">
-                <Swords className="w-4 h-4 mr-1" /> Accept
-              </Button>
+              <div className="flex gap-1">
+                <Button size="sm" onClick={() => acceptChallenge(ch)} className="bg-amber-600 hover:bg-amber-500 text-black">
+                  <Swords className="w-4 h-4 mr-1" /> Accept
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => declineChallenge(ch)} className="text-red-400">
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           ))}
         </div>
@@ -273,6 +355,25 @@ export default function Friends() {
         </div>
       )}
 
+      {/* Outgoing friend requests */}
+      {outgoingRequests.length > 0 && (
+        <div className="mb-6 space-y-2">
+          <h3 className="text-xs text-amber-400/70 uppercase tracking-widest">Sent Requests</h3>
+          {outgoingRequests.map(req => (
+            <div key={req.id || req.recipient_id} className="flex items-center gap-3 p-3 rounded-lg bg-slate-800/40 border border-slate-700/30">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-600 to-amber-800 flex items-center justify-center text-xs font-heading text-black">
+                {(req.recipient_name || 'P')[0].toUpperCase()}
+              </div>
+              <span className="flex-1 text-sm text-amber-100">{req.recipient_name}</span>
+              <span className="text-xs text-muted-foreground mr-2">Pending</span>
+              <Button size="sm" variant="ghost" onClick={() => cancelOutgoingRequest(req)} className="text-red-400">
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Friends list */}
       <div className="space-y-2">
         <h3 className="text-xs text-amber-400/70 uppercase tracking-widest">Friends ({friends.length})</h3>
@@ -291,9 +392,17 @@ export default function Friends() {
                   <span className="text-xs ml-2" style={{ color: rank.color }}>{rank.icon} {rank.name}</span>
                   <span className="text-xs text-muted-foreground ml-1">· {f.elo || 1200}</span>
                 </div>
-                <Button size="sm" onClick={() => startChallenge(f)} className="bg-amber-600 hover:bg-amber-500 text-black">
-                  <Swords className="w-4 h-4 mr-1" /> Challenge
-                </Button>
+                <div className="flex gap-1">
+                  <Button size="sm" onClick={() => startChallenge(f)} className="bg-amber-600 hover:bg-amber-500 text-black">
+                    <Swords className="w-4 h-4 mr-1" /> Challenge
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => removeFriend(f)} className="text-red-400/60 hover:text-red-400">
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => blockUser(f)} className="text-red-400/60 hover:text-red-400">
+                    <Ban className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             );
           })

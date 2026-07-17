@@ -7,6 +7,7 @@ import { Gift, Home, Swords, Layers, Library, Sparkles, Grid3x3, BookOpen, Chevr
 import { loadGameConfig } from '@/lib/gameConfig';
 import { applyCardOverrides } from '@/lib/cardDatabase';
 import { openPack, applyCardsToCollection } from '@/lib/packLogic';
+import PackRevealModal from '@/components/game/PackRevealModal';
 
 const SECTIONS = [
   {
@@ -161,14 +162,6 @@ export default function Welcome() {
 
       {/* Claim + Home buttons — fixed bottom */}
       <div className="fixed bottom-0 left-0 right-0 bg-slate-950/95 border-t border-amber-900/30 px-4 py-4 space-y-2">
-        {claimed && openedCards.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            className="text-center text-xs text-emerald-400"
-          >
-            ✓ Claimed 2 Standard Packs — {openedCards.length} cards added to your collection!
-          </motion.div>
-        )}
         <div className="flex gap-2 max-w-md mx-auto">
           {!claimed ? (
             <>
@@ -204,6 +197,12 @@ export default function Welcome() {
           </p>
         )}
       </div>
+
+      {claimed && openedCards.length > 0 && (
+        <div className="fixed inset-0 z-50 bg-slate-950/90 flex items-center justify-center p-4 overflow-y-auto">
+          <PackRevealModal cards={openedCards} onClose={() => setOpenedCards([])} />
+        </div>
+      )}
     </div>
   );
 }

@@ -126,6 +126,13 @@
     "last_login_date": {
       "type": "string",
       "default": ""
+    },
+    "blocked_user_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
     }
   },
   "required": [

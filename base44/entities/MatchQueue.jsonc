@@ -16,7 +16,8 @@
       "enum": [
         "searching",
         "matched",
-        "cancelled"
+        "cancelled",
+        "declined"
       ]
     },
     "match_id": {

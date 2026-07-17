@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Package, Gem } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import GameCard from '@/components/game/GameCard';
+import PackRevealModal from '@/components/game/PackRevealModal';
 import { applyCardOverrides } from '@/lib/cardDatabase';
 import { FACTION_CONFIG, RARITY_CONFIG } from '@/lib/gameData';
 import { loadGameConfig } from '@/lib/gameConfig';
@@ -19,7 +19,6 @@ export default function Shop() {
   const [loading, setLoading] = useState(true);
   const [packCards, setPackCards] = useState(null);
   const [opening, setOpening] = useState(false);
-  const [revealIndex, setRevealIndex] = useState(-1);
   const [lastPack, setLastPack] = useState(null);
 
   const getPackName = (type, faction, pack) => {
@@ -65,7 +64,6 @@ export default function Shop() {
     if (balance < cost) return;
 
     setOpening(true);
-    setRevealIndex(-1);
     setLastPack({ type, faction, pack: customPack });
     const cards = openPack(type, config, faction, customPack);
     setPackCards(cards);
@@ -80,11 +78,6 @@ export default function Shop() {
     }
     const updated = await base44.entities.PlayerProfile.update(profile.id, updateData);
     setProfile(updated);
-
-    for (let i = 0; i < cards.length; i++) {
-      await new Promise(r => setTimeout(r, 600));
-      setRevealIndex(i);
-    }
     setOpening(false);
   };
 
@@ -115,51 +108,20 @@ export default function Shop() {
 
       <AnimatePresence>
         {packCards && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            className="bg-slate-800/60 rounded-xl border border-amber-900/20 p-6 mb-6"
-          >
-            <h3 className="font-heading text-center text-amber-200 mb-4">Pack Opened!</h3>
-            <div className="flex justify-center gap-4 flex-wrap">
-              {packCards.map((card, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ rotateY: 180, opacity: 0 }}
-                  animate={revealIndex >= i ? { rotateY: 0, opacity: 1 } : { rotateY: 180, opacity: 0.3 }}
-                  transition={{ duration: 0.5, type: 'spring' }}
-                >
-                  <GameCard card={card} size="lg" />
-                </motion.div>
-              ))}
-            </div>
-            <div className="flex justify-center gap-3 mt-4">
-              <Button
-                onClick={() => { setPackCards(null); setOpening(false); }}
-                variant="outline"
-                className="border-amber-900/30"
-              >
-                Close
-              </Button>
-              {lastPack && profile && (() => {
-                const reopenCost = getReopenCost();
-                const canAfford = isGemPack(lastPack.type)
-                  ? (profile.essence || 0) >= reopenCost
-                  : (profile.coins || 0) >= reopenCost;
-                if (!canAfford) return null;
-                return (
-                  <Button
-                    onClick={() => buyPack(lastPack.type, lastPack.faction, lastPack.pack)}
-                    disabled={opening}
-                    className="bg-gradient-to-r from-amber-600 to-amber-700 text-black font-heading"
-                  >
-                    Open Another {getPackName(lastPack.type, lastPack.faction, lastPack.pack)}
-                  </Button>
-                );
-              })()}
-            </div>
-          </motion.div>
+          <PackRevealModal
+            key="pack-reveal"
+            cards={packCards}
+            onClose={() => { setPackCards(null); setOpening(false); }}
+            onReopen={lastPack && profile && (() => {
+              const reopenCost = getReopenCost();
+              const canAfford = isGemPack(lastPack.type)
+                ? (profile.essence || 0) >= reopenCost
+                : (profile.coins || 0) >= reopenCost;
+              return canAfford ? () => buyPack(lastPack.type, lastPack.faction, lastPack.pack) : undefined;
+            })()}
+            reopenLabel={lastPack ? `Open Another ${getPackName(lastPack.type, lastPack.faction, lastPack.pack)}` : undefined}
+            reopenDisabled={opening}
+          />
         )}
       </AnimatePresence>
 
