@@ -172,13 +172,13 @@ export default function GameCard({ card, size = 'md', onClick, selected, showSta
               )}
             </div>
 
-            {/* Alt Art rainbow holographic effect */}
+            {/* Alt Art color overlay — sits UNDER the holo effect */}
             {card.is_alt_art && (
-              <div className="absolute inset-0 holo-rainbow pointer-events-none" />
+              <div className="absolute inset-0 alt-art-overlay pointer-events-none" />
             )}
 
-            {/* Holographic effect for Legendary cards (non-alt-art) */}
-            {card.rarity === 'Legendary' && !card.is_alt_art && (
+            {/* Holographic effect for Legendary cards (reinstated for all) */}
+            {card.rarity === 'Legendary' && (
               <div className="absolute inset-0 holo-effect pointer-events-none" />
             )}
 

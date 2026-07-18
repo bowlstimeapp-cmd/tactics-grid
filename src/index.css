@@ -118,26 +118,27 @@
   mix-blend-mode: color-dodge;
 }
 
-/* Alt Art rainbow holographic effect */
+/* Alt Art color overlay — tints artwork with cycling pastel rainbow.
+   Uses mix-blend-mode: color so hue+saturation are applied while the
+   underlying luminance (artwork details) is preserved. Sits UNDER the
+   legendary holo-effect layer. */
 @keyframes alt-art-rainbow {
   0% { background-position: 0% 50%; }
   100% { background-position: 200% 50%; }
 }
-.holo-rainbow {
+.alt-art-overlay {
   background: linear-gradient(
     90deg,
-    rgba(255, 0, 80, 0.4),
-    rgba(255, 140, 0, 0.4),
-    rgba(255, 215, 0, 0.4),
-    rgba(0, 255, 0, 0.4),
-    rgba(0, 180, 255, 0.4),
-    rgba(139, 0, 255, 0.4),
-    rgba(255, 0, 128, 0.4),
-    rgba(255, 0, 80, 0.4)
+    rgba(229, 141, 255, 0.55),
+    rgba(138, 210, 255, 0.55),
+    rgba(163, 255, 138, 0.55),
+    rgba(255, 244, 138, 0.55),
+    rgba(255, 178, 138, 0.55),
+    rgba(229, 141, 255, 0.55)
   );
   background-size: 200% 200%;
-  animation: alt-art-rainbow 3s linear infinite;
-  mix-blend-mode: color-dodge;
+  animation: alt-art-rainbow 4s linear infinite;
+  mix-blend-mode: color;
 }
 @keyframes alt-art-glow {
   0%, 100% { box-shadow: 0 0 8px 1px rgba(255, 0, 80, 0.6); }

@@ -38,8 +38,8 @@ export default function Collection() {
     if (search && !c.name.toLowerCase().includes(search.toLowerCase())) return false;
     if (faction !== 'all' && c.faction !== faction) return false;
     if (rarity !== 'all' && c.rarity !== rarity) return false;
-    if (ownedFilter === 'owned' && !owned[c.card_id]) return false;
-    if (ownedFilter === 'missing' && owned[c.card_id]) return false;
+    if (ownedFilter === 'owned' && !owned[c.card_id] && !altArts[c.card_id]) return false;
+    if (ownedFilter === 'missing' && (owned[c.card_id] || altArts[c.card_id])) return false;
     return true;
   });
 
@@ -49,6 +49,22 @@ export default function Collection() {
     filtered.sort((a, b) => order[a.rarity] - order[b.rarity]);
   }
   if (sortBy === 'power') filtered.sort((a, b) => (b.north + b.east + b.south + b.west) - (a.north + a.east + a.south + a.west));
+
+  // Expand to show alt art versions as separate collection entries.
+  // Alt arts share the same card_id (so deck limits still apply) but
+  // appear as their own grid tile with the rainbow overlay effect.
+  const displayCards = filtered.flatMap(card => {
+    const ownCount = owned[card.card_id] || 0;
+    const altCount = altArts[card.card_id] || 0;
+    const entries = [];
+    if (ownedFilter === 'all' || ownedFilter === 'missing' || ownCount > 0) {
+      entries.push({ card, isAlt: false, count: ownCount });
+    }
+    if (altCount > 0) {
+      entries.push({ card: { ...card, is_alt_art: true }, isAlt: true, count: altCount });
+    }
+    return entries;
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 p-4">
@@ -122,34 +138,35 @@ export default function Collection() {
 
       {/* Cards grid */}
       <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-2">
-        {filtered.map((card, i) => {
-          const count = owned[card.card_id] || 0;
+        {displayCards.map((entry, i) => {
+          const { card, isAlt, count } = entry;
+          const isOwned = count > 0;
           return (
             <motion.div
-              key={card.card_id}
+              key={card.card_id + (isAlt ? '_alt' : '')}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: Math.min(i * 0.02, 0.5) }}
-              className={count === 0 ? 'opacity-40 grayscale' : ''}
+              className={isOwned ? '' : 'opacity-40 grayscale'}
             >
               <GameCard
-                card={altArts[card.card_id] ? { ...card, is_alt_art: true } : card}
+                card={card}
                 size="md"
-                onClick={() => setSelectedCard(altArts[card.card_id] ? { ...card, is_alt_art: true } : card)}
+                onClick={() => setSelectedCard(card)}
               />
               <p className="text-center text-[10px] font-heading text-amber-200/90 mt-0.5 truncate px-0.5">{card.name}</p>
-              {count > 0 && (
-                <p className="text-center text-[9px] text-amber-300/60"># {count} owned</p>
+              {isOwned && isAlt && (
+                <p className="text-center text-[9px] font-bold bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(90deg, #ff0080, #ffd700, #00ff00, #00b4ff, #8b00ff, #ff0080)', backgroundSize: '200% 100%' }}>✨ {count} alt art</p>
               )}
-              {altArts[card.card_id] > 0 && (
-                <p className="text-center text-[8px] font-bold bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(90deg, #ff0080, #ffd700, #00ff00, #00b4ff, #8b00ff, #ff0080)', backgroundSize: '200% 100%' }}>✨ Alt Art</p>
+              {isOwned && !isAlt && (
+                <p className="text-center text-[9px] text-amber-300/60"># {count} owned</p>
               )}
             </motion.div>
           );
         })}
       </div>
 
-      {filtered.length === 0 && (
+      {displayCards.length === 0 && (
         <div className="text-center text-muted-foreground mt-12">No cards match your filters.</div>
       )}
 
