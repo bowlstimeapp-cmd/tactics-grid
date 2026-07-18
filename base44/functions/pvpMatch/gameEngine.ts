@@ -365,15 +365,20 @@ function processCaptures(gs: any, row: number, col: number, card: any, animation
   const newlyFlipped: any[] = [];
   const gridSize = gs.gridSize || 3;
 
+  // Compute attacker stats once — board state at the moment of placement
+  const attackStats = getEffectiveStats(card, [row, col], gs.board, gs.turn, 'attack');
+
+  // First pass: compute all defender stats and determine flips BEFORE any mutations.
+  // This ensures the outcome is determined by the board snapshot at placement time,
+  // not by which direction happens to be checked first.
+  const pendingFlips: any[] = [];
   for (const [dir, [dr, dc]] of Object.entries(DIR_OFFSETS)) {
     const nr = row + dr, nc = col + dc;
     if (nr < 0 || nr >= gridSize || nc < 0 || nc >= gridSize) continue;
     const defender = gs.board[nr][nc];
     if (!defender || defender.owner === card.owner) continue;
 
-    const attackStats = getEffectiveStats(card, [row, col], gs.board, gs.turn, 'attack');
     const defendStats = getEffectiveStats(defender, [nr, nc], gs.board, gs.turn, 'defend');
-
     const attackVal = attackStats[dir];
     const defendVal = defendStats[OPPOSITE[dir]];
 
@@ -387,23 +392,27 @@ function processCaptures(gs: any, row: number, col: number, card: any, animation
     if (hasChainImmunity && chainOrder > 0) continue;
 
     if (attackVal > defendVal) {
-      const oldOwner = defender.owner;
-      gs.board[nr][nc].owner = card.owner;
-      gs.board[nr][nc].wasFlipped = true;
-      if (gs.board[nr][nc].flippedTurn === undefined) gs.board[nr][nc].flippedTurn = gs.turn;
-
-      if (!gs.board[row][col].flipsEarned) gs.board[row][col].flipsEarned = 0;
-      gs.board[row][col].flipsEarned++;
-
-      animations.push({
-        type: 'flip', row: nr, col: nc,
-        from: oldOwner, to: card.owner,
-        attackDir: dir, attackVal, defendVal,
-        chainOrder,
-      });
-
-      newlyFlipped.push({ row: nr, col: nc });
+      pendingFlips.push({ nr, nc, dir, attackVal, defendVal, oldOwner: defender.owner });
     }
+  }
+
+  // Second pass: apply the flips using the pre-computed values
+  for (const { nr, nc, dir, attackVal, defendVal, oldOwner } of pendingFlips) {
+    gs.board[nr][nc].owner = card.owner;
+    gs.board[nr][nc].wasFlipped = true;
+    if (gs.board[nr][nc].flippedTurn === undefined) gs.board[nr][nc].flippedTurn = gs.turn;
+
+    if (!gs.board[row][col].flipsEarned) gs.board[row][col].flipsEarned = 0;
+    gs.board[row][col].flipsEarned++;
+
+    animations.push({
+      type: 'flip', row: nr, col: nc,
+      from: oldOwner, to: card.owner,
+      attackDir: dir, attackVal, defendVal,
+      chainOrder,
+    });
+
+    newlyFlipped.push({ row: nr, col: nc });
   }
 
   for (const { row: fr, col: fc } of newlyFlipped) {

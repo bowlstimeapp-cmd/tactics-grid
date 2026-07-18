@@ -1,8 +1,8 @@
 import React from 'react';
 import GameCard from './GameCard';
-import { getHandCardPreview } from '@/lib/gameEngine';
+import { getHandCardPreview, getPlacementPreview } from '@/lib/gameEngine';
 
-export default function PlayerHand({ cards, selectedIndex, onSelect, isActive, playerNum, playerName, onInspect, onPlaceCard, myPlayerNum = 1, faceDown = false, gameState = null }) {
+export default function PlayerHand({ cards, selectedIndex, onSelect, isActive, playerNum, playerName, onInspect, onPlaceCard, myPlayerNum = 1, faceDown = false, gameState = null, selectedTile = null }) {
   return (
     <div className={`space-y-2 ${isActive ? '' : 'opacity-60'}`}>
       <div className="flex items-center gap-2 px-1">
@@ -12,7 +12,12 @@ export default function PlayerHand({ cards, selectedIndex, onSelect, isActive, p
       </div>
       <div className="flex gap-1.5 flex-wrap justify-center">
         {cards.map((card, idx) => {
-          const previewStats = gameState && !faceDown ? getHandCardPreview(card, gameState) : null;
+          // When a tile is selected, compute full effective stats for that placement
+          // (tile bonus, adjacency auras, passive — everything). Otherwise fall back
+          // to the partial hand preview (global auras only).
+          const previewStats = gameState && !faceDown
+            ? (selectedTile ? getPlacementPreview(card, gameState, selectedTile.row, selectedTile.col) : getHandCardPreview(card, gameState))
+            : null;
           return (
             <GameCard
               key={card.card_id + idx}
@@ -22,7 +27,7 @@ export default function PlayerHand({ cards, selectedIndex, onSelect, isActive, p
               faceDown={faceDown}
               selected={selectedIndex === idx}
               effectiveStats={previewStats}
-              displayMode="baseWithMods"
+              displayMode={selectedTile ? 'effective' : 'baseWithMods'}
               onClick={() => {
                 if (onPlaceCard) onPlaceCard(idx);
                 else if (onInspect) onInspect(card);

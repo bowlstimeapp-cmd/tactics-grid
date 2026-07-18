@@ -437,6 +437,7 @@ export default function GameMatch() {
             playerNum={1}
             playerName="You"
             gameState={gameState}
+            selectedTile={inspectMode ? null : selectedTile}
           />
         </div>
       )}

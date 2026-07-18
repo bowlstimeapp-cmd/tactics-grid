@@ -2,54 +2,54 @@
 import { EXPANSION_CARDS } from './cardExpansion';
 const CARDS = [
   // ── KNIGHTS (13) ──
-  { card_id:"C001",name:"Squire",faction:"Knights",north:3,east:2,south:4,west:2,passive_id:"played_first_boost",flavour_text:"Every legend begins with a single step." },
+  { card_id:"C001",name:"Squire",faction:"Knights",north:4,east:4,south:4,west:3,rarity:"Common",passive_id:"played_first_boost",flavour_text:"Every legend begins with a single step." },
   { card_id:"C002",name:"Shield Bearer",faction:"Knights",north:5,east:3,south:6,west:2,passive_id:"defend_boost",flavour_text:"His shield has never been breached." },
   { card_id:"C003",name:"Lance Captain",faction:"Knights",north:6,east:5,south:3,west:4,passive_id:"attack_boost",flavour_text:"The first to charge, the last to fall." },
   { card_id:"C004",name:"Royal Guard",faction:"Knights",north:4,east:4,south:5,west:5,passive_id:"corner_boost",flavour_text:"Sworn to protect the crown at any cost." },
   { card_id:"C005",name:"Paladin",faction:"Knights",north:7,east:5,south:6,west:4,passive_id:"ally_aura",flavour_text:"His light inspires all who fight beside him." },
   { card_id:"C006",name:"War Marshal",faction:"Knights",north:6,east:6,south:5,west:5,passive_id:"commander",flavour_text:"A single command can turn the tide." },
-  { card_id:"C007",name:"Bannerman",faction:"Knights",north:3,east:3,south:3,west:4,passive_id:"knight_honor",flavour_text:"Where the banner flies, knights rally." },
-  { card_id:"C008",name:"Jousting Champion",faction:"Knights",north:7,east:4,south:2,west:4,passive_id:"duelist",flavour_text:"Undefeated in single combat." },
+  { card_id:"C007",name:"Bannerman",faction:"Knights",north:4,east:4,south:4,west:4,passive_id:"knight_honor",flavour_text:"Where the banner flies, knights rally." },
+  { card_id:"C008",name:"Jousting Champion",faction:"Knights",north:7,east:4,south:3,west:4,passive_id:"duelist",flavour_text:"Undefeated in single combat." },
   { card_id:"C009",name:"Fortress Knight",faction:"Knights",north:5,east:5,south:5,west:3,passive_id:"anchor",flavour_text:"Immovable as the mountain itself." },
-  { card_id:"C010",name:"Crusader",faction:"Knights",north:6,east:4,south:5,west:6,passive_id:"flip_immunity_low",flavour_text:"Faith makes him unbreakable." },
+  { card_id:"C010",name:"Crusader",faction:"Knights",north:5,east:4,south:5,west:5,passive_id:"flip_immunity_low",flavour_text:"Faith makes him unbreakable." },
   { card_id:"C011",name:"Knight Errant",faction:"Knights",north:4,east:6,south:3,west:5,passive_id:"edge_boost",flavour_text:"He wanders, but never without purpose." },
   { card_id:"C012",name:"Grand Master",faction:"Knights",north:8,east:7,south:6,west:7,passive_id:"played_last_boost",flavour_text:"The final move is always his." },
-  { card_id:"C013",name:"Sentinel Knight",faction:"Knights",north:5,east:3,south:5,west:4,passive_id:"sentinel",flavour_text:"Watching the north and south gates." },
+  { card_id:"C013",name:"Sentinel Knight",faction:"Knights",north:5,east:4,south:5,west:4,passive_id:"sentinel",flavour_text:"Watching the north and south gates." },
 
   // ── DRAGONS (13) ──
-  { card_id:"C014",name:"Whelpling",faction:"Dragons",north:3,east:3,south:2,west:3,passive_id:"dragon_synergy",flavour_text:"Small, but its fire burns bright." },
+  { card_id:"C014",name:"Whelpling",faction:"Dragons",north:4,east:4,south:4,west:3,rarity:"Common",passive_id:"dragon_synergy",flavour_text:"Small, but its fire burns bright." },
   { card_id:"C015",name:"Fire Drake",faction:"Dragons",north:5,east:6,south:4,west:3,passive_id:"attack_boost",flavour_text:"Its breath melts steel." },
   { card_id:"C016",name:"Frost Wyrm",faction:"Dragons",north:6,east:4,south:6,west:5,passive_id:"fortify",flavour_text:"Where it flies, winter follows." },
   { card_id:"C017",name:"Storm Dragon",faction:"Dragons",north:7,east:6,south:5,west:6,passive_id:"centre_boost",flavour_text:"Lightning dances between its scales." },
   { card_id:"C018",name:"Elder Dragon",faction:"Dragons",north:8,east:8,south:7,west:6,passive_id:"endgame_boost",flavour_text:"Ancient beyond memory." },
-  { card_id:"C019",name:"Hatchling",faction:"Dragons",north:2,east:3,south:3,west:2,passive_id:"ally_count_boost",flavour_text:"Its siblings are never far behind." },
+  { card_id:"C019",name:"Hatchling",faction:"Dragons",north:4,east:4,south:4,west:3,rarity:"Common",passive_id:"ally_count_boost",flavour_text:"Its siblings are never far behind." },
   { card_id:"C020",name:"Magma Serpent",faction:"Dragons",north:6,east:5,south:5,west:4,passive_id:"flip_reward",flavour_text:"Each victory makes it hungrier." },
   { card_id:"C021",name:"Sky Leviathan",faction:"Dragons",north:7,east:7,south:4,west:5,passive_id:"corner_boost",flavour_text:"It roosts only at the world's edge." },
   { card_id:"C022",name:"Void Dragon",faction:"Dragons",north:5,east:7,south:6,west:7,passive_id:"blood_pact",flavour_text:"Its presence drains all will to fight." },
   { card_id:"C023",name:"Twin-Head Drake",faction:"Dragons",north:6,east:6,south:6,west:3,passive_id:"flanker",flavour_text:"One head watches east, the other west." },
   { card_id:"C024",name:"Phoenix Dragon",faction:"Dragons",north:5,east:5,south:4,west:4,passive_id:"phoenix",flavour_text:"From ashes, it rises stronger." },
   { card_id:"C025",name:"Dragon Sovereign",faction:"Dragons",north:9,east:7,south:8,west:7,passive_id:"domination",flavour_text:"Kneel or burn." },
-  { card_id:"C026",name:"Ember Wyvern",faction:"Dragons",north:4,east:5,south:3,west:5,passive_id:"empty_throne",flavour_text:"Thrives in open spaces." },
+  { card_id:"C026",name:"Ember Wyvern",faction:"Dragons",north:4,east:5,south:4,west:5,passive_id:"empty_throne",flavour_text:"Thrives in open spaces." },
 
   // ── BEASTS (12) ──
-  { card_id:"C027",name:"Forest Wolf",faction:"Beasts",north:3,east:4,south:3,west:3,passive_id:"beast_synergy",flavour_text:"The pack hunts as one." },
+  { card_id:"C027",name:"Forest Wolf",faction:"Beasts",north:4,east:4,south:4,west:4,passive_id:"beast_synergy",flavour_text:"The pack hunts as one." },
   { card_id:"C028",name:"Great Bear",faction:"Beasts",north:6,east:3,south:7,west:4,passive_id:"defend_boost",flavour_text:"Do not wake the bear." },
   { card_id:"C029",name:"Thunderhawk",faction:"Beasts",north:4,east:7,south:3,west:6,passive_id:"played_first_boost",flavour_text:"First to strike from the sky." },
   { card_id:"C030",name:"Ancient Tortoise",faction:"Beasts",north:3,east:3,south:3,west:7,passive_id:"titan",flavour_text:"It has outlived empires." },
-  { card_id:"C031",name:"Dire Boar",faction:"Beasts",north:5,east:5,south:4,west:3,passive_id:"surrounded_fury",flavour_text:"Cornered, it fights twice as hard." },
+  { card_id:"C031",name:"Dire Boar",faction:"Beasts",north:5,east:5,south:4,west:4,passive_id:"surrounded_fury",flavour_text:"Cornered, it fights twice as hard." },
   { card_id:"C032",name:"Jungle Panther",faction:"Beasts",north:4,east:6,south:5,west:5,passive_id:"edge_boost",flavour_text:"Silent death from the treeline." },
   { card_id:"C033",name:"Mammoth",faction:"Beasts",north:7,east:4,south:7,west:6,passive_id:"flip_immunity_low",flavour_text:"Nothing moves a mammoth." },
   { card_id:"C034",name:"Serpent King",faction:"Beasts",north:5,east:8,south:5,west:6,passive_id:"tactician",flavour_text:"It studies every creature it meets." },
-  { card_id:"C035",name:"Rabbit Scout",faction:"Beasts",north:2,east:2,south:1,west:3,passive_id:"ally_aura",flavour_text:"Small, but inspires courage." },
+  { card_id:"C035",name:"Rabbit Scout",faction:"Beasts",north:4,east:4,south:4,west:3,rarity:"Common",passive_id:"ally_aura",flavour_text:"Small, but inspires courage." },
   { card_id:"C036",name:"Ironback Rhino",faction:"Beasts",north:6,east:5,south:6,west:6,passive_id:"anchor",flavour_text:"Charge and hold the line." },
-  { card_id:"C037",name:"Alpha Wolf",faction:"Beasts",north:5,east:6,south:4,west:6,passive_id:"commander",flavour_text:"The pack follows its howl." },
+  { card_id:"C037",name:"Alpha Wolf",faction:"Beasts",north:5,east:5,south:4,west:5,passive_id:"commander",flavour_text:"The pack follows its howl." },
   { card_id:"C038",name:"World Turtle",faction:"Beasts",north:8,east:6,south:8,west:7,passive_id:"longevity",flavour_text:"Time is its greatest ally." },
 
   // ── MAGES (13) ──
-  { card_id:"C039",name:"Apprentice",faction:"Mages",north:2,east:3,south:2,west:4,passive_id:"mage_synergy",flavour_text:"Every master was once a student." },
+  { card_id:"C039",name:"Apprentice",faction:"Mages",north:4,east:4,south:3,west:4,rarity:"Common",passive_id:"mage_synergy",flavour_text:"Every master was once a student." },
   { card_id:"C040",name:"Pyromancer",faction:"Mages",north:5,east:6,south:3,west:5,passive_id:"attack_boost",flavour_text:"Fire answers his call." },
   { card_id:"C041",name:"Chronomancer",faction:"Mages",north:4,east:4,south:4,west:6,passive_id:"longevity",flavour_text:"She bends time like water." },
-  { card_id:"C042",name:"Illusionist",faction:"Mages",north:3,east:5,south:4,west:5,passive_id:"mirror",flavour_text:"Is it real? Does it matter?" },
+  { card_id:"C042",name:"Illusionist",faction:"Mages",north:4,east:5,south:4,west:5,passive_id:"mirror",flavour_text:"Is it real? Does it matter?" },
   { card_id:"C043",name:"Archmage",faction:"Mages",north:7,east:7,south:7,west:5,passive_id:"centre_boost",flavour_text:"Power flows from the nexus." },
   { card_id:"C044",name:"Storm Caller",faction:"Mages",north:6,east:5,south:4,west:7,passive_id:"momentum",flavour_text:"Thunder obeys her voice." },
   { card_id:"C045",name:"Ward Mage",faction:"Mages",north:4,east:3,south:6,west:5,passive_id:"debuff_shield",flavour_text:"No curse may pass his wards." },
@@ -61,11 +61,11 @@ const CARDS = [
   { card_id:"C051",name:"Hex Weaver",faction:"Mages",north:4,east:5,south:3,west:6,passive_id:"hunter",flavour_text:"A whisper that weakens armies." },
 
   // ── MACHINES (12) ──
-  { card_id:"C052",name:"Clockwork Scout",faction:"Machines",north:3,east:4,south:2,west:4,passive_id:"played_first_boost",flavour_text:"Always the first deployed." },
+  { card_id:"C052",name:"Clockwork Scout",faction:"Machines",north:4,east:4,south:4,west:4,passive_id:"played_first_boost",flavour_text:"Always the first deployed." },
   { card_id:"C053",name:"Siege Engine",faction:"Machines",north:7,east:3,south:3,west:7,passive_id:"attack_boost",flavour_text:"Walls crumble before it." },
   { card_id:"C054",name:"Iron Golem",faction:"Machines",north:5,east:5,south:6,west:4,passive_id:"defend_boost",flavour_text:"Forged to endure." },
   { card_id:"C055",name:"Steam Tank",faction:"Machines",north:6,east:6,south:4,west:6,passive_id:"flip_immunity_low",flavour_text:"Armoured beyond measure." },
-  { card_id:"C056",name:"Repair Drone",faction:"Machines",north:2,east:4,south:3,west:3,passive_id:"machine_shield",flavour_text:"It keeps the others running." },
+  { card_id:"C056",name:"Repair Drone",faction:"Machines",north:4,east:4,south:4,west:4,passive_id:"machine_shield",flavour_text:"It keeps the others running." },
   { card_id:"C057",name:"Automaton",faction:"Machines",north:4,east:4,south:4,west:4,passive_id:"ally_count_boost",flavour_text:"Strength in numbers." },
   { card_id:"C058",name:"War Mech",faction:"Machines",north:7,east:6,south:7,west:5,passive_id:"berserker",flavour_text:"Damage only makes it angrier." },
   { card_id:"C059",name:"Cannon Tower",faction:"Machines",north:8,east:5,south:2,west:5,passive_id:"sentinel",flavour_text:"It never misses." },
@@ -75,14 +75,14 @@ const CARDS = [
   { card_id:"C063",name:"Omega Unit",faction:"Machines",north:9,east:6,south:6,west:8,passive_id:"final_card_boost",flavour_text:"Deployed only as a last resort." },
 
   // ── SPIRITS (13) ──
-  { card_id:"C064",name:"Wisp",faction:"Spirits",north:1,east:2,south:2,west:3,passive_id:"spirit_walk",flavour_text:"A flickering light in the dark." },
+  { card_id:"C064",name:"Wisp",faction:"Spirits",north:4,east:4,south:4,west:3,rarity:"Common",passive_id:"spirit_walk",flavour_text:"A flickering light in the dark." },
   { card_id:"C065",name:"Forest Spirit",faction:"Spirits",north:4,east:3,south:5,west:3,passive_id:"beast_synergy",flavour_text:"Guardian of ancient groves." },
   { card_id:"C066",name:"Shade",faction:"Spirits",north:3,east:5,south:3,west:4,passive_id:"underdog",flavour_text:"Stronger when outnumbered." },
   { card_id:"C067",name:"Wraith",faction:"Spirits",north:5,east:6,south:5,west:3,passive_id:"flip_revenge",flavour_text:"Death only angers it." },
   { card_id:"C068",name:"Moon Spirit",faction:"Spirits",north:6,east:4,south:4,west:6,passive_id:"centre_boost",flavour_text:"Power flows from the centre." },
   { card_id:"C069",name:"Elemental",faction:"Spirits",north:5,east:5,south:5,west:5,passive_id:"tactician",flavour_text:"It adapts to every foe." },
   { card_id:"C070",name:"Guardian Angel",faction:"Spirits",north:4,east:6,south:6,west:4,passive_id:"debuff_shield",flavour_text:"Nothing harmful passes." },
-  { card_id:"C071",name:"Will-o-Wisp",faction:"Spirits",north:2,east:4,south:2,west:2,passive_id:"empty_throne",flavour_text:"Feeds on emptiness." },
+  { card_id:"C071",name:"Will-o-Wisp",faction:"Spirits",north:4,east:4,south:4,west:3,rarity:"Common",passive_id:"empty_throne",flavour_text:"Feeds on emptiness." },
   { card_id:"C072",name:"Phoenix Spirit",faction:"Spirits",north:6,east:5,south:7,west:4,passive_id:"phoenix",flavour_text:"Eternal flame, eternal return." },
   { card_id:"C073",name:"Ancestor",faction:"Spirits",north:7,east:5,south:6,west:6,passive_id:"commander",flavour_text:"Guides the living from beyond." },
   { card_id:"C074",name:"Banshee",faction:"Spirits",north:5,east:7,south:4,west:6,passive_id:"blood_pact",flavour_text:"Its wail saps the will to fight." },
@@ -90,21 +90,21 @@ const CARDS = [
   { card_id:"C076",name:"Phantom",faction:"Spirits",north:4,east:3,south:4,west:5,passive_id:"mirror",flavour_text:"It becomes what it touches." },
 
   // ── ASSASSINS (12) ──
-  { card_id:"C077",name:"Pickpocket",faction:"Assassins",north:2,east:4,south:2,west:5,passive_id:"flip_reward",flavour_text:"Quick hands, quicker blade." },
+  { card_id:"C077",name:"Pickpocket",faction:"Assassins",north:4,east:4,south:3,west:5,passive_id:"flip_reward",flavour_text:"Quick hands, quicker blade." },
   { card_id:"C078",name:"Shadow Dancer",faction:"Assassins",north:4,east:6,south:2,west:6,passive_id:"edge_boost",flavour_text:"She strikes from the periphery." },
   { card_id:"C079",name:"Blade Master",faction:"Assassins",north:6,east:7,south:4,west:5,passive_id:"duelist",flavour_text:"One opponent at a time." },
   { card_id:"C080",name:"Poisoner",faction:"Assassins",north:3,east:5,south:5,west:5,passive_id:"hunter",flavour_text:"A single drop is enough." },
   { card_id:"C081",name:"Night Stalker",faction:"Assassins",north:5,east:4,south:6,west:5,passive_id:"endgame_boost",flavour_text:"Patience is the deadliest weapon." },
-  { card_id:"C082",name:"Infiltrator",faction:"Assassins",north:4,east:5,south:4,west:4,passive_id:"corner_boost",flavour_text:"Already behind enemy lines." },
+  { card_id:"C082",name:"Infiltrator",faction:"Assassins",north:5,east:5,south:4,west:4,passive_id:"corner_boost",flavour_text:"Already behind enemy lines." },
   { card_id:"C083",name:"Venom Fang",faction:"Assassins",north:5,east:6,south:6,west:3,passive_id:"frost",flavour_text:"Its venom slows and weakens." },
   { card_id:"C084",name:"Phantom Blade",faction:"Assassins",north:7,east:8,south:3,west:5,passive_id:"assassin_strike",flavour_text:"One strike, one kill." },
   { card_id:"C085",name:"Silent Death",faction:"Assassins",north:6,east:5,south:5,west:7,passive_id:"attack_boost",flavour_text:"You never hear it coming." },
   { card_id:"C086",name:"Grandmaster Assassin",faction:"Assassins",north:8,east:7,south:5,west:8,passive_id:"played_last_boost",flavour_text:"The final move. Always." },
-  { card_id:"C087",name:"Smoke Bomb",faction:"Assassins",north:3,east:3,south:4,west:3,passive_id:"debuff_shield",flavour_text:"Concealment is protection." },
+  { card_id:"C087",name:"Smoke Bomb",faction:"Assassins",north:4,east:4,south:4,west:4,passive_id:"debuff_shield",flavour_text:"Concealment is protection." },
   { card_id:"C088",name:"Twin Daggers",faction:"Assassins",north:5,east:7,south:3,west:7,passive_id:"flanker",flavour_text:"Attacks from both sides at once." },
 
   // ── UNDEAD (12) ──
-  { card_id:"C089",name:"Skeleton",faction:"Undead",north:2,east:2,south:3,west:2,passive_id:"undead_rising",flavour_text:"They never stop coming." },
+  { card_id:"C089",name:"Skeleton",faction:"Undead",north:4,east:4,south:4,west:3,rarity:"Common",passive_id:"undead_rising",flavour_text:"They never stop coming." },
   { card_id:"C090",name:"Zombie Brute",faction:"Undead",north:5,east:3,south:6,west:3,passive_id:"berserker",flavour_text:"Pain is forgotten." },
   { card_id:"C091",name:"Lich",faction:"Undead",north:7,east:6,south:4,west:7,passive_id:"blood_pact",flavour_text:"Its gaze withers the living." },
   { card_id:"C092",name:"Death Knight",faction:"Undead",north:6,east:7,south:6,west:5,passive_id:"flip_reward",flavour_text:"Each soul taken adds to its power." },
@@ -118,39 +118,39 @@ const CARDS = [
   { card_id:"C100",name:"Plague Bearer",faction:"Undead",north:4,east:6,south:5,west:4,passive_id:"blood_pact",flavour_text:"It carries the end of all things." },
 
   // ── SPECIAL (1) ──
-  { card_id:"C201",name:"Synergy",faction:"Mages",north:5,east:4,south:4,west:5,rarity:"Epic",passive_id:"synergy_bond",flavour_text:"Apart, we are fragments. Together, we are unstoppable." },
+  { card_id:"C201",name:"Synergy",faction:"Mages",north:6,east:6,south:6,west:5,rarity:"Epic",passive_id:"synergy_bond",flavour_text:"Apart, we are fragments. Together, we are unstoppable." },
 
   // ── SYNERGY PAIRS (20 cards, 10 pairs) ──
   // Pair 1 — Knights (Rare): Dawnblade & Duskblade
-  { card_id:"C202",name:"Dawnblade",faction:"Knights",north:4,east:5,south:4,west:4,rarity:"Rare",passive_id:"card_synergy",synergy_target:"Duskblade",synergy_bonus:2,flavour_text:"At sunrise, its edge gleams with golden fire." },
-  { card_id:"C203",name:"Duskblade",faction:"Knights",north:4,east:4,south:4,west:5,rarity:"Rare",passive_id:"card_synergy",synergy_target:"Dawnblade",synergy_bonus:2,flavour_text:"At sunset, its shadow cuts deeper than steel." },
+  { card_id:"C202",name:"Dawnblade",faction:"Knights",north:5,east:5,south:4,west:4,rarity:"Rare",passive_id:"card_synergy",synergy_target:"Duskblade",synergy_bonus:2,flavour_text:"At sunrise, its edge gleams with golden fire." },
+  { card_id:"C203",name:"Duskblade",faction:"Knights",north:5,east:4,south:4,west:5,rarity:"Rare",passive_id:"card_synergy",synergy_target:"Dawnblade",synergy_bonus:2,flavour_text:"At sunset, its shadow cuts deeper than steel." },
   // Pair 2 — Mages (Rare): Ember Mage & Frost Sage
-  { card_id:"C204",name:"Ember Mage",faction:"Mages",north:4,east:5,south:3,west:5,rarity:"Rare",passive_id:"card_synergy",synergy_target:"Frost Sage",synergy_bonus:2,flavour_text:"Fire and frost, an eternal dance of opposites." },
-  { card_id:"C205",name:"Frost Sage",faction:"Mages",north:5,east:3,south:5,west:4,rarity:"Rare",passive_id:"card_synergy",synergy_target:"Ember Mage",synergy_bonus:2,flavour_text:"Where ice meets flame, true power is born." },
+  { card_id:"C204",name:"Ember Mage",faction:"Mages",north:4,east:5,south:4,west:5,rarity:"Rare",passive_id:"card_synergy",synergy_target:"Frost Sage",synergy_bonus:2,flavour_text:"Fire and frost, an eternal dance of opposites." },
+  { card_id:"C205",name:"Frost Sage",faction:"Mages",north:5,east:4,south:5,west:4,rarity:"Rare",passive_id:"card_synergy",synergy_target:"Ember Mage",synergy_bonus:2,flavour_text:"Where ice meets flame, true power is born." },
   // Pair 3 — Beasts (Rare): Wolf Alpha & Wolf Pup
-  { card_id:"C206",name:"Wolf Alpha",faction:"Beasts",north:5,east:4,south:4,west:4,rarity:"Rare",passive_id:"card_synergy",synergy_target:"Wolf Pup",synergy_bonus:2,flavour_text:"The alpha fights twice as hard with its pup nearby." },
-  { card_id:"C207",name:"Wolf Pup",faction:"Beasts",north:3,east:5,south:4,west:5,rarity:"Rare",passive_id:"card_synergy",synergy_target:"Wolf Alpha",synergy_bonus:2,flavour_text:"With its alpha watching, the pup becomes a wolf." },
+  { card_id:"C206",name:"Wolf Alpha",faction:"Beasts",north:5,east:5,south:4,west:4,rarity:"Rare",passive_id:"card_synergy",synergy_target:"Wolf Pup",synergy_bonus:2,flavour_text:"The alpha fights twice as hard with its pup nearby." },
+  { card_id:"C207",name:"Wolf Pup",faction:"Beasts",north:4,east:5,south:4,west:5,rarity:"Rare",passive_id:"card_synergy",synergy_target:"Wolf Alpha",synergy_bonus:2,flavour_text:"With its alpha watching, the pup becomes a wolf." },
   // Pair 4 — Spirits (Rare): Light Wisp & Shadow Wisp
-  { card_id:"C208",name:"Light Wisp",faction:"Spirits",north:4,east:4,south:5,west:4,rarity:"Rare",passive_id:"card_synergy",synergy_target:"Shadow Wisp",synergy_bonus:2,flavour_text:"Light means nothing without shadow to define it." },
-  { card_id:"C209",name:"Shadow Wisp",faction:"Spirits",north:4,east:5,south:4,west:4,rarity:"Rare",passive_id:"card_synergy",synergy_target:"Light Wisp",synergy_bonus:2,flavour_text:"Shadow is strongest where light struggles brightest." },
+  { card_id:"C208",name:"Light Wisp",faction:"Spirits",north:5,east:4,south:5,west:4,rarity:"Rare",passive_id:"card_synergy",synergy_target:"Shadow Wisp",synergy_bonus:2,flavour_text:"Light means nothing without shadow to define it." },
+  { card_id:"C209",name:"Shadow Wisp",faction:"Spirits",north:5,east:5,south:4,west:4,rarity:"Rare",passive_id:"card_synergy",synergy_target:"Light Wisp",synergy_bonus:2,flavour_text:"Shadow is strongest where light struggles brightest." },
   // Pair 5 — Dragons (Epic): Inferno Drake & Glacier Drake
-  { card_id:"C210",name:"Inferno Drake",faction:"Dragons",north:5,east:5,south:4,west:4,rarity:"Epic",passive_id:"card_synergy",synergy_target:"Glacier Drake",synergy_bonus:2,flavour_text:"Its flames burn hotter when the glacier breathes frost." },
-  { card_id:"C211",name:"Glacier Drake",faction:"Dragons",north:4,east:4,south:5,west:5,rarity:"Epic",passive_id:"card_synergy",synergy_target:"Inferno Drake",synergy_bonus:2,flavour_text:"Its ice grows sharper when the inferno roars." },
+  { card_id:"C210",name:"Inferno Drake",faction:"Dragons",north:6,east:6,south:6,west:5,rarity:"Epic",passive_id:"card_synergy",synergy_target:"Glacier Drake",synergy_bonus:2,flavour_text:"Its flames burn hotter when the glacier breathes frost." },
+  { card_id:"C211",name:"Glacier Drake",faction:"Dragons",north:6,east:6,south:6,west:5,rarity:"Epic",passive_id:"card_synergy",synergy_target:"Inferno Drake",synergy_bonus:2,flavour_text:"Its ice grows sharper when the inferno roars." },
   // Pair 6 — Machines (Epic): Siege Breaker & Wall Builder
-  { card_id:"C212",name:"Siege Breaker",faction:"Machines",north:6,east:4,south:4,west:5,rarity:"Epic",passive_id:"card_synergy",synergy_target:"Wall Builder",synergy_bonus:2,flavour_text:"Built to shatter what its twin was built to defend." },
-  { card_id:"C213",name:"Wall Builder",faction:"Machines",north:5,east:4,south:4,west:6,rarity:"Epic",passive_id:"card_synergy",synergy_target:"Siege Breaker",synergy_bonus:2,flavour_text:"Built to endure what its twin was built to destroy." },
+  { card_id:"C212",name:"Siege Breaker",faction:"Machines",north:6,east:6,south:6,west:5,rarity:"Epic",passive_id:"card_synergy",synergy_target:"Wall Builder",synergy_bonus:2,flavour_text:"Built to shatter what its twin was built to defend." },
+  { card_id:"C213",name:"Wall Builder",faction:"Machines",north:6,east:6,south:5,west:6,rarity:"Epic",passive_id:"card_synergy",synergy_target:"Siege Breaker",synergy_bonus:2,flavour_text:"Built to endure what its twin was built to destroy." },
   // Pair 7 — Undead (Epic): Grave Warden & Soul Priest
-  { card_id:"C214",name:"Grave Warden",faction:"Undead",north:5,east:5,south:4,west:5,rarity:"Epic",passive_id:"card_synergy",synergy_target:"Soul Priest",synergy_bonus:2,flavour_text:"It guards the boundary between life and death." },
-  { card_id:"C215",name:"Soul Priest",faction:"Undead",north:5,east:4,south:5,west:5,rarity:"Epic",passive_id:"card_synergy",synergy_target:"Grave Warden",synergy_bonus:2,flavour_text:"It guides souls to where the warden waits." },
+  { card_id:"C214",name:"Grave Warden",faction:"Undead",north:6,east:6,south:6,west:5,rarity:"Epic",passive_id:"card_synergy",synergy_target:"Soul Priest",synergy_bonus:2,flavour_text:"It guards the boundary between life and death." },
+  { card_id:"C215",name:"Soul Priest",faction:"Undead",north:6,east:6,south:6,west:5,rarity:"Epic",passive_id:"card_synergy",synergy_target:"Grave Warden",synergy_bonus:2,flavour_text:"It guides souls to where the warden waits." },
   // Pair 8 — Assassins (Legendary): Twin Reaper & Silent Blade
-  { card_id:"C216",name:"Twin Reaper",faction:"Assassins",north:6,east:7,south:5,west:6,rarity:"Legendary",passive_id:"card_synergy",synergy_target:"Silent Blade",synergy_bonus:1,flavour_text:"Two blades, one purpose, zero survivors." },
-  { card_id:"C217",name:"Silent Blade",faction:"Assassins",north:6,east:5,south:7,west:6,rarity:"Legendary",passive_id:"card_synergy",synergy_target:"Twin Reaper",synergy_bonus:1,flavour_text:"You never hear it coming — until its twin arrives." },
+  { card_id:"C216",name:"Twin Reaper",faction:"Assassins",north:7,east:7,south:7,west:7,rarity:"Legendary",passive_id:"card_synergy",synergy_target:"Silent Blade",synergy_bonus:1,flavour_text:"Two blades, one purpose, zero survivors." },
+  { card_id:"C217",name:"Silent Blade",faction:"Assassins",north:7,east:7,south:7,west:7,rarity:"Legendary",passive_id:"card_synergy",synergy_target:"Twin Reaper",synergy_bonus:1,flavour_text:"You never hear it coming — until its twin arrives." },
   // Pair 9 — Mages (Legendary): Storm Lord & Earth Keeper
-  { card_id:"C218",name:"Storm Lord",faction:"Mages",north:6,east:7,south:5,west:6,rarity:"Legendary",passive_id:"card_synergy",synergy_target:"Earth Keeper",synergy_bonus:1,flavour_text:"The sky obeys him; the ground obeys her." },
-  { card_id:"C219",name:"Earth Keeper",faction:"Mages",north:6,east:5,south:7,west:6,rarity:"Legendary",passive_id:"card_synergy",synergy_target:"Storm Lord",synergy_bonus:1,flavour_text:"She roots the mountain; he brings the lightning." },
+  { card_id:"C218",name:"Storm Lord",faction:"Mages",north:7,east:7,south:7,west:7,rarity:"Legendary",passive_id:"card_synergy",synergy_target:"Earth Keeper",synergy_bonus:1,flavour_text:"The sky obeys him; the ground obeys her." },
+  { card_id:"C219",name:"Earth Keeper",faction:"Mages",north:7,east:7,south:7,west:7,rarity:"Legendary",passive_id:"card_synergy",synergy_target:"Storm Lord",synergy_bonus:1,flavour_text:"She roots the mountain; he brings the lightning." },
   // Pair 10 — Spirits (Legendary): Astral Lord & Void Walker
-  { card_id:"C220",name:"Astral Lord",faction:"Spirits",north:6,east:7,south:6,west:7,rarity:"Legendary",passive_id:"card_synergy",synergy_target:"Void Walker",synergy_bonus:1,flavour_text:"The stars whisper where the void walks." },
-  { card_id:"C221",name:"Void Walker",faction:"Spirits",north:7,east:6,south:7,west:6,rarity:"Legendary",passive_id:"card_synergy",synergy_target:"Astral Lord",synergy_bonus:1,flavour_text:"The void hungers where the stars shine." },
+  { card_id:"C220",name:"Astral Lord",faction:"Spirits",north:7,east:7,south:7,west:7,rarity:"Legendary",passive_id:"card_synergy",synergy_target:"Void Walker",synergy_bonus:1,flavour_text:"The stars whisper where the void walks." },
+  { card_id:"C221",name:"Void Walker",faction:"Spirits",north:7,east:7,south:7,west:7,rarity:"Legendary",passive_id:"card_synergy",synergy_target:"Astral Lord",synergy_bonus:1,flavour_text:"The void hungers where the stars shine." },
   ...EXPANSION_CARDS,
 ];
 

@@ -613,6 +613,7 @@ export default function PvpGameMatch() {
             myPlayerNum={myPlayerNum}
             playerName="You"
             gameState={displayState}
+            selectedTile={inspectMode ? null : selectedTile}
           />
         </div>
       )}
