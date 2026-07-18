@@ -68,8 +68,8 @@ export default function Shop() {
     const cards = openPack(type, config, faction, customPack);
     setPackCards(cards);
 
-    const { newCollection, essenceGained } = applyCardsToCollection(profile.collection, cards);
-    const updateData = { collection: newCollection };
+    const { newCollection, essenceGained, newAltArts } = applyCardsToCollection(profile.collection, cards, profile.alt_arts);
+    const updateData = { collection: newCollection, alt_arts: newAltArts };
     if (useGems) {
       updateData.essence = (profile.essence || 0) - cost;
     } else {

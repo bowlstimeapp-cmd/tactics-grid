@@ -107,6 +107,10 @@
       "type": "object",
       "default": {}
     },
+    "alt_arts": {
+      "type": "object",
+      "default": {}
+    },
     "card_xp": {
       "type": "object",
       "default": {}

@@ -117,3 +117,43 @@
   animation: holo-shift 4s ease-in-out infinite;
   mix-blend-mode: color-dodge;
 }
+
+/* Alt Art rainbow holographic effect */
+@keyframes alt-art-rainbow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+.holo-rainbow {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 0, 80, 0.4),
+    rgba(255, 140, 0, 0.4),
+    rgba(255, 215, 0, 0.4),
+    rgba(0, 255, 0, 0.4),
+    rgba(0, 180, 255, 0.4),
+    rgba(139, 0, 255, 0.4),
+    rgba(255, 0, 128, 0.4),
+    rgba(255, 0, 80, 0.4)
+  );
+  background-size: 200% 200%;
+  animation: alt-art-rainbow 3s linear infinite;
+  mix-blend-mode: color-dodge;
+}
+@keyframes alt-art-glow {
+  0%, 100% { box-shadow: 0 0 8px 1px rgba(255, 0, 80, 0.6); }
+  16% { box-shadow: 0 0 8px 1px rgba(255, 140, 0, 0.6); }
+  33% { box-shadow: 0 0 8px 1px rgba(0, 255, 0, 0.6); }
+  50% { box-shadow: 0 0 8px 1px rgba(0, 180, 255, 0.6); }
+  66% { box-shadow: 0 0 8px 1px rgba(139, 0, 255, 0.6); }
+  83% { box-shadow: 0 0 8px 1px rgba(255, 0, 128, 0.6); }
+}
+.alt-art-glow { animation: alt-art-glow 3s linear infinite; }
+@keyframes alt-art-badge {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+.alt-art-badge {
+  background: linear-gradient(90deg, #ff0080, #ff8c00, #ffd700, #00ff00, #00b4ff, #8b00ff, #ff0080);
+  background-size: 200% 100%;
+  animation: alt-art-badge 3s linear infinite;
+}

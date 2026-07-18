@@ -31,6 +31,8 @@ export default function Collection() {
   }, []);
 
   const owned = profile?.collection || {};
+  const altArts = profile?.alt_arts || {};
+  const altArtCount = Object.keys(altArts).length;
 
   let filtered = ALL_CARDS.filter(c => {
     if (search && !c.name.toLowerCase().includes(search.toLowerCase())) return false;
@@ -55,7 +57,10 @@ export default function Collection() {
           <ArrowLeft className="w-4 h-4" />
         </Button>
         <h1 className="font-heading text-xl text-amber-200">Collection</h1>
-        <span className="text-xs text-muted-foreground ml-auto">{Object.keys(owned).length}/{ALL_CARDS.length} owned</span>
+        <span className="text-xs text-muted-foreground ml-auto">
+          {Object.keys(owned).length}/{ALL_CARDS.length} owned
+          {altArtCount > 0 && <span className="ml-2 font-bold bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(90deg, #ff0080, #ffd700, #00ff00, #00b4ff, #8b00ff, #ff0080)', backgroundSize: '200% 100%' }}>✨ {altArtCount} alt art{altArtCount !== 1 ? 's' : ''}</span>}
+        </span>
       </div>
 
       {/* Filters */}
@@ -128,13 +133,16 @@ export default function Collection() {
               className={count === 0 ? 'opacity-40 grayscale' : ''}
             >
               <GameCard
-                card={card}
+                card={altArts[card.card_id] ? { ...card, is_alt_art: true } : card}
                 size="md"
-                onClick={() => setSelectedCard(card)}
+                onClick={() => setSelectedCard(altArts[card.card_id] ? { ...card, is_alt_art: true } : card)}
               />
               <p className="text-center text-[10px] font-heading text-amber-200/90 mt-0.5 truncate px-0.5">{card.name}</p>
               {count > 0 && (
                 <p className="text-center text-[9px] text-amber-300/60"># {count} owned</p>
+              )}
+              {altArts[card.card_id] > 0 && (
+                <p className="text-center text-[8px] font-bold bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(90deg, #ff0080, #ffd700, #00ff00, #00b4ff, #8b00ff, #ff0080)', backgroundSize: '200% 100%' }}>✨ Alt Art</p>
               )}
             </motion.div>
           );
@@ -145,7 +153,7 @@ export default function Collection() {
         <div className="text-center text-muted-foreground mt-12">No cards match your filters.</div>
       )}
 
-      <CardDetailModal card={selectedCard} onClose={() => setSelectedCard(null)} owned={!!owned[selectedCard?.card_id]} />
+      <CardDetailModal card={selectedCard} onClose={() => setSelectedCard(null)} owned={!!owned[selectedCard?.card_id]} altArtOwned={!!altArts[selectedCard?.card_id]} />
     </div>
   );
 }

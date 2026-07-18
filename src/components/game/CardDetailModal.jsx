@@ -3,7 +3,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { RARITY_CONFIG, FACTION_CONFIG, PASSIVES } from '@/lib/gameData';
 import GameCard from './GameCard';
 
-export default function CardDetailModal({ card, onClose, owned, effectiveStats }) {
+export default function CardDetailModal({ card, onClose, owned, effectiveStats, altArtOwned }) {
   if (!card) return null;
 
   const rarity = RARITY_CONFIG[card.rarity] || {};
@@ -40,6 +40,10 @@ export default function CardDetailModal({ card, onClose, owned, effectiveStats }
           {/* Flavour text */}
           {card.flavour_text && (
             <p className="text-xs italic text-muted-foreground px-4 text-center">"{card.flavour_text}"</p>
+          )}
+
+          {altArtOwned && (
+            <p className="text-xs font-bold bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(90deg, #ff0080, #ff8c00, #ffd700, #00ff00, #00b4ff, #8b00ff, #ff0080)', backgroundSize: '200% 100%' }}>✨ Alt Art Owned</p>
           )}
 
           {owned === false && (

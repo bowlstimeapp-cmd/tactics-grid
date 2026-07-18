@@ -172,14 +172,26 @@ export default function GameCard({ card, size = 'md', onClick, selected, showSta
               )}
             </div>
 
-            {/* Holographic effect for Legendary cards */}
-            {card.rarity === 'Legendary' && (
+            {/* Alt Art rainbow holographic effect */}
+            {card.is_alt_art && (
+              <div className="absolute inset-0 holo-rainbow pointer-events-none" />
+            )}
+
+            {/* Holographic effect for Legendary cards (non-alt-art) */}
+            {card.rarity === 'Legendary' && !card.is_alt_art && (
               <div className="absolute inset-0 holo-effect pointer-events-none" />
             )}
 
             {/* Rarity glow */}
-            {(card.rarity === 'Legendary' || card.rarity === 'Epic') && (
+            {(card.rarity === 'Legendary' || card.rarity === 'Epic' || card.is_alt_art) && (
               <div className="absolute inset-0 card-shimmer pointer-events-none" />
+            )}
+
+            {/* Alt Art badge */}
+            {card.is_alt_art && (
+              <div className={`absolute z-20 px-1 py-0.5 rounded-full alt-art-badge text-white font-bold uppercase tracking-wide leading-none ${size === 'sm' ? 'text-[5px]' : 'text-[7px]'}`} style={{ top: size === 'sm' ? '4px' : '6px', left: '50%', transform: 'translateX(-50%)' }}>
+                ALT ART
+              </div>
             )}
           </div>
         </TooltipTrigger>

@@ -50,9 +50,10 @@ export default function Achievements() {
     const cards = openPack(reward, config);
     setRevealedCards(cards);
 
-    const { newCollection, essenceGained } = applyCardsToCollection(profile.collection, cards);
+    const { newCollection, essenceGained, newAltArts } = applyCardsToCollection(profile.collection, cards, profile.alt_arts);
     const updated = await base44.entities.PlayerProfile.update(profile.id, {
       collection: newCollection,
+      alt_arts: newAltArts,
       essence: (profile.essence || 0) + essenceGained,
       claimed_rewards: [...claimedRewards, ach.id],
     });

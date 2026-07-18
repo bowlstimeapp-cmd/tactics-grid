@@ -35,13 +35,28 @@ function rollRarity(odds) {
   return 'Common';
 }
 
+const ALT_ART_CHANCE = 0.02;
+
+// 2% chance for Epic/Legendary cards pulled from packs to become alt arts.
+// Alt arts are the same card (same card_id, stats, passive) but with a rainbow
+// holographic treatment — a chase cosmetic for collectors.
+function maybeAltArt(card) {
+  if (!card) return card;
+  if (card.rarity === 'Epic' || card.rarity === 'Legendary') {
+    if (Math.random() < ALT_ART_CHANCE) {
+      return { ...card, is_alt_art: true };
+    }
+  }
+  return card;
+}
+
 function openStandardPack(size, odds) {
   const cards = [];
   for (let i = 0; i < size; i++) {
     const rarity = rollRarity(odds);
     const pool = ALL_CARDS.filter(c => c.rarity === rarity);
     const card = pool[Math.floor(Math.random() * pool.length)];
-    cards.push(card);
+    cards.push(maybeAltArt(card));
   }
   return cards;
 }
@@ -51,12 +66,12 @@ function openFactionPack(faction, odds) {
   const rarity = rollRarity(odds);
   let pool = factionCards.filter(c => c.rarity === rarity);
   if (pool.length === 0) pool = factionCards;
-  return [pool[Math.floor(Math.random() * pool.length)]];
+  return [maybeAltArt(pool[Math.floor(Math.random() * pool.length)])];
 }
 
 function openGuaranteedPack(rarity) {
   const pool = ALL_CARDS.filter(c => c.rarity === rarity);
-  return [pool[Math.floor(Math.random() * pool.length)]];
+  return [maybeAltArt(pool[Math.floor(Math.random() * pool.length)])];
 }
 
 export function openCustomPack(pack, config) {
@@ -68,7 +83,7 @@ export function openCustomPack(pack, config) {
     const rarity = rollRarity(config.pack_odds);
     let matches = pool.filter(c => c.rarity === rarity);
     if (matches.length === 0) matches = pool;
-    cards.push(matches[Math.floor(Math.random() * matches.length)]);
+    cards.push(maybeAltArt(matches[Math.floor(Math.random() * matches.length)]));
   }
   return cards;
 }
@@ -113,10 +128,15 @@ export function getPackCost(packType, config) {
 
 export const MAX_COPIES_PER_CARD = 3;
 
-export function applyCardsToCollection(collection, cards) {
+export function applyCardsToCollection(collection, cards, altArts) {
   const newCollection = { ...(collection || {}) };
+  const newAltArts = { ...(altArts || {}) };
   let essenceGained = 0;
   cards.forEach(card => {
+    // Alt arts are tracked separately but still count as the original card
+    if (card.is_alt_art) {
+      newAltArts[card.card_id] = (newAltArts[card.card_id] || 0) + 1;
+    }
     const currentCount = newCollection[card.card_id] || 0;
     if (currentCount >= MAX_COPIES_PER_CARD) {
       essenceGained += GEM_EXCHANGE_VALUES[card.rarity] || 0;
@@ -124,7 +144,7 @@ export function applyCardsToCollection(collection, cards) {
       newCollection[card.card_id] = currentCount + 1;
     }
   });
-  return { newCollection, essenceGained };
+  return { newCollection, essenceGained, newAltArts };
 }
 
 export function exchangeCards(collection, cardIds) {
