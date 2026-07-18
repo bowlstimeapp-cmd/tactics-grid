@@ -32,14 +32,6 @@ export default function CoinFlip({ onComplete, tossWinner, opponentName, opponen
     }
   }, [isPvP, phase]);
 
-  // Auto-proceed when opponent wins the toss (AI or PvP opponent who chose)
-  useEffect(() => {
-    if (phase === 'result' && !playerWon && (!isPvP || opponentChoice)) {
-      const timer = setTimeout(() => onComplete(continueValue), 2500);
-      return () => clearTimeout(timer);
-    }
-  }, [phase, playerWon, isPvP, opponentChoice, continueValue, onComplete]);
-
   const playerWon = result === 'player';
   const finalRotation = playerWon ? 1440 : 1260;
 
@@ -58,6 +50,14 @@ export default function CoinFlip({ onComplete, tossWinner, opponentName, opponen
   }
 
   const continueValue = isPvP ? opponentChoice : (aiChoice === 1 ? 2 : 1);
+
+  // Auto-proceed when opponent wins the toss (AI or PvP opponent who chose)
+  useEffect(() => {
+    if (phase === 'result' && !playerWon && (!isPvP || opponentChoice)) {
+      const timer = setTimeout(() => onComplete(continueValue), 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [phase, playerWon, isPvP, opponentChoice, continueValue, onComplete]);
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center gap-6 p-4" style={{ perspective: '1000px' }}>
