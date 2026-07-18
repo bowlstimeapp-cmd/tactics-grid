@@ -11,8 +11,11 @@ export const PASSIVES = {
     id: "played_last_boost", name: "Final Stand", icon: "⏳",
     description: "+2 all sides if played as your last card",
     apply: (ctx) => {
-      const lastTurn = ctx.totalTurns >= 16 ? ctx.totalTurns - 1 : ctx.totalTurns;
-      if (ctx.turn >= lastTurn) return { cardMods: { north: 2, east: 2, south: 2, west: 2 } };
+      // "Last card" = the player won't get another turn after this placement.
+      // After placing, if ≤1 empty spaces remain, the opponent takes the last
+      // (or no) slot and this player is done.
+      const empty = ctx.board.flat().filter(c => !c).length;
+      if (empty <= 1) return { cardMods: { north: 2, east: 2, south: 2, west: 2 } };
       return {};
     }
   },
