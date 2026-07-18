@@ -13,6 +13,23 @@ const SIZES = {
   '2xl': 'w-48 h-72 text-base',
 };
 
+// Cards whose artwork has a different aspect ratio — use contain instead of cover
+// so the full image is visible without aggressive cropping.
+const OBJECT_CONTAIN_CARDS = new Set([
+  'C003', // Lance Captain
+  'C014', // Whelpling
+  'C019', // Hatchling
+  'C020', // Magma Serpent
+  'C022', // Void Dragon
+  'C024', // Phoenix Dragon
+  'C028', // Great Bear
+  'C051', // Hex Weaver
+  'C055', // Steam Tank
+  'C066', // Shade
+  'C075', // Celestial
+  'C078', // Shadow Dancer
+]);
+
 const STAT_SIZES = {
   sm: 'text-[8px] min-w-[14px] h-3.5 px-0.5',
   md: 'text-[10px] min-w-[18px] h-4 px-1',
@@ -108,7 +125,11 @@ export default function GameCard({ card, size = 'md', onClick, selected, showSta
             {/* Artwork area */}
             {card.artwork_url ? (
               <div className="absolute inset-0 overflow-hidden bg-slate-800">
-                <img src={card.artwork_url} alt={card.name} className="w-full h-full object-cover" />
+                <img
+                  src={card.artwork_url}
+                  alt={card.name}
+                  className={`w-full h-full ${OBJECT_CONTAIN_CARDS.has(card.card_id) ? 'object-contain' : 'object-cover'}`}
+                />
                 <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/50" />
               </div>
             ) : (
