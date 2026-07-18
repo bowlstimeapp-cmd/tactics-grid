@@ -1,37 +1,61 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 
 const PLAYER_COIN_URL = 'https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/f17355ce5_generated_image.png';
 const AI_COIN_URL = 'https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/c133015f2_generated_image.png';
 
-export default function CoinFlip({ onComplete }) {
+export default function CoinFlip({ onComplete, tossWinner, opponentName, opponentChoice }) {
   const [phase, setPhase] = useState('idle'); // idle, flipping, result
-  const [tossWinner, setTossWinner] = useState(null); // 'player' or 'ai'
-  const [aiChoice, setAiChoice] = useState(null); // 1 or 2
+  const [result, setResult] = useState(null); // 'player' or 'opponent'
+  const [aiChoice, setAiChoice] = useState(null);
+
+  const isPvP = tossWinner !== undefined;
+  const opponentLabel = opponentName || 'AI';
 
   const flip = () => {
-    const winner = Math.random() < 0.5 ? 'player' : 'ai';
-    setTossWinner(winner);
-    if (winner === 'ai') setAiChoice(1); // AI always chooses to go first
     setPhase('flipping');
-    setTimeout(() => setPhase('result'), 2000);
+    setTimeout(() => {
+      const r = tossWinner || (Math.random() < 0.5 ? 'player' : 'opponent');
+      setResult(r);
+      if (!isPvP && r === 'opponent') {
+        setAiChoice(1); // AI always chooses to go first
+      }
+      setPhase('result');
+    }, 2000);
   };
 
-  const playerWon = tossWinner === 'player';
-  // 1440° = 4 full turns → lands on player face (front, 0° mod 360)
-  // 1260° = 3.5 turns → lands on AI face (back, 180° mod 360)
+  // Auto-flip in PvP mode (result is server-determined)
+  useEffect(() => {
+    if (isPvP && phase === 'idle') {
+      flip();
+    }
+  }, [isPvP, phase]);
+
+  const playerWon = result === 'player';
   const finalRotation = playerWon ? 1440 : 1260;
+
+  let statusText = '';
+  if (phase === 'idle') statusText = 'Flip the coin to see who wins the toss';
+  else if (phase === 'flipping') statusText = 'Flipping...';
+  else if (playerWon) statusText = 'You win the toss!';
+  else if (isPvP) {
+    if (opponentChoice) {
+      statusText = `${opponentLabel} wins the toss and chooses to go ${opponentChoice === 1 ? 'first' : 'second'}`;
+    } else {
+      statusText = `${opponentLabel} wins the toss, waiting for their choice...`;
+    }
+  } else {
+    statusText = `${opponentLabel} wins the toss and chooses to go ${aiChoice === 1 ? 'first' : 'second'}`;
+  }
+
+  const showContinue = !playerWon && (!isPvP || opponentChoice);
+  const continueValue = isPvP ? opponentChoice : aiChoice;
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center gap-6 p-4" style={{ perspective: '1000px' }}>
       <h2 className="font-heading text-xl text-amber-200 text-center">Coin Toss</h2>
-      <p className="text-sm text-muted-foreground text-center min-h-[20px]">
-        {phase === 'idle' && 'Flip the coin to see who wins the toss'}
-        {phase === 'flipping' && 'Flipping...'}
-        {phase === 'result' && playerWon && 'You win the toss!'}
-        {phase === 'result' && !playerWon && `AI wins the toss and chooses to go ${aiChoice === 1 ? 'first' : 'second'}`}
-      </p>
+      <p className="text-sm text-muted-foreground text-center min-h-[20px]">{statusText}</p>
 
       <motion.div
         animate={
@@ -52,16 +76,16 @@ export default function CoinFlip({ onComplete }) {
         >
           <img src={PLAYER_COIN_URL} alt="Player" className="w-full h-full object-cover" />
         </div>
-        {/* Back face — AI (dragon sigil) */}
+        {/* Back face — opponent (dragon sigil) */}
         <div
           className="absolute inset-0 rounded-full overflow-hidden border-2 border-amber-500/40"
           style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
         >
-          <img src={AI_COIN_URL} alt="AI" className="w-full h-full object-cover" />
+          <img src={AI_COIN_URL} alt="Opponent" className="w-full h-full object-cover" />
         </div>
       </motion.div>
 
-      {phase === 'idle' && (
+      {phase === 'idle' && !isPvP && (
         <Button onClick={flip} className="bg-amber-600 hover:bg-amber-500 text-black font-heading">
           Flip Coin
         </Button>
@@ -83,13 +107,13 @@ export default function CoinFlip({ onComplete }) {
         </motion.div>
       )}
 
-      {phase === 'result' && !playerWon && (
+      {phase === 'result' && showContinue && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
         >
-          <Button onClick={() => onComplete(aiChoice)} className="bg-amber-600 hover:bg-amber-500 text-black font-heading">
+          <Button onClick={() => onComplete(continueValue)} className="bg-amber-600 hover:bg-amber-500 text-black font-heading">
             Continue
           </Button>
         </motion.div>

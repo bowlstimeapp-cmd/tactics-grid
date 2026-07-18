@@ -51,18 +51,19 @@ Deno.serve(async (req) => {
           const mode = game_mode || 'standard';
           const gridSize = mode === 'enlarged' ? 4 : 3;
           const layoutKey = getRandomLayout(gridSize);
-          const firstPlayer = Math.random() < 0.5 ? 1 : 2;
-          const gameState = createGameState(p1.cards, p2.cards, layoutKey, firstPlayer, mode);
+          const tossWinner = Math.random() < 0.5 ? 1 : 2;
+          const gameState = createGameState(p1.cards, p2.cards, layoutKey, 0, mode);
 
           const match = await base44.asServiceRole.entities.PvpMatch.create({
             player1_id: p1.id, player2_id: p2.id,
             player1_name: p1.name, player2_name: p2.name,
             player1_cards: p1.cards, player2_cards: p2.cards,
-            game_state: gameState, current_player: firstPlayer,
+            game_state: gameState, current_player: 0,
             status: 'active', winner: 0,
             player1_elo_before: p1.elo, player2_elo_before: p2.elo,
             player1_elo_after: 0, player2_elo_after: 0,
             layout_key: layoutKey, game_mode: mode,
+            toss_winner: tossWinner,
             last_move_at: new Date().toISOString(),
           });
 
@@ -106,8 +107,8 @@ Deno.serve(async (req) => {
         const mode = game_mode || 'standard';
         const gridSize = mode === 'enlarged' ? 4 : 3;
         const layoutKey = getRandomLayout(gridSize);
-        const firstPlayer = Math.random() < 0.5 ? 1 : 2;
-        const gameState = createGameState(p1.cards, p2.cards, layoutKey, firstPlayer, mode);
+        const tossWinner = Math.random() < 0.5 ? 1 : 2;
+        const gameState = createGameState(p1.cards, p2.cards, layoutKey, 0, mode);
 
         const match = await base44.asServiceRole.entities.PvpMatch.create({
           player1_id: p1.id,
@@ -117,7 +118,7 @@ Deno.serve(async (req) => {
           player1_cards: p1.cards,
           player2_cards: p2.cards,
           game_state: gameState,
-          current_player: firstPlayer,
+          current_player: 0,
           status: 'active',
           winner: 0,
           player1_elo_before: p1.elo,
@@ -126,6 +127,7 @@ Deno.serve(async (req) => {
           player2_elo_after: 0,
           layout_key: layoutKey,
           game_mode: game_mode || 'standard',
+          toss_winner: tossWinner,
           last_move_at: new Date().toISOString(),
         });
 
@@ -168,6 +170,47 @@ Deno.serve(async (req) => {
         { $set: { status: 'cancelled' } }
       );
       return Response.json({ status: 'cancelled' });
+    }
+
+    // ── SUBMIT TOSS CHOICE ──
+    if (action === 'submit_toss_choice') {
+      const user = await base44.auth.me();
+      if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
+      const { match_id, choice } = body;
+      if (choice !== 1 && choice !== 2) {
+        return Response.json({ error: 'Invalid choice' }, { status: 400 });
+      }
+
+      const match = await base44.asServiceRole.entities.PvpMatch.get(match_id);
+      if (!match) return Response.json({ error: 'Match not found' }, { status: 404 });
+      if (match.player1_id !== user.id && match.player2_id !== user.id) {
+        return Response.json({ error: 'Not in match' }, { status: 403 });
+      }
+      if (match.status !== 'active') {
+        return Response.json({ error: 'Match not active' }, { status: 400 });
+      }
+      if (match.current_player !== 0) {
+        return Response.json({ error: 'Toss already decided' }, { status: 400 });
+      }
+
+      const playerNum = match.player1_id === user.id ? 1 : 2;
+      if (match.toss_winner !== playerNum) {
+        return Response.json({ error: 'Not toss winner' }, { status: 403 });
+      }
+
+      const gs = match.game_state;
+      if (!gs) return Response.json({ error: 'No game state' }, { status: 400 });
+
+      gs.currentPlayer = choice;
+
+      const updated = await base44.asServiceRole.entities.PvpMatch.update(match_id, {
+        game_state: gs,
+        current_player: choice,
+        last_move_at: new Date().toISOString(),
+      });
+
+      return Response.json({ match: updated });
     }
 
     // ── SUBMIT MOVE (server-authoritative) ──
@@ -470,7 +513,9 @@ async function checkAndProcessTimeout(base44: any, match: any) {
   const gs = match.game_state;
   if (!gs) return null;
   const currentPlayer = gs.currentPlayer ?? match.current_player ?? 1;
-  const winner = currentPlayer === 1 ? 2 : 1;
+  const winner = currentPlayer === 0
+    ? (match.toss_winner === 1 ? 2 : 1)
+    : (currentPlayer === 1 ? 2 : 1);
 
   const p1Elo = match.player1_elo_before;
   const p2Elo = match.player2_elo_before;

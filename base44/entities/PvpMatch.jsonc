@@ -77,6 +77,10 @@
     },
     "last_move_at": {
       "type": "string"
+    },
+    "toss_winner": {
+      "type": "number",
+      "default": 0
     }
   },
   "required": [

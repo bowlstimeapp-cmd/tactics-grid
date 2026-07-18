@@ -8,6 +8,7 @@ import PlayerHand from '@/components/game/PlayerHand';
 import PvpGameOverModal from '@/components/game/PvpGameOverModal';
 import CardDetailModal from '@/components/game/CardDetailModal';
 import CardReveal from '@/components/game/CardReveal';
+import CoinFlip from '@/components/game/CoinFlip';
 import BoardEffectsBar from '@/components/game/BoardEffectsBar';
 import { placeCard, getEffectiveStats } from '@/lib/gameEngine';
 import { base44 } from '@/api/base44Client';
@@ -45,6 +46,8 @@ export default function PvpGameMatch() {
   const [inspectStats, setInspectStats] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [turnTimeLeft, setTurnTimeLeft] = useState(60);
+  const [showCoinToss, setShowCoinToss] = useState(false);
+  const processGameStateRef = useRef(null);
 
   const isAnimatingRef = useRef(false);
   const displayTurnRef = useRef(0);
@@ -74,6 +77,10 @@ export default function PvpGameMatch() {
           displayTurnRef.current = gs.turn;
         }
 
+        if (m.current_player === 0) {
+          setShowCoinToss(true);
+        }
+
         if (m.status === 'completed') {
           setPhase('gameover');
           setEloResult({
@@ -89,78 +96,97 @@ export default function PvpGameMatch() {
     load();
   }, [matchId]);
 
+  // Process match state update (shared by subscription and polling)
+  processGameStateRef.current = (m) => {
+    setMatch(m);
+
+    if (m.status === 'completed') {
+      setEloResult({
+        player1_elo_before: m.player1_elo_before,
+        player2_elo_before: m.player2_elo_before,
+        player1_elo_after: m.player1_elo_after,
+        player2_elo_after: m.player2_elo_after,
+      });
+      if (!gameOverHandledRef.current) {
+        gameOverHandledRef.current = true;
+        setTimeout(() => setPhase('gameover'), 2000);
+      }
+      return;
+    }
+
+    if (m.game_state) {
+      const gs = reconstructGameState(m.game_state);
+      if (gs.turn <= displayTurnRef.current) return;
+
+      displayTurnRef.current = gs.turn;
+
+      // Find the newly placed card for reveal
+      let placedCard = null;
+      let placedPos = null;
+      const gridSize = gs.board.length;
+      for (let r = 0; r < gridSize; r++) {
+        for (let c = 0; c < gridSize; c++) {
+          if (gs.board[r][c] && gs.board[r][c].placedTurn === gs.turn - 1) {
+            placedCard = gs.board[r][c];
+            placedPos = [r, c];
+          }
+        }
+      }
+
+      setDisplayState(gs);
+
+      if (placedCard && placedPos) {
+        const boardWithTiles = gs.board;
+        if (!boardWithTiles._tiles) {
+          Object.defineProperty(boardWithTiles, '_tiles', { value: gs.tiles, writable: true, enumerable: false, configurable: true });
+        }
+        const stats = getEffectiveStats(placedCard, placedPos, boardWithTiles, gs.turn, 'attack');
+        const oppName = myPlayerNumRef.current === 1 ? m.player2_name : m.player1_name;
+        pendingAfterReveal.current = { newState: gs, isMyMove: false };
+        isRevealingRef.current = true;
+        setRevealedCard(placedCard);
+        setRevealedStats(stats);
+        setRevealedPlayerName(placedCard.owner === myPlayerNumRef.current ? 'You' : oppName);
+      } else {
+        processAnimations(gs.animations);
+      }
+
+      if (gs.gameOver && !gameOverHandledRef.current) {
+        gameOverHandledRef.current = true;
+        const animCount = gs.animations?.length || 0;
+        const hasChain = gs.animations?.some(a => a.chainOrder > 0);
+        const animTime = animCount * 650 + (hasChain ? 500 : 0);
+        const delay = Math.max(5000, animTime + 1000 + 3000);
+        setTimeout(() => setPhase('gameover'), delay);
+      }
+    }
+  };
+
   // Subscribe to match updates
   useEffect(() => {
     if (!matchId) return;
     const unsubscribe = base44.entities.PvpMatch.subscribe(async () => {
       try {
         const m = await base44.entities.PvpMatch.get(matchId);
-        setMatch(m);
-
-        if (m.status === 'completed') {
-          setEloResult({
-            player1_elo_before: m.player1_elo_before,
-            player2_elo_before: m.player2_elo_before,
-            player1_elo_after: m.player1_elo_after,
-            player2_elo_after: m.player2_elo_after,
-          });
-          if (!gameOverHandledRef.current) {
-            gameOverHandledRef.current = true;
-            setTimeout(() => setPhase('gameover'), 2000);
-          }
-          return;
-        }
-
-        if (m.game_state) {
-          const gs = reconstructGameState(m.game_state);
-          if (gs.turn <= displayTurnRef.current) return;
-
-          displayTurnRef.current = gs.turn;
-
-          // Find the newly placed card for reveal
-          let placedCard = null;
-          let placedPos = null;
-          const gridSize = gs.board.length;
-          for (let r = 0; r < gridSize; r++) {
-            for (let c = 0; c < gridSize; c++) {
-              if (gs.board[r][c] && gs.board[r][c].placedTurn === gs.turn - 1) {
-                placedCard = gs.board[r][c];
-                placedPos = [r, c];
-              }
-            }
-          }
-
-          setDisplayState(gs);
-
-          if (placedCard && placedPos) {
-            const boardWithTiles = gs.board;
-            if (!boardWithTiles._tiles) {
-              Object.defineProperty(boardWithTiles, '_tiles', { value: gs.tiles, writable: true, enumerable: false, configurable: true });
-            }
-            const stats = getEffectiveStats(placedCard, placedPos, boardWithTiles, gs.turn, 'attack');
-            const oppName = myPlayerNumRef.current === 1 ? m.player2_name : m.player1_name;
-            pendingAfterReveal.current = { newState: gs, isMyMove: false };
-            isRevealingRef.current = true;
-            setRevealedCard(placedCard);
-            setRevealedStats(stats);
-            setRevealedPlayerName(placedCard.owner === myPlayerNumRef.current ? 'You' : oppName);
-          } else {
-            processAnimations(gs.animations);
-          }
-
-          if (gs.gameOver && !gameOverHandledRef.current) {
-            gameOverHandledRef.current = true;
-            const animCount = gs.animations?.length || 0;
-            const hasChain = gs.animations?.some(a => a.chainOrder > 0);
-            const animTime = animCount * 650 + (hasChain ? 500 : 0);
-            const delay = Math.max(5000, animTime + 1000 + 3000);
-            setTimeout(() => setPhase('gameover'), delay);
-          }
-        }
+        processGameStateRef.current(m);
       } catch (e) { console.error(e); }
     });
     return unsubscribe;
   }, [matchId]);
+
+  // Poll for game state updates (fallback for subscription — fixes sync issues)
+  useEffect(() => {
+    if (!matchId || phase === 'gameover') return;
+    const poll = async () => {
+      if (gameOverHandledRef.current) return;
+      try {
+        const m = await base44.entities.PvpMatch.get(matchId);
+        processGameStateRef.current(m);
+      } catch (e) { console.error(e); }
+    };
+    const interval = setInterval(poll, 3000);
+    return () => clearInterval(interval);
+  }, [matchId, phase]);
 
   // Turn timer countdown
   useEffect(() => {
@@ -304,6 +330,15 @@ export default function PvpGameMatch() {
       }).catch(e => {
         console.error(e);
         setSubmitting(false);
+        // Revert to server state on failure — prevents desync
+        base44.entities.PvpMatch.get(matchId).then(m => {
+          setMatch(m);
+          if (m.game_state) {
+            const gs = reconstructGameState(m.game_state);
+            setDisplayState(gs);
+            displayTurnRef.current = gs.turn;
+          }
+        }).catch(() => {});
       });
     }
   };
@@ -396,7 +431,64 @@ export default function PvpGameMatch() {
     </div>
   );
 
-  if (!match || !displayState) return (
+  if (!match) return (
+    <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-slate-950">
+      <p className="text-muted-foreground">Match not found</p>
+      <Button onClick={() => navigate('/')}>Back to Home</Button>
+    </div>
+  );
+
+  if (showCoinToss && phase !== 'gameover') {
+    const isTossWinner = match.toss_winner === myPlayerNum;
+    const opponentChoice = match.current_player > 0 ? match.current_player : null;
+    const tossOppName = myPlayerNum === 1 ? match.player2_name : match.player1_name;
+
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 flex flex-col">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-amber-900/20">
+          <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="text-muted-foreground">
+            <ArrowLeft className="w-4 h-4 mr-1" /> Back
+          </Button>
+          <span className="font-heading text-amber-200 text-sm">⚔️ Ranked Match</span>
+          <div className="w-20" />
+        </div>
+        <CoinFlip
+          tossWinner={isTossWinner ? 'player' : 'opponent'}
+          opponentName={tossOppName}
+          opponentChoice={opponentChoice}
+          onComplete={(firstPlayer) => {
+            if (isTossWinner && match.current_player === 0) {
+              setSubmitting(true);
+              base44.functions.invoke('pvpMatch', {
+                action: 'submit_toss_choice',
+                match_id: matchId,
+                choice: firstPlayer,
+              }).then(res => {
+                setSubmitting(false);
+                const updated = res.data?.match;
+                if (updated) {
+                  setMatch(updated);
+                  if (updated.game_state) {
+                    const gs = reconstructGameState(updated.game_state);
+                    setDisplayState(gs);
+                    displayTurnRef.current = gs.turn;
+                  }
+                }
+                setShowCoinToss(false);
+              }).catch(e => {
+                setSubmitting(false);
+                console.error(e);
+              });
+            } else {
+              setShowCoinToss(false);
+            }
+          }}
+        />
+      </div>
+    );
+  }
+
+  if (!displayState) return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-slate-950">
       <p className="text-muted-foreground">Match not found</p>
       <Button onClick={() => navigate('/')}>Back to Home</Button>
