@@ -4,7 +4,7 @@ export const CARD_ARTWORK = {
   // ── KNIGHTS ──
   C001: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/eccf8100b_generated_image.png",
   C002: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/01b4390f2_generated_image.png",
-  C003: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/cd98a3939_generated_image.png",
+  C003: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/9137577b7_generated_image.png",
   C004: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/329df3684_generated_image.png",
   C005: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/9100a7921_generated_image.png",
   C006: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/65fa60024_generated_image.png",
@@ -17,23 +17,23 @@ export const CARD_ARTWORK = {
   C013: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/a0d1ce117_generated_image.png",
 
   // ── DRAGONS ──
-  C014: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/0a7ce5a52_generated_image.png",
+  C014: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/1c3902066_generated_image.png",
   C015: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/98c1a6e03_generated_image.png",
   C016: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/d7985d74a_generated_image.png",
   C017: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/8ba356202_generated_image.png",
   C018: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/6a89eceb4_generated_image.png",
-  C019: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/33a3d31bf_generated_image.png",
-  C020: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/d1f757efd_generated_image.png",
+  C019: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/9b1d6a373_generated_image.png",
+  C020: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/73c6a1b69_generated_image.png",
   C021: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/86ecdfc3c_generated_image.png",
-  C022: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/41af54b8a_generated_image.png",
+  C022: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/ab4bd05b9_generated_image.png",
   C023: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/3d7dd125b_generated_image.png",
-  C024: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/6a06b7a27_generated_image.png",
+  C024: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/611e86605_generated_image.png",
   C025: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/21b537372_generated_image.png",
   C026: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/5272a90ea_generated_image.png",
 
   // ── BEASTS ──
   C027: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/f2664ed3d_generated_image.png",
-  C028: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/1f4ccc42b_generated_image.png",
+  C028: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/293ee0f71_generated_image.png",
   C029: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/c6245be94_generated_image.png",
   C030: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/05c9e633f_generated_image.png",
   C031: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/c2a8581c2_generated_image.png",
@@ -58,13 +58,13 @@ export const CARD_ARTWORK = {
   C048: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/94dd4c0ad_generated_image.png",
   C049: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/b04a29248_generated_image.png",
   C050: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/5325ac43b_generated_image.png",
-  C051: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/e880c659e_generated_image.png",
+  C051: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/60c0a2b5f_generated_image.png",
 
   // ── MACHINES ──
   C052: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/9a23ff5d6_generated_image.png",
   C053: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/5b919c12b_generated_image.png",
   C054: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/2b5e39a7c_generated_image.png",
-  C055: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/ab4ee5b89_generated_image.png",
+  C055: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/376022f41_generated_image.png",
   C056: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/1345a4dc3_generated_image.png",
   C057: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/715c9786b_generated_image.png",
   C058: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/c675a6b92_generated_image.png",
@@ -77,7 +77,7 @@ export const CARD_ARTWORK = {
   // ── SPIRITS ──
   C064: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/7394c6936_generated_image.png",
   C065: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/ab6105d2d_generated_image.png",
-  C066: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/e3196f7d0_generated_image.png",
+  C066: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/5e5ada57f_generated_image.png",
   C067: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/d3c4dbce9_generated_image.png",
   C068: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/4c7cdbe16_generated_image.png",
   C069: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/4741e9e5a_generated_image.png",
@@ -86,12 +86,12 @@ export const CARD_ARTWORK = {
   C072: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/5b409454c_generated_image.png",
   C073: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/74d51e84b_generated_image.png",
   C074: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/828d5e181_generated_image.png",
-  C075: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/66996dab8_generated_image.png",
+  C075: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/b0211b62f_generated_image.png",
   C076: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/614909d2d_generated_image.png",
 
   // ── ASSASSINS ──
   C077: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/da4c1805c_generated_image.png",
-  C078: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/122d2665c_generated_image.png",
+  C078: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/6c5d77124_generated_image.png",
   C079: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/e669b0a15_generated_image.png",
   C080: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/71715ccde_generated_image.png",
   C081: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/55b26ab2a_generated_image.png",
