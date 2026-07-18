@@ -129,12 +129,13 @@
 .alt-art-overlay {
   background: linear-gradient(
     90deg,
-    rgba(229, 141, 255, 0.55),
-    rgba(138, 210, 255, 0.55),
-    rgba(163, 255, 138, 0.55),
-    rgba(255, 244, 138, 0.55),
-    rgba(255, 178, 138, 0.55),
-    rgba(229, 141, 255, 0.55)
+    rgba(255, 0, 128, 0.85),
+    rgba(255, 50, 50, 0.85),
+    rgba(255, 200, 0, 0.85),
+    rgba(0, 255, 100, 0.85),
+    rgba(0, 200, 255, 0.85),
+    rgba(180, 0, 255, 0.85),
+    rgba(255, 0, 128, 0.85)
   );
   background-size: 200% 200%;
   animation: alt-art-rainbow 4s linear infinite;
