@@ -11,6 +11,8 @@ import { loadGameConfig, saveGameConfig } from '@/lib/gameConfig';
 import { REWARD_PACK_OPTIONS, REWARD_LABELS } from '@/lib/packLogic';
 import PackBuilder from '@/components/admin/PackBuilder';
 import PresetDecks from '@/components/admin/PresetDecks';
+import ExpansionManager from '@/components/admin/ExpansionManager';
+import { getDefaultExpansionSettings } from '@/lib/expansions';
 
 const FACTIONS = Object.keys(FACTION_CONFIG);
 
@@ -29,6 +31,7 @@ export default function Admin() {
   const [cardStats, setCardStats] = useState({});
   const [achievementRewards, setAchievementRewards] = useState({});
   const [customPacks, setCustomPacks] = useState([]);
+  const [expansionSettings, setExpansionSettings] = useState(getDefaultExpansionSettings());
   const [factionFilter, setFactionFilter] = useState('all');
   const [search, setSearch] = useState('');
 
@@ -50,6 +53,7 @@ export default function Admin() {
         setPackOdds(cfg.pack_odds || []);
         setAchievementRewards(cfg.achievement_rewards || {});
         setCustomPacks(cfg.custom_packs || []);
+        setExpansionSettings({ ...getDefaultExpansionSettings(), ...(cfg.expansion_settings || {}) });
         const stats = {};
         ALL_CARDS.forEach(c => {
           stats[c.card_id] = { north: c.north, east: c.east, south: c.south, west: c.west, passive_id: c.passive_id };
@@ -98,6 +102,7 @@ export default function Admin() {
         card_overrides: cardStats,
         achievement_rewards: achievementRewards,
         custom_packs: customPacks,
+        expansion_settings: expansionSettings,
       });
       setSavedMsg('Saved successfully!');
       setTimeout(() => setSavedMsg(''), 3000);
@@ -134,12 +139,13 @@ export default function Admin() {
       {savedMsg && <p className="text-sm text-emerald-400 mb-4">{savedMsg}</p>}
 
       <Tabs defaultValue="packs" className="max-w-5xl mx-auto">
-        <TabsList className="grid grid-cols-5 mb-4">
+        <TabsList className="grid grid-cols-6 mb-4">
           <TabsTrigger value="packs">Pack Settings</TabsTrigger>
           <TabsTrigger value="builder">Pack Builder</TabsTrigger>
           <TabsTrigger value="achievements">Rewards</TabsTrigger>
           <TabsTrigger value="cards">Card Stats</TabsTrigger>
           <TabsTrigger value="decks">Preset Decks</TabsTrigger>
+          <TabsTrigger value="expansions">Expansions</TabsTrigger>
         </TabsList>
 
         <TabsContent value="packs" className="space-y-4">
@@ -270,6 +276,10 @@ export default function Admin() {
 
         <TabsContent value="decks" className="space-y-4">
           <PresetDecks />
+        </TabsContent>
+
+        <TabsContent value="expansions" className="space-y-4">
+          <ExpansionManager expansionSettings={expansionSettings} setExpansionSettings={setExpansionSettings} />
         </TabsContent>
       </Tabs>
     </div>

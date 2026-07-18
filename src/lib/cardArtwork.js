@@ -255,4 +255,22 @@ export const CARD_ARTWORK = {
   C219: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/bb29acb11_generated_image.png",
   C220: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/0cdecf43b_generated_image.png",
   C221: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/657953f69_generated_image.png",
+
+  // ── FRANCHISED EXPANSION: FINAL FANTASY VIII (Triple Triad) ──
+  F001: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/b4ea3f3e9_generated_image.png",
+  F002: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/2fccad00c_generated_image.png",
+  F003: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/c7f4372ae_generated_image.png",
+  F004: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/b5c54e272_generated_image.png",
+  F005: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/07de40fd6_generated_image.png",
+  F006: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/4c1ac9b0e_generated_image.png",
+  F007: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/33247c1ec_generated_image.png",
+  F008: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/481399279_generated_image.png",
+  F009: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/685722a9c_generated_image.png",
+  F010: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/e8a7a779f_generated_image.png",
+  F011: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/e7c954e1e_generated_image.png",
+  F012: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/124ac3acd_generated_image.png",
+  F013: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/b0e25eeeb_generated_image.png",
+  F014: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/cb4842c33_generated_image.png",
+  F015: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/ecffd9b37_generated_image.png",
+  F016: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/9fb608e95_generated_image.png",
 };

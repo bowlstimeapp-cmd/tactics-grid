@@ -10,6 +10,8 @@ import GameCard from '@/components/game/GameCard';
 import CardDetailModal from '@/components/game/CardDetailModal';
 import { ALL_CARDS } from '@/lib/cardDatabase';
 import { FACTION_CONFIG } from '@/lib/gameData';
+import { getEnabledCards } from '@/lib/expansions';
+import { loadGameConfig } from '@/lib/gameConfig';
 
 export default function Collection() {
   const navigate = useNavigate();
@@ -20,12 +22,17 @@ export default function Collection() {
   const [sortBy, setSortBy] = useState('name');
   const [selectedCard, setSelectedCard] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [expansionSettings, setExpansionSettings] = useState(null);
 
   useEffect(() => {
     async function load() {
       const me = await base44.auth.me();
       const profiles = await base44.entities.PlayerProfile.filter({ created_by_id: me.id });
       if (profiles[0]) setProfile(profiles[0]);
+      try {
+        const cfg = await loadGameConfig();
+        setExpansionSettings(cfg.expansion_settings);
+      } catch (e) { console.error(e); }
     }
     load();
   }, []);
@@ -34,7 +41,8 @@ export default function Collection() {
   const altArts = profile?.alt_arts || {};
   const altArtCount = Object.keys(altArts).length;
 
-  let filtered = ALL_CARDS.filter(c => {
+  const cardPool = expansionSettings ? getEnabledCards(expansionSettings) : ALL_CARDS;
+  let filtered = cardPool.filter(c => {
     if (search && !c.name.toLowerCase().includes(search.toLowerCase())) return false;
     if (faction !== 'all' && c.faction !== faction) return false;
     if (rarity !== 'all' && c.rarity !== rarity) return false;
@@ -74,7 +82,7 @@ export default function Collection() {
         </Button>
         <h1 className="font-heading text-xl text-amber-200">Collection</h1>
         <span className="text-xs text-muted-foreground ml-auto">
-          {Object.keys(owned).length}/{ALL_CARDS.length} owned
+          {Object.keys(owned).length}/{cardPool.length} owned
           {altArtCount > 0 && <span className="ml-2 font-bold bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(90deg, #ff0080, #ffd700, #00ff00, #00b4ff, #8b00ff, #ff0080)', backgroundSize: '200% 100%' }}>✨ {altArtCount} alt art{altArtCount !== 1 ? 's' : ''}</span>}
         </span>
       </div>

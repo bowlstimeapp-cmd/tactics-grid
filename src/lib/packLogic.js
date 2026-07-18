@@ -1,5 +1,6 @@
 import { ALL_CARDS, getCardsByFaction, getCardById } from '@/lib/cardDatabase';
 import { GEM_EXCHANGE_VALUES } from '@/lib/gameData';
+import { getEnabledCards } from '@/lib/expansions';
 
 export const PACK_TYPES = {
   standard: { id: 'standard', name: 'Standard Pack', costField: 'standard_pack_cost', currency: 'coins' },
@@ -50,27 +51,28 @@ function maybeAltArt(card) {
   return card;
 }
 
-function openStandardPack(size, odds) {
+function openStandardPack(size, odds, expansionSettings) {
+  const enabled = getEnabledCards(expansionSettings);
   const cards = [];
   for (let i = 0; i < size; i++) {
     const rarity = rollRarity(odds);
-    const pool = ALL_CARDS.filter(c => c.rarity === rarity);
+    const pool = enabled.filter(c => c.rarity === rarity);
     const card = pool[Math.floor(Math.random() * pool.length)];
     cards.push(maybeAltArt(card));
   }
   return cards;
 }
 
-function openFactionPack(faction, odds) {
-  const factionCards = getCardsByFaction(faction);
+function openFactionPack(faction, odds, expansionSettings) {
+  const factionCards = getEnabledCards(expansionSettings).filter(c => c.faction === faction);
   const rarity = rollRarity(odds);
   let pool = factionCards.filter(c => c.rarity === rarity);
   if (pool.length === 0) pool = factionCards;
   return [maybeAltArt(pool[Math.floor(Math.random() * pool.length)])];
 }
 
-function openGuaranteedPack(rarity) {
-  const pool = ALL_CARDS.filter(c => c.rarity === rarity);
+function openGuaranteedPack(rarity, expansionSettings) {
+  const pool = getEnabledCards(expansionSettings).filter(c => c.rarity === rarity);
   return [maybeAltArt(pool[Math.floor(Math.random() * pool.length)])];
 }
 
@@ -104,15 +106,15 @@ export function getCustomPackRarityAllocation(pack) {
 export function openPack(packType, config, faction, customPack) {
   switch (packType) {
     case 'standard':
-      return openStandardPack(config.standard_pack_size || 3, config.pack_odds);
+      return openStandardPack(config.standard_pack_size || 3, config.pack_odds, config.expansion_settings);
     case 'faction':
-      return openFactionPack(faction, config.pack_odds);
+      return openFactionPack(faction, config.pack_odds, config.expansion_settings);
     case 'guaranteed_rare':
-      return openGuaranteedPack('Rare');
+      return openGuaranteedPack('Rare', config.expansion_settings);
     case 'guaranteed_epic':
-      return openGuaranteedPack('Epic');
+      return openGuaranteedPack('Epic', config.expansion_settings);
     case 'guaranteed_legendary':
-      return openGuaranteedPack('Legendary');
+      return openGuaranteedPack('Legendary', config.expansion_settings);
     case 'custom':
       return openCustomPack(customPack, config);
     default:

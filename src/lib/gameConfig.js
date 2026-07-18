@@ -1,5 +1,6 @@
 import { base44 } from '@/api/base44Client';
 import { PACK_COST, PACK_SIZE, PACK_ODDS } from './gameData';
+import { getDefaultExpansionSettings } from './expansions';
 
 const DEFAULT_CONFIG = {
   standard_pack_cost: PACK_COST,
@@ -10,6 +11,7 @@ const DEFAULT_CONFIG = {
   guaranteed_legendary_cost: 500,
   pack_odds: PACK_ODDS,
   card_overrides: {},
+  expansion_settings: getDefaultExpansionSettings(),
   achievement_rewards: {
     first_win: 'standard',
     wins_10: 'standard',

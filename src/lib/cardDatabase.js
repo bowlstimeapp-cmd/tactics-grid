@@ -1,5 +1,6 @@
-// 100 unique cards + 100 expansion cards
+// 100 unique cards + 100 expansion cards + franchised expansions
 import { EXPANSION_CARDS } from './cardExpansion';
+import { FF8_CARDS } from './ff8Cards';
 const CARDS = [
   // ── KNIGHTS (13) ──
   { card_id:"C001",name:"Squire",faction:"Knights",north:4,east:4,south:4,west:3,rarity:"Common",passive_id:"played_first_boost",flavour_text:"Every legend begins with a single step." },
@@ -152,6 +153,7 @@ const CARDS = [
   { card_id:"C220",name:"Astral Lord",faction:"Spirits",north:7,east:7,south:7,west:7,rarity:"Legendary",passive_id:"card_synergy",synergy_target:"Void Walker",synergy_bonus:1,flavour_text:"The stars whisper where the void walks." },
   { card_id:"C221",name:"Void Walker",faction:"Spirits",north:7,east:7,south:7,west:7,rarity:"Legendary",passive_id:"card_synergy",synergy_target:"Astral Lord",synergy_bonus:1,flavour_text:"The void hungers where the stars shine." },
   ...EXPANSION_CARDS,
+  ...FF8_CARDS,
 ];
 
 // Auto-assign rarity based on avg stats + ability strength
