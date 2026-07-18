@@ -172,13 +172,13 @@ export default function GameCard({ card, size = 'md', onClick, selected, showSta
               )}
             </div>
 
-            {/* Alt Art rainbow holographic effect */}
+            {/* Alt Art rainbow color overlay (Pokemon TCG rainbow rare style) */}
             {card.is_alt_art && (
               <div className="absolute inset-0 holo-rainbow pointer-events-none" />
             )}
 
-            {/* Holographic effect for Legendary cards (non-alt-art) */}
-            {card.rarity === 'Legendary' && !card.is_alt_art && (
+            {/* Holographic effect for Legendary cards (always, including alt arts) */}
+            {card.rarity === 'Legendary' && (
               <div className="absolute inset-0 holo-effect pointer-events-none" />
             )}
 
