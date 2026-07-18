@@ -273,4 +273,18 @@ export const CARD_ARTWORK = {
   F014: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/cb4842c33_generated_image.png",
   F015: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/ecffd9b37_generated_image.png",
   F016: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/9fb608e95_generated_image.png",
+
+  // ── GUARDIAN FORCES ──
+  F017: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/de36883a3_generated_image.png",
+  F018: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/2752739e0_generated_image.png",
+  F019: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/f2c73afd2_generated_image.png",
+  F020: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/87fc8e2dd_generated_image.png",
+  F021: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/502bbdef0_generated_image.png",
+  F022: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/f7dec20d7_generated_image.png",
+  F023: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/3a2fb1391_generated_image.png",
+  F024: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/5abeb4d69_generated_image.png",
+  F025: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/bf2614a95_generated_image.png",
+  F026: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/669cca502_generated_image.png",
+  F027: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/0aadcf0d7_generated_image.png",
+  F028: "https://media.base44.com/images/public/6a515f98c3765b4ad9db2222/34f1eb1f8_generated_image.png",
 };

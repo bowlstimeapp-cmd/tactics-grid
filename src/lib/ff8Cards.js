@@ -32,4 +32,18 @@ export const FF8_CARDS = [
   { card_id:"F014", name:"Harpoon Guardian", faction:"Knights", north:5, east:3, south:6, west:4, rarity:"Uncommon", passive_id:"anchor", expansion_id:FF8_EXPANSION_ID, flavour_text:"Few words. Fewer who can move him." },
   { card_id:"F015", name:"Storm Eye", faction:"Assassins", north:4, east:5, south:3, west:5, rarity:"Uncommon", passive_id:"edge_boost", expansion_id:FF8_EXPANSION_ID, flavour_text:"She speaks in single words. The wind does the rest." },
   { card_id:"F016", name:"Thunder Brute", faction:"Knights", north:5, east:4, south:5, west:3, rarity:"Uncommon", passive_id:"berserker", expansion_id:FF8_EXPANSION_ID, flavour_text:"Each scar he takes only sharpens the storm inside." },
+
+  // ── Guardian Forces (summoned eidolons) ──
+  { card_id:"F017", name:"Bahamut", faction:"Dragons", north:7, east:7, south:6, west:7, rarity:"Legendary", passive_id:"domination", expansion_id:FF8_EXPANSION_ID, flavour_text:"The king of dragons does not bow — he annihilates." },
+  { card_id:"F018", name:"Eden", faction:"Spirits", north:7, east:7, south:7, west:6, rarity:"Legendary", passive_id:"played_last_boost", expansion_id:FF8_EXPANSION_ID, flavour_text:"Beyond the edge of memory, she unleashes the final breath of eternity." },
+  { card_id:"F019", name:"Ifrit", faction:"Dragons", north:6, east:7, south:5, west:6, rarity:"Epic", passive_id:"berserker", expansion_id:FF8_EXPANSION_ID, flavour_text:"His fury burns hottest when the world tries to break him." },
+  { card_id:"F020", name:"Shiva", faction:"Spirits", north:6, east:5, south:6, west:7, rarity:"Epic", passive_id:"defend_boost", expansion_id:FF8_EXPANSION_ID, flavour_text:"Crowned in frost, she turns the battlefield into her domain." },
+  { card_id:"F021", name:"Quezacotl", faction:"Mages", north:5, east:7, south:6, west:6, rarity:"Epic", passive_id:"edge_boost", expansion_id:FF8_EXPANSION_ID, flavour_text:"The storm-serpent rides the thunder and never lands." },
+  { card_id:"F022", name:"Diablos", faction:"Undead", north:7, east:5, south:7, west:5, rarity:"Epic", passive_id:"blood_pact", expansion_id:FF8_EXPANSION_ID, flavour_text:"Gravity bows to him — and so does everything caught in it." },
+  { card_id:"F023", name:"Leviathan", faction:"Dragons", north:6, east:6, south:6, west:5, rarity:"Epic", passive_id:"momentum", expansion_id:FF8_EXPANSION_ID, flavour_text:"The tide does not strike once. It builds, and then it drowns." },
+  { card_id:"F024", name:"Alexander", faction:"Machines", north:6, east:5, south:6, west:6, rarity:"Epic", passive_id:"anchor", expansion_id:FF8_EXPANSION_ID, flavour_text:"A fortress given wings and a will of sanctified iron." },
+  { card_id:"F025", name:"Doomtrain", faction:"Undead", north:5, east:6, south:5, west:6, rarity:"Epic", passive_id:"hunter", expansion_id:FF8_EXPANSION_ID, flavour_text:"It arrives on poisoned rails, and no one walks away from the station." },
+  { card_id:"F026", name:"Cerberus", faction:"Beasts", north:5, east:6, south:4, west:5, rarity:"Rare", passive_id:"attack_boost", expansion_id:FF8_EXPANSION_ID, flavour_text:"Three heads, one purpose: to guard the gate and howl down the dark." },
+  { card_id:"F027", name:"Siren", faction:"Spirits", north:5, east:5, south:5, west:5, rarity:"Rare", passive_id:"harmony", expansion_id:FF8_EXPANSION_ID, flavour_text:"Her song mends what battle has torn asunder." },
+  { card_id:"F028", name:"Brothers", faction:"Knights", north:6, east:4, south:6, west:4, rarity:"Rare", passive_id:"anchor", expansion_id:FF8_EXPANSION_ID, flavour_text:"Two souls, one unbreakable wall of living stone." },
 ];
