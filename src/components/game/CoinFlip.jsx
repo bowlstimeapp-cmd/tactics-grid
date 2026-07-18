@@ -32,13 +32,13 @@ export default function CoinFlip({ onComplete, tossWinner, opponentName, opponen
     }
   }, [isPvP, phase]);
 
-  // Auto-proceed when AI wins the toss (no Continue button needed)
+  // Auto-proceed when opponent wins the toss (AI or PvP opponent who chose)
   useEffect(() => {
-    if (phase === 'result' && !playerWon && !isPvP) {
+    if (phase === 'result' && !playerWon && (!isPvP || opponentChoice)) {
       const timer = setTimeout(() => onComplete(continueValue), 2500);
       return () => clearTimeout(timer);
     }
-  }, [phase, playerWon, isPvP, continueValue, onComplete]);
+  }, [phase, playerWon, isPvP, opponentChoice, continueValue, onComplete]);
 
   const playerWon = result === 'player';
   const finalRotation = playerWon ? 1440 : 1260;
@@ -57,7 +57,6 @@ export default function CoinFlip({ onComplete, tossWinner, opponentName, opponen
     statusText = `${opponentLabel} wins the toss and chooses to go ${aiChoice === 1 ? 'first' : 'second'}`;
   }
 
-  const showContinue = !playerWon && isPvP && opponentChoice;
   const continueValue = isPvP ? opponentChoice : (aiChoice === 1 ? 2 : 1);
 
   return (
@@ -115,17 +114,7 @@ export default function CoinFlip({ onComplete, tossWinner, opponentName, opponen
         </motion.div>
       )}
 
-      {phase === 'result' && showContinue && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          <Button onClick={() => onComplete(continueValue)} className="bg-amber-600 hover:bg-amber-500 text-black font-heading">
-            Continue
-          </Button>
-        </motion.div>
-      )}
+
     </div>
   );
 }
