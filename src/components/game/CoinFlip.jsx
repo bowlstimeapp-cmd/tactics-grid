@@ -50,7 +50,7 @@ export default function CoinFlip({ onComplete, tossWinner, opponentName, opponen
   }
 
   const showContinue = !playerWon && (!isPvP || opponentChoice);
-  const continueValue = isPvP ? opponentChoice : aiChoice;
+  const continueValue = isPvP ? opponentChoice : (aiChoice === 1 ? 2 : 1);
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center gap-6 p-4" style={{ perspective: '1000px' }}>
