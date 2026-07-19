@@ -19,13 +19,19 @@ Deno.serve(async (req) => {
       const { player_name, elo, cards, game_mode, challenged_id } = body;
       if (!cards || cards.length === 0) return Response.json({ error: 'No cards provided' }, { status: 400 });
 
-      // Check for existing matched queue entry
+      // Check for existing matched queue entry — but skip if that match already ended
       const matched = await base44.asServiceRole.entities.MatchQueue.filter({
         player_id: user.id, status: 'matched'
       });
       if (matched.length > 0 && matched[0].match_id) {
-        const match = await base44.asServiceRole.entities.PvpMatch.get(matched[0].match_id);
-        if (match) return Response.json({ status: 'matched', match });
+        const existingMatch = await base44.asServiceRole.entities.PvpMatch.get(matched[0].match_id);
+        if (existingMatch && existingMatch.status === 'active') {
+          return Response.json({ status: 'matched', match: existingMatch });
+        }
+        // Stale entry pointing to a completed/missing match — clean up and re-queue
+        await base44.asServiceRole.entities.MatchQueue.deleteMany({
+          player_id: user.id, status: 'matched'
+        });
       }
 
       // Clean up old searching entries for this player
@@ -342,6 +348,11 @@ Deno.serve(async (req) => {
         player2_elo_after: newElo2,
       });
 
+      // Clean up matched queue entries so players can queue again
+      await base44.asServiceRole.entities.MatchQueue.deleteMany({
+        match_id: match_id, status: 'matched'
+      });
+
       await updatePlayerProfiles(base44, match, winner);
       const eloChangeEnd = winner === 1 ? newElo1 - p1Elo : newElo2 - p2Elo;
       await createMatchRecord(base44, match, winner, eloChangeEnd);
@@ -398,6 +409,11 @@ Deno.serve(async (req) => {
         winner,
         player1_elo_after: newElo1,
         player2_elo_after: newElo2,
+      });
+
+      // Clean up matched queue entries so players can queue again
+      await base44.asServiceRole.entities.MatchQueue.deleteMany({
+        match_id: match_id, status: 'matched'
       });
 
       await updatePlayerProfiles(base44, match, winner);
@@ -532,6 +548,11 @@ async function checkAndProcessTimeout(base44: any, match: any) {
     winner,
     player1_elo_after: newElo1,
     player2_elo_after: newElo2,
+  });
+
+  // Clean up matched queue entries so players can queue again
+  await base44.asServiceRole.entities.MatchQueue.deleteMany({
+    match_id: match.id, status: 'matched'
   });
 
   await updatePlayerProfiles(base44, match, winner);
