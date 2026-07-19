@@ -11,7 +11,7 @@ import GameOverModal from '@/components/game/GameOverModal';
 import CardDetailModal from '@/components/game/CardDetailModal';
 import CardReveal from '@/components/game/CardReveal';
 import BoardEffectsBar from '@/components/game/BoardEffectsBar';
-import { createGameState, placeCard, getEffectiveStats } from '@/lib/gameEngine';
+import { createGameState, placeCard, getEffectiveStats, getHandCardPreview } from '@/lib/gameEngine';
 import { getRandomLayout, BOARD_LAYOUTS } from '@/lib/gameData';
 import { getAIMove } from '@/lib/ai';
 import { ALL_CARDS, applyCardOverrides } from '@/lib/cardDatabase';
@@ -275,8 +275,8 @@ export default function GameMatch() {
 
   const handleHandInspect = useCallback((card) => {
     setInspectCard(card);
-    setInspectStats(null);
-  }, []);
+    setInspectStats(gameState ? getHandCardPreview(card, gameState) : null);
+  }, [gameState]);
 
   const handleUndo = () => {
     if (history.length === 0 || isAIThinking) return;
@@ -432,7 +432,7 @@ export default function GameMatch() {
             selectedIndex={null}
             onSelect={() => {}}
             onPlaceCard={selectedTile && !inspectMode && gameState.currentPlayer === 1 && !isAIThinking ? handlePlaceCard : undefined}
-            onInspect={inspectMode ? handleHandInspect : undefined}
+            onInspect={handleHandInspect}
             isActive={gameState.currentPlayer === 1 && !isAIThinking && !inspectMode}
             playerNum={1}
             playerName="You"
