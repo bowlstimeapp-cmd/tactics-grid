@@ -116,6 +116,16 @@ export default function PvpGameMatch() {
 
     if (m.game_state) {
       const gs = reconstructGameState(m.game_state);
+
+      // Toss just resolved (currentPlayer went from 0 → 1/2) — sync board state
+      // and dismiss the coin toss screen for the toss loser, whose auto-proceed
+      // timer is otherwise killed by turn-timer re-renders every 500ms.
+      if (gs.currentPlayer > 0 && displayState?.currentPlayer === 0) {
+        setDisplayState(gs);
+        displayTurnRef.current = gs.turn;
+        setShowCoinToss(false);
+      }
+
       if (gs.turn <= displayTurnRef.current) return;
 
       displayTurnRef.current = gs.turn;
